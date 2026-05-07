@@ -299,7 +299,108 @@ class DB {
         this.load();
         if (!this.data.profiles) this.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
         
+        this.initAuthListener(); // Iniciamos el escucha de sesi\u00F3n
         this.syncWithSupabase();
+    }
+
+    initAuthListener() {
+        this.supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log("\uD83D\uDD11 Evento Auth:", event);
+            if (session && session.user) {
+                // Usuario conectado
+                const user = session.user;
+                const email = user.email;
+                const userId = user.id;
+
+                // Buscar o crear perfil en nuestra tabla de perfiles
+                let profile = this.data.profiles.find(p => p.userId === userId || p.email === email);
+                
+                // Lista de correos que siempre deben ser ADMIN
+                const adminEmails = ['brunodavidsmith2006@gmail.com', 'carinaandreanieto@gmail.com'];
+                const isAdminEmail = adminEmails.includes(email.toLowerCase());
+
+                if (!profile) {
+                    console.log("\u2728 Creando nuevo perfil para usuario de Supabase...");
+                    profile = {
+                        userId: userId,
+                        email: email,
+                        nombre: user.user_metadata.full_name || email.split('@')[0],
+                        roles: isAdminEmail ? ['admin', 'alumno'] : ['alumno'],
+                        rango: isAdminEmail ? 'admin' : 'alumno',
+                        foto: user.user_metadata.avatar_url || '',
+                        cursos: []
+                    };
+                    this.data.profiles.push(profile);
+                    this.save();
+                } else {
+                    let changed = false;
+                    if (profile.userId !== userId) {
+                        profile.userId = userId;
+                        changed = true;
+                    }
+                    // Forzar Admin si es uno de los correos autorizados
+                    if (isAdminEmail && profile.rango !== 'admin') {
+                        profile.roles = ['admin', 'alumno'];
+                        profile.rango = 'admin';
+                        changed = true;
+                    }
+                    if (changed) this.save();
+                }
+
+                this.currentUser = profile;
+                localStorage.setItem('carin_atelier_user', JSON.stringify(profile));
+            } else {
+                // Usuario desconectado
+                this.currentUser = null;
+                localStorage.removeItem('carin_atelier_user');
+            }
+
+            if (window.App && typeof window.App.renderLayout === 'function') {
+                window.App.renderLayout();
+            }
+        });
+    }
+
+    async login(email, password) {
+        const { data, error } = await this.supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+        if (error) throw error;
+        return data;
+    }
+
+    async signup(email, password, nombre) {
+        const { data, error } = await this.supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: nombre
+                }
+            }
+        });
+        if (error) throw error;
+        return data;
+    }
+
+    async loginWithGoogle() {
+        const { data, error } = await this.supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin
+            }
+        });
+        if (error) throw error;
+        return data;
+    }
+
+    async logout() {
+        const { error } = await this.supabase.auth.signOut();
+        if (error) throw error;
+        this.currentUser = null;
+        localStorage.removeItem('carin_atelier_user');
+        window.location.hash = '#/';
     }
 
     async syncWithSupabase() {

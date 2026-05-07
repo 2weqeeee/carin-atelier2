@@ -3799,86 +3799,104 @@ Mi Direcci\u00F3n: ${direccion}
 Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         window.open(`https://wa.me/5493547000000?text=${encodeURIComponent(msg)}`, '_blank');
-        document.getElementById('reservation-modal').style.display = 'none';
-        this.showToast('\u2705 Solicitud enviada correctamente');
-    },
-
-
-
-    viewLogin(main) {
-
+         viewLogin(main) {
+        const isRegister = this._authMode === 'register';
         main.innerHTML = `
-
-            <div class="container" style="max-width: 400px; margin-top: 5rem; margin-bottom: 5rem;">
-
+            <div class="container" style="max-width: 450px; margin-top: 5rem; margin-bottom: 5rem;">
                 <div style="background: var(--color-bg); border: 1.5px solid var(--color-border); padding: 2.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+                    
+                    <!-- Tabs -->
+                    <div style="display:flex; gap:1rem; margin-bottom:2rem; border-bottom:1px solid var(--color-border); padding-bottom:1rem;">
+                        <button onclick="App._authMode='login'; App.viewLogin(document.getElementById('main-content'))" 
+                                style="background:none; border:none; font-weight:${!isRegister ? '800' : '500'}; color:${!isRegister ? 'var(--color-text)' : 'var(--color-text-muted)'}; cursor:pointer; font-size:1.1rem; position:relative;">
+                            Ingresar
+                            ${!isRegister ? '<div style="position:absolute; bottom:-1.1rem; left:0; width:100%; height:3px; background:var(--color-primary);"></div>' : ''}
+                        </button>
+                        <button onclick="App._authMode='register'; App.viewLogin(document.getElementById('main-content'))" 
+                                style="background:none; border:none; font-weight:${isRegister ? '800' : '500'}; color:${isRegister ? 'var(--color-text)' : 'var(--color-text-muted)'}; cursor:pointer; font-size:1.1rem; position:relative;">
+                            Crear Cuenta
+                            ${isRegister ? '<div style="position:absolute; bottom:-1.1rem; left:0; width:100%; height:3px; background:var(--color-primary);"></div>' : ''}
+                        </button>
+                    </div>
 
-                    <h1 style="text-align: center; margin-bottom: 2rem;">Ingresar</h1>
+                    ${isRegister ? `
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 0.5rem;">Nombre Completo</label>
+                            <input type="text" id="reg-nombre" placeholder="Tu nombre" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
+                        </div>
+                    ` : ''}
 
                     <div style="margin-bottom: 1.5rem;">
-
                         <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 0.5rem;">Email</label>
-
-                        <input type="email" id="login-email" placeholder="tu@email.com" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
-
+                        <input type="email" id="auth-email" placeholder="tu@email.com" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
                     </div>
 
                     <div style="margin-bottom: 2rem;">
-
-                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 0.5rem;">Contrasenia</label>
-
-                        <input type="password" id="login-pass" placeholder="        " style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
-
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 0.5rem;">Contrase\u00F1a</label>
+                        <input type="password" id="auth-pass" placeholder="********" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
                     </div>
 
-                    <button onclick="App.handleLogin()" class="btn btn-dark" style="width: 100%; padding: 12px; font-size: 1rem;">Entrar</button>
+                    <button onclick="${isRegister ? 'App.handleSignup()' : 'App.handleLogin()'}" class="btn btn-dark" style="width: 100%; padding: 12px; font-size: 1rem; font-weight:700;">
+                        ${isRegister ? 'Registrarme' : 'Entrar'}
+                    </button>
 
-                    
-
-                    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); text-align: center;">
-
-                        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 1rem;">Solo para pruebas rpidas:</p>
-
-                        <button onclick="App.demoLogin('admin')" class="btn btn-default" style="width: 100%; font-size: 0.8rem; margin-bottom: 0.5rem;">Entrar como Admin</button>
-
-                        <button onclick="App.demoLogin('tecnico')" class="btn btn-default" style="width: 100%; font-size: 0.8rem; margin-bottom: 0.5rem;">Entrar como Técnico</button>
-
-                        <button onclick="App.demoLogin('profesor')" class="btn btn-default" style="width: 100%; font-size: 0.8rem; margin-bottom: 0.5rem;">Entrar como Profesor</button>
-
-                        <button onclick="App.demoLogin('carin_plus')" class="btn btn-default" style="width: 100%; font-size: 0.8rem; margin-bottom: 0.5rem;">Entrar como Usuario Carin+</button>
-
+                    <div style="margin: 1.5rem 0; text-align: center; position: relative;">
+                        <hr style="border: 0; border-top: 1px solid var(--color-border);">
+                        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--color-bg); padding: 0 10px; font-size: 12px; color: var(--color-text-muted);">O TAMBI\u00C9N</span>
                     </div>
 
+                    <button onclick="App.loginWithGoogle()" class="btn btn-default" style="width: 100%; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600;">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18">
+                        Continuar con Google
+                    </button>
                 </div>
-
             </div>
-
         `;
-
     },
 
+    async handleLogin() {
+        const email = document.getElementById('auth-email').value.trim();
+        const pass = document.getElementById('auth-pass').value.trim();
+        if (!email || !pass) return this.showToast('   Completa todos los campos');
 
-
-    handleLogin() {
-
-        const email = document.getElementById('login-email').value;
-
-        const pass = document.getElementById('login-pass').value;
-
-        if (db.login(email, pass)) {
-
-            this.showToast('   Bienvenido/a!');
-
+        try {
+            this.showToast('\uD83D\uDD10 Validando...');
+            await db.login(email, pass);
+            this.showToast('   \u00A1Bienvenido/a!');
             this.navigate('/');
-
-            this.renderLayout();
-
-        } else {
-
-            this.showToast(' ? Email no encontrado');
-
+        } catch (e) {
+            console.error(e);
+            this.showToast('\u274C Error: Credenciales inv\u00E1lidas');
         }
+    },
 
+    async handleSignup() {
+        const nombre = document.getElementById('reg-nombre').value.trim();
+        const email = document.getElementById('auth-email').value.trim();
+        const pass = document.getElementById('auth-pass').value.trim();
+        
+        if (!nombre || !email || !pass) return this.showToast('   Completa todos los campos');
+        if (pass.length < 6) return this.showToast('\u26A0\uFE0F La contrase\u00F1a debe tener al menos 6 caracteres');
+
+        try {
+            this.showToast('\uD83D\uDCDD Creando cuenta...');
+            await db.signup(email, pass, nombre);
+            this.showToast('\u2705 \u00A1Cuenta creada con \u00E9xito!');
+            this.navigate('/');
+        } catch (e) {
+            console.error(e);
+            this.showToast('\u274C Error al registrarse: ' + e.message);
+        }
+    },
+
+    async loginWithGoogle() {
+        try {
+            await db.loginWithGoogle();
+        } catch (e) {
+            console.error(e);
+            this.showToast('\u274C Error con el acceso de Google');
+        }
+    },
     },
 
 
@@ -4426,16 +4444,16 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-    handleLogout() {
-
-        db.logout();
-
-        this.showToast('Sesión cerrada');
-
-        this.navigate('/');
-
-        this.renderLayout();
-
+    async handleLogout() {
+        try {
+            await db.logout();
+            this.showToast('Sesi\u00F3n cerrada');
+            this.navigate('/');
+            this.renderLayout();
+        } catch (e) {
+            console.error(e);
+            this.showToast('\u274C Error al cerrar sesi\u00F3n');
+        }
     },
 
 
