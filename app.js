@@ -1352,167 +1352,38 @@ const App = {
                     </nav>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-
-                    ${user ? `
-                    <!-- Notifications -->
-                    <div style="position:relative;">
-                        <button onclick="App.toggleNotifications()" class="header-icon-btn" title="Notificaciones" style="${isCarinPlus ? 'color: #94a3b8; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);' : ''}">
-                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                            ${db.getNotifications(user.userId).filter(n => !n.leida).length > 0 ? `
-                                <span style="position:absolute; top:-2px; right:-2px; background:#ef4444; color:white; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:900; border:2px solid var(--color-bg);">${db.getNotifications(user.userId).filter(n => !n.leida).length}</span>
-                            ` : ''}
-                        </button>
-                        <div id="notifications-dropdown" class="settings-dropdown" style="width:320px; max-height:450px; overflow-y:auto; display:${isNotifOpen ? 'block' : 'none'};">
-                            <div class="dropdown-header" style="display:flex; justify-content:space-between; align-items:center;">
-                                <span>Notificaciones</span>
-                                <button onclick="db.markAllNotificationsRead('${user.userId}'); App.renderLayout();" style="background:none; border:none; color:var(--color-primary); font-size:11px; cursor:pointer; font-weight:700;">Marcar todas como leídas</button>
-                            </div>
-                            <div id="notifications-list" style="padding: 8px;">
-                                ${db.getNotifications(user.userId).length === 0 ? `
-                                    <div style="padding:2rem; text-align:center; color:var(--color-text-muted);">
-                                        <div style="font-size:2rem; margin-bottom:0.5rem;">🔔</div>
-                                        <p style="font-size:13px;">No tienes notificaciones por ahora</p>
-                                    </div>
-                                ` : db.getNotifications(user.userId).map(n => `
-                                    <div style="padding:12px; border-radius:8px; margin-bottom:4px; background:${n.leida ? 'transparent' : 'var(--color-primary-light)'}; border:1px solid ${n.leida ? 'var(--color-border)' : 'var(--color-primary)'}; transition:all 0.2s; position:relative; cursor:pointer;" onclick="db.markNotificationRead('${n.id}'); App.renderLayout();">
-                                        <div style="font-size:13px; line-height:1.4; color:var(--color-text);">${n.texto}</div>
-                                        <div style="font-size:10px; color:var(--color-text-muted); margin-top:6px;">${new Date(n.fecha).toLocaleString()}</div>
-                                        ${!n.leida ? '<div style="position:absolute; top:12px; right:12px; width:8px; height:8px; border-radius:50%; background:var(--color-primary);"></div>' : ''}
-                                    </div>
-                                `).join('')}
-                            </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <!-- Elementos visibles solo en Desktop -->
+                    <div class="desktop-only-flex" style="gap: 0.5rem; align-items: center;">
+                        ${user ? `
+                        <div style="position:relative;">
+                            <button onclick="App.toggleNotifications()" class="header-icon-btn">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                ${db.getNotifications(user.userId).filter(n => !n.leida).length > 0 ? `<span class="notif-badge">${db.getNotifications(user.userId).filter(n => !n.leida).length}</span>` : ''}
+                            </button>
                         </div>
+                        ` : ''}
+                        <button onclick="App.toggleTheme()" class="header-icon-btn">
+                            ${isDark ? '\u2600\uFE0F' : '\uD83C\uDF19'}
+                        </button>
+                        <button onclick="App._toggleRegionDropdown()" class="header-icon-btn">
+                            <span style="font-size:12px; font-weight:600;">${currentRegionObj.id.substring(0,2)} \u2022 ${showUSD?'USD':'ARS'}</span>
+                        </button>
                     </div>
-                    ` : ''}
 
-                    <!-- Theme Toggle -->
-
-                    <button onclick="App.toggleTheme()" class="header-icon-btn" title="Alternar Modo Oscuro/Claro" style="${isCarinPlus ? 'color: #94a3b8; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);' : ''}">
-
-                        ${isDark ? 
-
-                            `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 5a7 7 0 100 14 7 7 0 000-14z"/></svg>` : 
-
-                            `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`
-
-                        }
-
+                    <!-- Cart (Siempre visible) -->
+                    <button onclick="App.toggleCart()" class="header-icon-btn" style="margin-left: 0.5rem; ${isCarinPlus ? 'background:#db2777; color:white;' : ''}">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        ${db.cart.length > 0 ? `<span class="cart-badge">${db.cart.length}</span>` : ''}
                     </button>
-
-
-
-                    <!-- Settings Selector (Region, Lang, Currency) -->
-
-                    <div style="position:relative;" id="region-selector-wrap">
-
-                        <button onclick="App._toggleRegionDropdown()" class="header-icon-btn" style="${isCarinPlus ? 'color: #94a3b8; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);' : ''}">
-
-                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/><path d="M2 12H22"/><path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z"/></svg>
-
-                            <span style="font-size:12px; font-weight:600; text-transform:uppercase;">${currentRegionObj.id.substring(0,2)} \u2022 ${showUSD?'USD':'ARS'}</span>
-
-                        </button>
-
-                        
-
-                        <div id="region-dropdown" class="settings-dropdown">
-
-                            
-
-                            <!-- Language -->
-
-                            <div class="dropdown-header">Idioma / Language</div>
-
-                            <div style="display:flex; gap: 8px; padding: 0 16px;">
-
-                                <button onclick="App.setLanguage('es')" class="setting-pill ${currentLanguage === 'es' ? 'active' : ''}">ES</button>
-
-                                <button onclick="App.setLanguage('en')" class="setting-pill ${currentLanguage === 'en' ? 'active' : ''}">EN</button>
-
-                            </div>
-
-
-
-                            <!-- Region -->
-
-                            <div class="dropdown-header" style="margin-top:12px;">Región de Envío</div>
-
-                            <div style="padding: 0 8px;">
-
-                                ${regiones.map(r => `
-
-                                    <button onclick="App.setRegion('${r.id}')" class="dropdown-item ${r.id === currentRegion ? 'active' : ''}">
-
-                                        <span>${r.nombre}</span>
-
-                                        ${r.id === currentRegion ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-
-                                    </button>
-
-                                `).join('')}
-
-                            </div>
-
-                            
-
-                            <!-- Currency -->
-
-                            <div class="dropdown-header" style="margin-top:4px; padding-top:12px; border-top:1px solid rgba(0,0,0,0.05);">Moneda</div>
-
-                            <div style="padding: 0 8px; margin-bottom: 8px;">
-
-                                <button onclick="App.setUSD(false)" class="dropdown-item ${!showUSD ? 'active' : ''}">
-
-                                    <span>ARS (Pesos Argentinos)</span>
-
-                                    ${!showUSD ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-
-                                </button>
-
-                                <button onclick="App.setUSD(true)" class="dropdown-item ${showUSD ? 'active' : ''}">
-
-                                    <span>USD (Dólares)</span>
-
-                                    ${showUSD ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-
-                                </button>
-
-                            </div>
-
-                            
-
-                        </div>
-
-                    </div>
-
-                    
-
-                    <!-- Cart -->
-
-                    <a href="#/carrito" class="header-icon-btn" style="position:relative; ${isCarinPlus ? 'color: white;' : ''}">
-
-                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z"/><path d="M3 6H21"/><path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10"/></svg>
-
-                        ${db.cart.length ? `<span class="cart-badge">${db.cart.length}</span>` : ''}
-
-                    </a>
-
-                    
-
-                    ${user ? this.renderUserBadge(user, config) : ''}
-
                 </div>
-
             </header>
         `;
 
-        this.renderMobileDrawer(user, isCarinPlus, navLinkStyle);
-        this.renderFooter();
-        this.renderCart();
+        this.renderMobileDrawer(user, isCarinPlus, navLinkStyle, currentRegionObj, showUSD, regiones);
     },
 
-    renderMobileDrawer(user, isCarinPlus, navLinkStyle) {
+    renderMobileDrawer(user, isCarinPlus, navLinkStyle, currentRegionObj, showUSD, regiones) {
         let drawer = document.getElementById('mobile-drawer');
         let overlay = document.getElementById('mobile-drawer-overlay');
 
@@ -1520,7 +1391,6 @@ const App = {
             drawer = document.createElement('div');
             drawer.id = 'mobile-drawer';
             document.body.appendChild(drawer);
-
             overlay = document.createElement('div');
             overlay.id = 'mobile-drawer-overlay';
             overlay.onclick = () => this.toggleMobileMenu();
@@ -1528,33 +1398,65 @@ const App = {
         }
 
         drawer.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid var(--color-border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--color-border);">
                 <div class="logo" style="font-size:1.2rem;">Carin Atelier</div>
-                <button onclick="App.toggleMobileMenu()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text);">&times;</button>
+                <button onclick="App.toggleMobileMenu()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
             </div>
             
-            <nav style="display:flex; flex-direction:column; gap:1.5rem;">
-                <a href="#/" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/')} font-size:1.2rem; text-decoration:none;">Inicio</a>
-                <a href="#/tienda" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/tienda')} font-size:1.2rem; text-decoration:none;">Tienda</a>
-                <a href="#/cursos" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/cursos')} font-size:1.2rem; text-decoration:none;">Cursos</a>
-                <a href="#/carin-plus" onclick="App.toggleMobileMenu()" class="header-carin-btn" style="margin:0; text-align:center;"><span class="cp-text">Carin+</span> \u2728</a>
-                
-                <hr style="border:0; border-top:1px solid var(--color-border); margin:1rem 0;">
-                
+            <nav style="display:flex; flex-direction:column; gap:1.2rem;">
+                <!-- Perfil y Cuenta -->
                 ${user ? `
-                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem;">
-                        <img src="${user.foto || 'https://www.gravatar.com/avatar/0?d=mp'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                    <div style="display:flex; align-items:center; gap:12px; background:var(--color-bg-alt); padding:1rem; border-radius:12px; margin-bottom:0.5rem;">
+                        <img src="${user.foto || 'https://www.gravatar.com/avatar/0?d=mp'}" style="width:45px; height:45px; border-radius:50%; border:2px solid var(--color-primary);">
                         <div>
-                            <div style="font-weight:700; font-size:14px; color:var(--color-text);">${user.nombre}</div>
-                            <div style="font-size:12px; color:var(--color-text-muted);">${user.rango}</div>
+                            <div style="font-weight:800; font-size:15px; color:var(--color-text);">${user.nombre}</div>
+                            <div style="font-size:11px; color:var(--color-primary); font-weight:700; text-transform:uppercase;">${user.rango}</div>
                         </div>
                     </div>
-                    <a href="#/mi-cuenta" onclick="App.toggleMobileMenu()" style="text-decoration:none; color:var(--color-text); font-weight:600;">Mi Cuenta</a>
-                    ${db.hasAnyRole(user.userId, ['admin', 'tecnico']) ? `<a href="#/admin" onclick="App.toggleMobileMenu()" style="text-decoration:none; color:var(--color-primary); font-weight:700;">Panel Admin</a>` : ''}
-                    <button onclick="App.handleLogout(); App.toggleMobileMenu();" style="text-align:left; background:none; border:none; color:#ef4444; font-weight:600; cursor:pointer; padding:0;">Cerrar Sesi\u00F3n</button>
+                    <a href="#/mi-cuenta" onclick="App.toggleMobileMenu()" style="text-decoration:none; color:var(--color-text); font-weight:600; display:flex; align-items:center; gap:10px;">\uD83D\uDCDD Mi Cuenta</a>
+                    ${db.hasAnyRole(user.userId, ['admin', 'tecnico']) ? `<a href="#/admin" onclick="App.toggleMobileMenu()" style="text-decoration:none; color:var(--color-primary); font-weight:800; display:flex; align-items:center; gap:10px;">\uD83D\uDEE0\uFE0F Panel Admin</a>` : ''}
                 ` : `
-                    <a href="#/login" onclick="App.toggleMobileMenu()" class="btn btn-dark" style="width:100%;">Ingresar</a>
+                    <a href="#/login" onclick="App.toggleMobileMenu()" class="btn btn-dark" style="width:100%;">Ingresar / Registrarse</a>
                 `}
+
+                <hr style="border:0; border-top:1px solid var(--color-border); margin:0.5rem 0;">
+
+                <!-- Navegaci\u00F3n Principal -->
+                <a href="#/" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/')} text-decoration:none; font-size:1.1rem;">\uD83C\uDFE0 Inicio</a>
+                <a href="#/tienda" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/tienda')} text-decoration:none; font-size:1.1rem;">\uD83D\uDECD\uFE0F Tienda</a>
+                <a href="#/cursos" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/cursos')} text-decoration:none; font-size:1.1rem;">\uD83C\uDF93 Cursos</a>
+                <a href="#/carin-plus" onclick="App.toggleMobileMenu()" class="header-carin-btn" style="margin:0; text-align:center;"><span class="cp-text">Carin+</span> \u2728</a>
+
+                <hr style="border:0; border-top:1px solid var(--color-border); margin:0.5rem 0;">
+
+                <!-- Ajustes de Preferencias -->
+                <div style="font-size:12px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:0.5rem;">Preferencias</div>
+                
+                <div style="display:flex; flex-direction:column; gap:1rem;">
+                    <!-- Selector de Regi\u00F3n -->
+                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <span style="font-size:13px; font-weight:600;">Regi\u00F3n:</span>
+                        <select onchange="App.setRegion(this.value); App.toggleMobileMenu();" style="width:100%; padding:8px; border-radius:8px; background:var(--color-bg-alt); border:1px solid var(--color-border);">
+                            ${regiones.map(r => `<option value="${r.id}" ${r.id === currentRegionObj.id ? 'selected' : ''}>${r.emoji} ${r.nombre}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <!-- Selector de Moneda -->
+                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <span style="font-size:13px; font-weight:600;">Moneda:</span>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="App.setUSD(false); App.toggleMobileMenu();" style="flex:1; padding:8px; border-radius:8px; border:1.5px solid ${!showUSD ? 'var(--color-primary)' : 'var(--color-border)'}; background:${!showUSD ? 'var(--color-primary-light)' : 'transparent'}; font-weight:${!showUSD ? '800' : '500'};">ARS</button>
+                            <button onclick="App.setUSD(true); App.toggleMobileMenu();" style="flex:1; padding:8px; border-radius:8px; border:1.5px solid ${showUSD ? 'var(--color-primary)' : 'var(--color-border)'}; background:${showUSD ? 'var(--color-primary-light)' : 'transparent'}; font-weight:${showUSD ? '800' : '500'};">USD</button>
+                        </div>
+                    </div>
+
+                    <button onclick="App.toggleTheme(); App.toggleMobileMenu();" style="text-align:left; background:none; border:none; padding:10px 0; font-weight:600; cursor:pointer;">\uD83D\uDDA5\uFE0F Cambiar Tema (Claro/Oscuro)</button>
+                </div>
+
+                ${user ? `
+                    <hr style="border:0; border-top:1px solid var(--color-border); margin:0.5rem 0;">
+                    <button onclick="App.handleLogout(); App.toggleMobileMenu();" style="text-align:left; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer; padding:10px 0;">\uD83D\uDEAA Cerrar Sesi\u00F3n</button>
+                ` : ''}
             </nav>
         `;
     },
@@ -2265,14 +2167,14 @@ const App = {
 
                 </div>
 
-                
+                <!-- Bot\u00F3n Preferencias M\u00F3vil -->
+                <button id="mobile-shop-prefs-btn" onclick="document.getElementById('shop-sidebar').classList.toggle('active'); this.innerText = document.getElementById('shop-sidebar').classList.contains('active') ? '\u274C Cerrar Preferencias' : '\u2699\uFE0F Preferencias de tienda'" style="display:none;">
+                    \u2699\uFE0F Preferencias de tienda
+                </button>
 
-                <div style="display:grid; grid-template-columns:250px 1fr; gap:3rem; align-items:start;">
-
-                    <aside id="shop-sidebar" style="position:sticky; top:100px;">
-
+                <div class="shop-main-layout">
+                    <aside id="shop-sidebar" class="shop-sidebar-mobile">
                         ${this.renderShopSidebar()}
-
                     </aside>
 
                     <div>
