@@ -290,8 +290,63 @@ const ROLE_PRIORITY = ['owner', 'admin', 'tecnico', 'profesor', 'carin_plus', 'u
 
 class DB {
     constructor() {
+        this.firebaseConfig = {
+          apiKey: "AIzaSyAfvU49lc_4rGmC987r7f9aMna44ubRzRc",
+          authDomain: "carin-atelier.firebaseapp.com",
+          projectId: "carin-atelier",
+          storageBucket: "carin-atelier.firebasestorage.app",
+          messagingSenderId: "1075805080977",
+          appId: "1:1075805080977:web:1062371af55b4f00cc9e30",
+          measurementId: "G-LM1QWWFCQP"
+        };
+        
+        firebase.initializeApp(this.firebaseConfig);
+        this.db = firebase.firestore();
+        this.storage = firebase.storage();
+        
         this.load();
-        if (!this.data.profiles) this.data = DEFAULT_DATA;
+        if (!this.data.profiles) this.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        
+        this.syncWithFirebase();
+    }
+
+    syncWithFirebase() {
+        // Listen for changes in Firestore
+        this.db.collection('system').doc('main_data').onSnapshot((doc) => {
+            if (doc.exists) {
+                const cloudData = doc.data();
+                // Merge cloud data with local data (cloud wins for shared state)
+                this.data = { ...this.data, ...cloudData };
+                
+                // If App exists and is initialized, re-render
+                if (window.App && typeof window.App.renderLayout === 'function') {
+                    window.App.renderLayout();
+                }
+            } else {
+                // First time setup: Push local data to cloud
+                this.saveToCloud();
+            }
+        }, (error) => {
+            console.error("Firebase Sync Error:", error);
+        });
+    }
+
+    async saveToCloud() {
+        try {
+            await this.db.collection('system').doc('main_data').set(this.data);
+        } catch (e) {
+            console.error("Error saving to cloud:", e);
+        }
+    }
+
+    async uploadImage(file, path = 'images') {
+        if (!file) return null;
+        const storageRef = this.storage.ref();
+        const fileRef = storageRef.child(`${path}/${Date.now()}_${file.name}`);
+        
+        const snapshot = await fileRef.put(file);
+        const url = await snapshot.ref.getDownloadURL();
+        return url;
     }
 
     load() {
@@ -383,6 +438,7 @@ class DB {
     save() {
         try {
             localStorage.setItem('carin_atelier_db', JSON.stringify(this.data));
+            this.saveToCloud(); // Sync to cloud
             if (this.currentUser) {
                 const upToDateUser = this.data.profiles.find(p => p.userId === this.currentUser.userId);
                 if (upToDateUser) this.currentUser = upToDateUser;

@@ -6053,7 +6053,27 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
     // ----------------------------------------------------
 
-    handleImageUpload(event, previewId, hiddenInputId) {
+    async handleImageUpload(event, previewId, hiddenInputId) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        this.showToast('\uD83D\uDE80 Subiendo imagen a la nube...');
+        try {
+            const url = await db.uploadImage(file);
+            if (url) {
+                document.getElementById(hiddenInputId).value = url;
+                const preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.src = url;
+                    preview.style.display = 'block';
+                }
+                this.showToast('\u2705 Imagen subida con \u00E9xito');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showToast('\u274C Error al subir imagen');
+        }
+    },
 
         const file = event.target.files[0];
 
@@ -6105,43 +6125,11 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                 canvas.height = height;
 
-                const ctx = canvas.getContext('2d');
 
-                ctx.drawImage(img, 0, 0, width, height);
 
                 // Compress and convert to Base64
 
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
 
-                
-
-                const previewObj = document.getElementById(previewId);
-
-                if (previewObj) {
-
-                    previewObj.src = dataUrl;
-
-                    previewObj.style.display = 'block';
-
-                }
-
-                const hiddenObj = document.getElementById(hiddenInputId);
-
-                if (hiddenObj) {
-
-                    hiddenObj.value = dataUrl;
-
-                }
-
-            };
-
-            img.src = e.target.result;
-
-        };
-
-        reader.readAsDataURL(file);
-
-    },
 
 
 
