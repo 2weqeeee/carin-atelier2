@@ -4179,34 +4179,25 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-    uploadStudentComprobante(event, cursoId, userId, mes = null, anio = null) {
-
+    async uploadStudentComprobante(event, cursoId, userId, mes = null, anio = null) {
         const file = event.target.files[0];
-
         if (!file) return;
 
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-
+        App.showToast('\uD83D\uDE80 Subiendo comprobante...');
+        const url = await db.uploadImage(file);
+        
+        if (url) {
             const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
             const fechaActual = new Date();
-
             const targetMes = mes || meses[fechaActual.getMonth()];
-
             const targetAnio = anio || fechaActual.getFullYear();
 
-            db.updatePagoEstado(cursoId, userId, targetMes, targetAnio, 'En Proceso', e.target.result);
-
-            App.showToast('  Comprobante subido para ' + targetMes + '. Esperando revisión.');
-
+            db.updatePagoEstado(cursoId, userId, targetMes, targetAnio, 'En Proceso', url);
+            App.showToast('  Comprobante subido. Esperando revisi\u00F3n.');
             App.viewAccount(document.getElementById('main-content'));
-
-        };
-
-        reader.readAsDataURL(file);
-
+        } else {
+            App.showToast('\u274C Error al subir comprobante');
+        }
     },
 
 
@@ -8082,36 +8073,22 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-    saveSiteLogo() {
-
+    async saveSiteLogo() {
         const fileInput = document.getElementById('admin-logo-file');
-
         const file = fileInput.files[0];
-
         if (!file) return this.showToast('   Selecciona un archivo');
 
-
-
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-
+        this.showToast('\uD83D\uDE80 Subiendo logo...');
+        const url = await db.uploadImage(file);
+        
+        if (url) {
             const tp = db.get('textosPagina');
-
-            tp.logo = e.target.result;
-
+            tp.logo = url;
             db.save();
-
             this.renderLayout();
-
             this.viewAdmin(document.getElementById('main-content'), 'inicio');
-
             this.showToast('  Logotipo actualizado');
-
-        };
-
-        reader.readAsDataURL(file);
-
+        }
     },
 
 
@@ -9285,6 +9262,72 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
+    editCurso(id) {
+        const c = db.get('cursos').find(x => x.id === id);
+        const main = document.getElementById('admin-main-area');
+        if (!c || !main) return;
+
+        const profes = db.get('profesores');
+        main.innerHTML = `
+            <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+                    <h3 style="margin:0;">✏️ Editar: ${c.titulo}</h3>
+                    <button class="btn btn-default" onclick="App.viewAdminEnrollment('${id}')">⬅️ Volver</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                    <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Título *</label>
+                    <input id="ec-titulo" type="text" value="${c.titulo}" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                    
+                    <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Subtítulo</label>
+                    <input id="ec-subtitulo" type="text" value="${c.subtitulo || ''}" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+
+                    <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Profesor *</label>
+                    <select id="ec-profeId" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+                        ${profes.map(p => `<option value="${p.id}" ${p.id === c.profeId ? 'selected' : ''}>${p.nombre}</option>`).join('')}
+                    </select></div>
+
+                    <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Max. Alumnos *</label>
+                    <input id="ec-maxAlumnos" type="number" value="${c.maxAlumnos}" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+
+                    <div style="grid-column:1/-1;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Resumen de Horarios (Texto Corto)</label>
+                    <input id="ec-horarios" type="text" value="${c.horarios || ''}" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+
+                    <div style="grid-column:1/-1;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Descripción Corta</label>
+                    <textarea id="ec-descripcion" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);height:60px;">${c.descripcion || ''}</textarea></div>
+
+                    <div style="grid-column:1/-1;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Banner (URL o Subir)</label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input id="ec-banner" type="text" value="${c.banner || ''}" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);" oninput="document.getElementById('ec-banner-preview').src=this.value;">
+                        <label class="btn btn-default" style="cursor:pointer; margin:0; padding:10px 15px;">
+                            Subir <input type="file" accept="image/*" style="display:none;" onchange="App.handleImageUpload(event, 'ec-banner-preview', 'ec-banner')">
+                        </label>
+                    </div>
+                    <img id="ec-banner-preview" src="${c.banner || ''}" style="max-width:300px; margin-top:10px; display:${c.banner?'block':'none'}; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                    </div>
+                </div>
+                <div style="margin-top:2rem;border-top:1px solid var(--color-border);padding-top:1.5rem;display:flex;justify-content:flex-end;gap:1rem;">
+                    <button class="btn btn-dark" onclick="App.saveEditCurso('${id}')">Guardar Cambios</button>
+                </div>
+            </div>`;
+    },
+
+    saveEditCurso(id) {
+        const c = db.get('cursos').find(x => x.id === id);
+        if (!c) return;
+
+        c.titulo = document.getElementById('ec-titulo').value.trim();
+        c.subtitulo = document.getElementById('ec-subtitulo').value.trim();
+        c.profeId = document.getElementById('ec-profeId').value;
+        c.maxAlumnos = parseInt(document.getElementById('ec-maxAlumnos').value) || 10;
+        c.horarios = document.getElementById('ec-horarios').value.trim();
+        c.descripcion = document.getElementById('ec-descripcion').value.trim();
+        c.banner = document.getElementById('ec-banner').value.trim();
+
+        db.save();
+        this.showToast('  Curso actualizado');
+        this.viewAdminEnrollment(id);
+    },
+
     viewAdminEnrollment(cursoId) {
 
         const c = db.get('cursos').find(x => x.id === cursoId);
@@ -9321,7 +9364,10 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
         main.innerHTML = `
-
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h2 style="margin:0;">\uD83D\uDCDA ${c.titulo}</h2>
+                <button class="btn btn-default" onclick="App.editCurso('${c.id}')">\u270F\uFE0F Editar Curso</button>
+            </div>
             ${pendingThisCourse.length > 0 ? `
 
                 <div style="background:var(--color-bg-alt); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem; border-left:5px solid var(--color-primary);">
@@ -10874,32 +10920,24 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-    submitPaymentNotification(cursoId, mes, anio) {
-
+    async submitPaymentNotification(cursoId, mes, anio) {
         const fileInput = document.getElementById('pay-screenshot');
-
         if (!fileInput.files[0]) return this.showToast('   Debes subir una imagen del comprobante');
 
-
-
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-
-            const base64 = e.target.result;
-
-            if (db.informPago(cursoId, db.currentUser.userId, mes, anio, base64)) {
+        this.showToast('\uD83D\uDE80 Subiendo aviso de pago...');
+        const url = await db.uploadImage(fileInput.files[0]);
+        
+        if (url) {
+            if (db.informPago(cursoId, db.currentUser.userId, mes, anio, url)) {
                 this.showToast('\u2705 Aviso enviado. El profesor revisar\u00E1 tu pago.');
                 document.querySelector('.modal-overlay').remove();
                 this.viewAccount(document.getElementById('main-content'));
             } else {
-                this.showToast('\u274C Error: No se encontr\u00F3 tu inscripci\u00F3n para este mes.');
+                this.showToast('\u274C Error: No se encontr\u00F3 tu inscripci\u00F3n.');
             }
-
-        };
-
-        reader.readAsDataURL(fileInput.files[0]);
-
+        } else {
+            this.showToast('\u274C Error al subir comprobante');
+        }
     },
 
 
