@@ -6827,38 +6827,99 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         else if (section === 'carin_plus_hub') {
             content = secHeader('\u2728 Panel Carin+ Hub', 'Gesti\u00F3n centralizada del programa premium') + `
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:2rem; margin-bottom:3rem;">
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom:2.5rem;">
                     
-                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/carin_plus'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; display:flex; flex-direction:column; gap:1.25rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
-                        <div style="position:absolute; top:-10px; right:-10px; font-size:4rem; opacity:0.05; transform:rotate(15deg);">\uD83C\uDFF7\uFE0F</div>
-                        <div style="width:50px; height:50px; border-radius:12px; background:#fce7f3; color:#db2777; display:flex; align-items:center; justify-content:center; font-size:24px;">\uD83C\uDFF7\uFE0F</div>
-                        <div>
-                            <h3 style="margin:0 0 0.5rem 0;">Configurar Ofertas</h3>
-                            <p style="font-size:13px; color:var(--color-text-muted); margin:0;">Define descuentos globales, excepciones por producto y gestiona suscripciones temporales.</p>
+                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/carin_plus'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.25rem; display:flex; align-items:center; gap:1rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
+                        <div style="width:40px; height:40px; border-radius:10px; background:#fce7f3; color:#db2777; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">\uD83C\uDFF7\uFE0F</div>
+                        <div style="flex:1;">
+                            <h4 style="margin:0; font-size:14px;">Configurar Ofertas</h4>
+                            <p style="font-size:11px; color:var(--color-text-muted); margin:0;">Descuentos y exclusiones.</p>
                         </div>
-                        <button class="btn btn-dark" style="margin-top:auto; background:#db2777; border:none; width:100%;">Gestionar Ofertas</button>
                     </div>
 
-                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/carin_plus_pagina'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; display:flex; flex-direction:column; gap:1.25rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
-                        <div style="position:absolute; top:-10px; right:-10px; font-size:4rem; opacity:0.05; transform:rotate(15deg);">\uD83D\uDCC4</div>
-                        <div style="width:50px; height:50px; border-radius:12px; background:#e0e7ff; color:#4338ca; display:flex; align-items:center; justify-content:center; font-size:24px;">\uD83D\uDCC4</div>
-                        <div>
-                            <h3 style="margin:0 0 0.5rem 0;">Personalizar P\u00E1gina</h3>
-                            <p style="font-size:13px; color:var(--color-text-muted); margin:0;">Cambia los textos, beneficios y el enlace de suscripci\u00F3n de la landing page de Carin+.</p>
+                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/carin_plus_pagina'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.25rem; display:flex; align-items:center; gap:1rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
+                        <div style="width:40px; height:40px; border-radius:10px; background:#e0e7ff; color:#4338ca; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">\uD83D\uDCC4</div>
+                        <div style="flex:1;">
+                            <h4 style="margin:0; font-size:14px;">Personalizar P\u00E1gina</h4>
+                            <p style="font-size:11px; color:var(--color-text-muted); margin:0;">Landing page y beneficios.</p>
                         </div>
-                        <button class="btn btn-dark" style="margin-top:auto; background:#4338ca; border:none; width:100%;">Editar P\u00E1gina</button>
                     </div>
 
-                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/planes_carin'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; display:flex; flex-direction:column; gap:1.25rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
-                        <div style="position:absolute; top:-10px; right:-10px; font-size:4rem; opacity:0.05; transform:rotate(15deg);">\uD83D\uDC8E</div>
-                        <div style="width:50px; height:50px; border-radius:12px; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center; font-size:24px;">\uD83D\uDC8E</div>
-                        <div>
-                            <h3 style="margin:0 0 0.5rem 0;">Gesti\u00F3n de Planes</h3>
-                            <p style="font-size:13px; color:var(--color-text-muted); margin:0;">Administra los precios y duraciones de los planes (1, 3, 6 o 12 meses) para tus clientes.</p>
+                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/planes_carin'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.25rem; display:flex; align-items:center; gap:1rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
+                        <div style="width:40px; height:40px; border-radius:10px; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">\uD83D\uDC8E</div>
+                        <div style="flex:1;">
+                            <h4 style="margin:0; font-size:14px;">Gesti\u00F3n de Planes</h4>
+                            <p style="font-size:11px; color:var(--color-text-muted); margin:0;">Precios y duraciones.</p>
                         </div>
-                        <button class="btn btn-dark" style="margin-top:auto; background:#b45309; border:none; width:100%;">Configurar Planes</button>
                     </div>
 
+                </div>
+
+                <div style="background:var(--color-bg); border:1px solid #7c3aed; padding:2rem; border-radius:var(--radius-md); box-shadow:0 4px 20px rgba(124,58,237,0.05); margin-bottom:3rem; max-width:900px;">
+                    <h3 style="color:#7c3aed; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">\u23F1\uFE0F Gesti\u00F3n de Suscripciones Temporales</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem; padding-bottom:2rem; border-bottom:1px solid var(--color-border);">
+                        <div>
+                            <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Usuario</label>
+                            <select id="cp-temp-user" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                                <option value="">-- Seleccionar Usuario --</option>
+                                ${users.map(u => `<option value="${u.userId}">${u.nombre} (${u.email})</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Duraci\u00F3n (D:H:M:S)</label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="number" id="cp-days" placeholder="D" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
+                                <input type="number" id="cp-hours" placeholder="H" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
+                                <input type="number" id="cp-mins" placeholder="M" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
+                                <input type="number" id="cp-secs" placeholder="S" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
+                            </div>
+                        </div>
+                        <button class="btn btn-dark" style="background:#7c3aed; border-color:#7c3aed; grid-column:span 2; font-weight:800;" onclick="App.setCarinPlusTemporalUI()">Activar Carin+ Temporal</button>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                            <thead>
+                                <tr style="text-align:left; border-bottom:2px solid var(--color-border); color:var(--color-text-muted);">
+                                    <th style="padding:0.5rem;">Usuario</th>
+                                    <th style="padding:0.5rem;">Expiraci\u00F3n</th>
+                                    <th style="padding:0.5rem;">Estado</th>
+                                    <th style="padding:0.5rem; text-align:right;">Acci\u00F3n</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${users.filter(u => u.roles.includes('carin_plus'))
+                                    .sort((a,b) => {
+                                        const actA = db.isCarinPlusActive(a);
+                                        const actB = db.isCarinPlusActive(b);
+                                        if (actA && !actB) return -1;
+                                        if (!actA && actB) return 1;
+                                        return new Date(b.carinPlusExpiry || 0) - new Date(a.carinPlusExpiry || 0);
+                                    })
+                                    .map(u => {
+                                        const active = db.isCarinPlusActive(u);
+                                        return `
+                                        <tr style="border-bottom:1px solid var(--color-border); opacity:${active?1:0.6};">
+                                            <td style="padding:0.75rem 0.5rem;">
+                                                <div style="font-weight:700;">${u.nombre}</div>
+                                                <div style="font-size:11px; color:var(--color-text-muted);">${u.email}</div>
+                                            </td>
+                                            <td style="padding:0.75rem 0.5rem;">
+                                                ${u.carinPlusExpiry ? new Date(u.carinPlusExpiry).toLocaleString() : 'Permanente'}
+                                            </td>
+                                            <td style="padding:0.75rem 0.5rem;">
+                                                <span style="padding:2px 8px; border-radius:10px; font-size:10px; font-weight:900; background:${active?'#dcfce7':'#fee2e2'}; color:${active?'#166534':'#991b1b'};">
+                                                    ${active?'ACTIVO':'EXPIRADO'}
+                                                </span>
+                                            </td>
+                                            <td style="padding:0.75rem 0.5rem; text-align:right;">
+                                                <button class="btn btn-default" style="font-size:10px; padding:4px 8px;" onclick="db.toggleUserRole('${u.userId}', 'carin_plus'); App.viewAdmin(document.getElementById('main-content'), 'carin_plus_hub');">Quitar</button>
+                                            </td>
+                                        </tr>`;
+                                    }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>`;
         }
 
@@ -6889,73 +6950,6 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                             </div>
                         </div>
                         <button class="btn btn-dark" style="background:#db2777; border-color:#db2777;" onclick="App.saveCarinPlusConfig()">Guardar Ajustes</button>
-                    </div>
-
-                    <div style="background:var(--color-bg); border:1px solid #7c3aed; padding:2rem; border-radius:var(--radius-md); box-shadow:0 4px 20px rgba(124,58,237,0.05); margin-bottom:3rem;">
-                        <h3 style="color:#7c3aed; margin-bottom:1.5rem;">Gesti\u00F3n de Suscripciones Temporales</h3>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem; padding-bottom:2rem; border-bottom:1px solid var(--color-border);">
-                            <div>
-                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Usuario</label>
-                                <select id="cp-temp-user" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
-                                    <option value="">-- Seleccionar Usuario --</option>
-                                    ${users.map(u => `<option value="${u.userId}">${u.nombre} (${u.email})</option>`).join('')}
-                                </select>
-                            </div>
-                            <div>
-                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Duraci\u00F3n (D:H:M:S)</label>
-                                <div style="display:flex; gap:5px;">
-                                    <input type="number" id="cp-days" placeholder="D" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
-                                    <input type="number" id="cp-hours" placeholder="H" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
-                                    <input type="number" id="cp-mins" placeholder="M" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
-                                    <input type="number" id="cp-secs" placeholder="S" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
-                                </div>
-                            </div>
-                            <button class="btn btn-dark" style="background:#7c3aed; border-color:#7c3aed; grid-column:span 2;" onclick="App.setCarinPlusTemporalUI()">Activar Carin+ Temporal</button>
-                        </div>
-
-                        <div style="overflow-x:auto;">
-                            <table style="width:100%; border-collapse:collapse; font-size:13px;">
-                                <thead>
-                                    <tr style="text-align:left; border-bottom:2px solid var(--color-border); color:var(--color-text-muted);">
-                                        <th style="padding:0.5rem;">Usuario</th>
-                                        <th style="padding:0.5rem;">Expiraci\u00F3n</th>
-                                        <th style="padding:0.5rem;">Estado</th>
-                                        <th style="padding:0.5rem; text-align:right;">Acci\u00F3n</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${users.filter(u => u.roles.includes('carin_plus'))
-                                        .sort((a,b) => {
-                                            const actA = db.isCarinPlusActive(a);
-                                            const actB = db.isCarinPlusActive(b);
-                                            if (actA && !actB) return -1;
-                                            if (!actA && actB) return 1;
-                                            return new Date(b.carinPlusExpiry || 0) - new Date(a.carinPlusExpiry || 0);
-                                        })
-                                        .map(u => {
-                                            const active = db.isCarinPlusActive(u);
-                                            return `
-                                            <tr style="border-bottom:1px solid var(--color-border); opacity:${active?1:0.6};">
-                                                <td style="padding:0.75rem 0.5rem;">
-                                                    <div style="font-weight:700;">${u.nombre}</div>
-                                                    <div style="font-size:11px; color:var(--color-text-muted);">${u.email}</div>
-                                                </td>
-                                                <td style="padding:0.75rem 0.5rem;">
-                                                    ${u.carinPlusExpiry ? new Date(u.carinPlusExpiry).toLocaleString() : 'Permanente'}
-                                                </td>
-                                                <td style="padding:0.75rem 0.5rem;">
-                                                    <span style="padding:2px 8px; border-radius:10px; font-size:10px; font-weight:900; background:${active?'#dcfce7':'#fee2e2'}; color:${active?'#166534':'#991b1b'};">
-                                                        ${active?'ACTIVO':'EXPIRADO'}
-                                                    </span>
-                                                </td>
-                                                <td style="padding:0.75rem 0.5rem; text-align:right;">
-                                                    <button class="btn btn-default" style="font-size:10px; padding:4px 8px;" onclick="db.toggleUserRole('${u.userId}', 'carin_plus'); App.viewAdmin(document.getElementById('main-content'), 'carin_plus');">Quitar</button>
-                                                </td>
-                                            </tr>`;
-                                        }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
 
