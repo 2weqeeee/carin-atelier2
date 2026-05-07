@@ -394,12 +394,10 @@ class DB {
         try {
             this.data = saved ? JSON.parse(saved) : DEFAULT_DATA;
             
-            // Emergency Repair: If the saved data contains the '✨' artifacts from the previous bad cleanup, 
-            // force a reset to DEFAULT_DATA to restore characters and icons.
-            if (saved && (saved.includes('✨') || saved.includes(' ? ') || saved.includes(' ?') || saved.includes('? '))) {
-                console.warn("Mangled data detected in localStorage. Resetting to DEFAULT_DATA to repair characters.");
-                this.data = DEFAULT_DATA;
-                this.save();
+            if (saved && (saved.includes('\u2728') || saved.includes(' ? ') || saved.includes(' ?') || saved.includes('? '))) {
+                console.warn("\u26A0\uFE0F Mangled data detected in localStorage. Resetting local copy...");
+                this.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                // No guardamos a la nube para no sobreescribir lo que haya all\u00ED
             }
         } catch (e) {
             console.error("Error parsing local storage, falling back to default data", e);
