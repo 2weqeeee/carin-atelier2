@@ -1982,3 +1982,63 @@ $css
 .admin-card-interactive {
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
 }
+
+/* Mobile Admin Improvements */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        padding: 1.5rem 1rem !important;
+    }
+    
+    .admin-sidebar-category {
+        cursor: pointer;
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 15px !important;
+        background: var(--color-bg-alt);
+        border-radius: 10px;
+        margin-bottom: 5px !important;
+        font-size: 14px !important;
+        transition: all 0.3s;
+    }
+    
+    .admin-sidebar-category:after {
+        content: '\u25BC';
+        font-size: 10px;
+        opacity: 0.5;
+        transition: transform 0.3s;
+    }
+    
+    .admin-sidebar-category.active-cat:after {
+        transform: rotate(-180deg);
+    }
+    
+    .admin-sidebar-desc {
+        display: none !important;
+    }
+    
+    .admin-subnav {
+        display: none;
+        padding-left: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .admin-subnav.show {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .admin-layout {
+        display: block !important;
+    }
+    
+    .admin-main-content {
+        padding: 1rem !important;
+    }
+    
+    .admin-nav-btn {
+        padding: 10px 15px !important;
+        font-size: 13px !important;
+    }
+}

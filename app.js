@@ -6030,57 +6030,57 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         const sidebar = `
             <aside id="admin-sidebar" class="admin-sidebar">
                 <button class="btn-close-sidebar" onclick="document.getElementById('admin-sidebar').classList.remove('active')" style="display:none; margin-bottom:1.5rem; align-items:center; gap:0.5rem; background:none; border:none; color:var(--color-primary); font-weight:800; cursor:pointer;">
-                    \u2190 Cerrar Men\u00FA
+                    ← Cerrar Menú
                 </button>
 
                 ${isAdmin ? `
-                <div class="admin-sidebar-category">${translateText('Principal')}</div>
-                <span class="admin-sidebar-desc">Resumen general y configuraci\u00F3n b\u00E1sica del sitio.</span>
+                <div class="admin-sidebar-category" onclick="App.toggleAdminSidebarCategory(this)">${translateText('Principal')}</div>
+                <span class="admin-sidebar-desc">Resumen general y configuración básica del sitio.</span>
                 <div class="admin-subnav">
-                    ${sidebarLink('#/admin/dashboard','dashboard','\uD83D\uDCCA','Dashboard')}
-                    ${sidebarLink('#/admin/anuncios','anuncios','\uD83D\uDCE2','Anuncios')}
-                    ${sidebarLink('#/admin/inicio','inicio','\uD83D\uDCC4','P\u00E1gina Inicio')}
-                    ${sidebarLink('#/admin/regiones','regiones','\uD83C\uDF0E','Regiones')}
+                    ${sidebarLink('#/admin/dashboard','dashboard','📊','Dashboard')}
+                    ${sidebarLink('#/admin/anuncios','anuncios','📢','Anuncios')}
+                    ${sidebarLink('#/admin/inicio','inicio','📄','Página Inicio')}
+                    ${sidebarLink('#/admin/regiones','regiones','🌍','Regiones')}
                 </div>
 
-                <div class="admin-sidebar-category">${translateText('Tienda')}</div>
-                <span class="admin-sidebar-desc">Gesti\u00F3n de productos, categor\u00EDas y descuentos.</span>
+                <div class="admin-sidebar-category" onclick="App.toggleAdminSidebarCategory(this)">${translateText('Tienda')}</div>
+                <span class="admin-sidebar-desc">Gestión de productos, categorías y descuentos.</span>
                 <div class="admin-subnav">
-                    ${sidebarLink('#/admin/productos','productos','\uD83D\uDCE6','Productos')}
-                    ${sidebarLink('#/admin/categorias','categorias','\uD83D\uDCC1','Categor\u00EDas')}
-                    ${sidebarLink('#/admin/descuentos','descuentos','\uD83C\uDFF7\uFE0F','Descuentos')}
-                    ${sidebarLink('#/admin/config_carrito','config_carrito','\uD83D\uDED2','Config. Carrito')}
+                    ${sidebarLink('#/admin/productos','productos','📦','Productos')}
+                    ${sidebarLink('#/admin/categorias','categorias','📁','Categorías')}
+                    ${sidebarLink('#/admin/descuentos','descuentos','🏷️','Descuentos')}
+                    ${sidebarLink('#/admin/config_carrito','config_carrito','🛒','Config. Carrito')}
                 </div>
 
-                <div class="admin-sidebar-category" style="color:#db2777;">\u2728 ${translateText('Carin+ Hub')}</div>
+                <div class="admin-sidebar-category" style="color:#db2777;" onclick="App.toggleAdminSidebarCategory(this)">✨ ${translateText('Carin+ Hub')}</div>
                 <span class="admin-sidebar-desc">Centro de control para el programa premium.</span>
                 <div class="admin-subnav">
-                    ${sidebarLink('#/admin/carin_plus_hub','carin_plus_hub','\uD83D\uDDA5\uFE0F','Panel Carin+')}
-                    ${sidebarLink('#/admin/carin_plus','carin_plus','\uD83C\uDFF7\uFE0F','Carin+ Ofertas')}
-                    ${sidebarLink('#/admin/carin_plus_pagina','carin_plus_pagina','\uD83D\uDCC4','Carin+ P\u00E1gina')}
-                    ${sidebarLink('#/admin/planes_carin','planes_carin','\uD83D\uDC8E','Planes Carin+')}
+                    ${sidebarLink('#/admin/carin_plus_hub','carin_plus_hub','🖥️','Panel Carin+')}
+                    ${sidebarLink('#/admin/carin_plus','carin_plus','🏷️','Carin+ Ofertas')}
+                    ${sidebarLink('#/admin/carin_plus_pagina','carin_plus_pagina','📄','Carin+ Página')}
+                    ${sidebarLink('#/admin/planes_carin','planes_carin','💎','Planes Carin+')}
                 </div>
 
-                <div class="admin-sidebar-category">${translateText('Gesti\u00F3n de Cursos')}</div>
-                <span class="admin-sidebar-desc">Administraci\u00F3n de contenido educativo y docentes.</span>
+                <div class="admin-sidebar-category" onclick="App.toggleAdminSidebarCategory(this)">${translateText('Gestión de Cursos')}</div>
+                <span class="admin-sidebar-desc">Administración de contenido educativo y docentes.</span>
                 <div class="admin-subnav">
-                    ${sidebarLink('#/admin/cursos','cursos','\uD83C\uDF93','Cursos y Alumnos')}
-                    ${sidebarLink('#/admin/profesores','profesores','\uD83D\uDC69\u200D\uD83C\uDFEB','Profesores')}
+                    ${sidebarLink('#/admin/cursos','cursos','🎓','Cursos y Alumnos')}
+                    ${sidebarLink('#/admin/profesores','profesores','👩‍🏫','Profesores')}
                 </div>
                 ` : ''}
 
-                <div class="admin-sidebar-category">${translateText('Soporte T\u00E9cnico')}</div>
-                <span class="admin-sidebar-desc">Atenci\u00F3n al cliente y resoluci\u00F3n de incidencias.</span>
-                <div class="admin-subnav">
-                    ${sidebarLink('#/admin/equipo','equipo','\uD83D\uDEE0\uFE0F','Equipo T\u00E9cnico')}
-                    ${sidebarLink('#/admin/chat','chat','\uD83D\uDCAC','Chat Soporte')}
-                    ${sidebarLink('#/admin/tickets','tickets','\uD83D\uDCCB','Tickets Kanban')}
-                </div>
-
-                <div class="admin-sidebar-category">${translateText('Usuarios')}</div>
+                <div class="admin-sidebar-category" onclick="App.toggleAdminSidebarCategory(this)">${translateText('Usuarios')}</div>
                 <span class="admin-sidebar-desc">Control de la comunidad y perfiles.</span>
                 <div class="admin-subnav">
-                    ${sidebarLink('#/admin/usuarios','usuarios','\uD83D\uDC65','Gesti\u00F3n Usuarios')}
+                    ${sidebarLink('#/admin/usuarios','usuarios','👥','Gestión Usuarios')}
+                </div>
+
+                <div class="admin-sidebar-category" onclick="App.toggleAdminSidebarCategory(this)">${translateText('Soporte Técnico')}</div>
+                <span class="admin-sidebar-desc">Atención al cliente y resolución de incidencias.</span>
+                <div class="admin-subnav">
+                    ${sidebarLink('#/admin/equipo','equipo','🛠️','Equipo Técnico')}
+                    ${sidebarLink('#/admin/chat','chat','💬','Chat Soporte')}
+                    ${sidebarLink('#/admin/tickets','tickets','📋','Tickets Kanban')}
                 </div>
             </aside>`;
 
@@ -8110,6 +8110,21 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
     },
 
 
+
+    toggleAdminSidebarCategory(el) {
+        if (window.innerWidth > 768) return;
+        const subnav = el.nextElementSibling.nextElementSibling;
+        const isShowing = subnav.classList.contains('show');
+        
+        // Close others
+        document.querySelectorAll('.admin-subnav').forEach(s => s.classList.remove('show'));
+        document.querySelectorAll('.admin-sidebar-category').forEach(c => c.classList.remove('active-cat'));
+        
+        if (!isShowing) {
+            subnav.classList.add('show');
+            el.classList.add('active-cat');
+        }
+    },
 
     setCarinPlusTemporalUI() {
         const userId = document.getElementById('cp-temp-user').value;
