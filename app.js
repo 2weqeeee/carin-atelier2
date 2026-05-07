@@ -3901,9 +3901,6 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
             this.showToast('\u274C Error con el acceso de Google');
         }
     },
-    },
-
-
 
     demoLogin(role) {
 
