@@ -302,29 +302,38 @@ class DB {
     }
 
     async syncWithSupabase() {
-        // 1. Initial Load from Supabase
+        console.log("?? Iniciando sincronizaci\u00F3n con Supabase...");
+        
+        // 1. Carga Inicial
         const { data, error } = await this.supabase
             .from('system_data')
             .select('content')
             .eq('id', 'main')
             .single();
 
-        if (data && data.content && Object.keys(data.content).length > 0) {
-            this.data = { ...this.data, ...data.content };
+        if (error) {
+            console.error("\u274C Error al cargar de Supabase:", error.message);
+            if (error.code === 'PGRST116') {
+                console.log("\u26A0\uFE0F La fila 'main' no existe. Cre\u00E1ndola...");
+                this.saveToCloud();
+            }
+        } else if (data && data.content) {
+            console.log("\u2705 Datos cargados desde la nube con \u00E9xito.");
+            this.data = data.content;
+            localStorage.setItem('carin_atelier_db', JSON.stringify(this.data));
             if (window.App && typeof window.App.renderLayout === 'function') {
                 window.App.renderLayout();
             }
-        } else {
-            // First time: Save local default data to Supabase
-            this.saveToCloud();
         }
 
-        // 2. Listen for Realtime Changes (Optional but recommended)
+        // 2. Escuchar cambios en tiempo real
         this.supabase
             .channel('db-changes')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_data' }, (payload) => {
                 if (payload.new && payload.new.id === 'main') {
-                    this.data = { ...this.data, ...payload.new.content };
+                    console.log("\uD83D\uDCE1 Actualizaci\u00F3n recibida de otro dispositivo.");
+                    this.data = payload.new.content;
+                    localStorage.setItem('carin_atelier_db', JSON.stringify(this.data));
                     if (window.App && typeof window.App.renderLayout === 'function') {
                         window.App.renderLayout();
                     }
@@ -334,12 +343,17 @@ class DB {
     }
 
     async saveToCloud() {
-        try {
-            await this.supabase
-                .from('system_data')
-                .upsert({ id: 'main', content: this.data });
-        } catch (e) {
-            console.error("Supabase Save Error:", e);
+        console.log("?? Intentando guardar en la nube...");
+        const { data, error } = await this.supabase
+            .from('system_data')
+            .upsert({ id: 'main', content: this.data });
+
+        if (error) {
+            console.error("\u274C ERROR AL GUARDAR EN LA NUBE:", error.message);
+            console.error("Detalles:", error);
+            if (window.App) window.App.showToast('\u274C Error de sincronizaci\u00F3n con la nube');
+        } else {
+            console.log("\u2705 Sincronizaci\u00F3n en la nube completada.");
         }
     }
 
