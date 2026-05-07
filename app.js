@@ -3875,7 +3875,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                             <h1 style="margin:0; font-size:2.5rem; line-height:1;">${user.nombre}</h1>
 
-                            ${user.roles.includes('carin_plus') ? `
+                            ${db.isCarinPlusActive(user) ? `
                                 <div style="display:flex; flex-direction:column; gap:2px;">
                                     <span class="badge-premium" style="font-size:11px;"> \u2728 Miembro Carin+</span>
                                     ${user.carinPlusExpiry ? `<span style="font-size:9px; color:#db2777; font-weight:800; background:#fce7f3; padding:1px 6px; border-radius:4px; width:fit-content;">Expira: ${new Date(user.carinPlusExpiry).toLocaleDateString()}</span>` : ''}

@@ -603,7 +603,9 @@ class DB {
                 if (!p.roles) {
                     p.roles = p.rango ? [p.rango] : ['usuario'];
                 }
-                // Ensure rango is always updated to reflect the highest role for UI compatibility
+            // Ensure rango is always updated to reflect the highest role for UI compatibility
+            this.checkExpiredRoles();
+            this.data.profiles.forEach(p => {
                 p.rango = this.getHighestRole(p);
             });
 
@@ -619,6 +621,12 @@ class DB {
 
     save() {
         try {
+            this.checkExpiredRoles();
+            // Update rango for everyone just in case
+            if (this.data.profiles) {
+                this.data.profiles.forEach(p => { p.rango = this.getHighestRole(p); });
+            }
+            
             localStorage.setItem('carin_atelier_db', JSON.stringify(this.data));
             this.saveToCloud(); // Sync to cloud
             if (this.currentUser) {
@@ -715,13 +723,32 @@ class DB {
     hasRole(userId, role) {
         const user = this.data.profiles.find(p => p.userId === userId);
         if (!user || !user.roles) return false;
+        
+        if (role === 'carin_plus') return this.isCarinPlusActive(user);
+        
         return user.roles.includes(role);
     }
 
     hasAnyRole(userId, roles) {
         const user = this.data.profiles.find(p => p.userId === userId);
         if (!user || !user.roles) return false;
-        return roles.some(r => user.roles.includes(r));
+        
+        return roles.some(r => {
+            if (r === 'carin_plus') return this.isCarinPlusActive(user);
+            return user.roles.includes(r);
+        });
+    }
+
+    checkExpiredRoles() {
+        if (!this.data.profiles) return;
+        this.data.profiles.forEach(user => {
+            if (user.roles && user.roles.includes('carin_plus') && user.carinPlusExpiry) {
+                if (new Date(user.carinPlusExpiry) <= new Date()) {
+                    user.roles = user.roles.filter(r => r !== 'carin_plus');
+                    // We don't call save here to avoid recursion
+                }
+            }
+        });
     }
 
     isCarinPlusActive(user) {
