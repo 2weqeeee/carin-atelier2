@@ -168,10 +168,55 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* Shop Layout Desktop */
+/* Shop Hero Section */
+.shop-hero {
+    position: relative;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    background: var(--color-bg);
+    overflow: hidden;
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.shop-hero-waves {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, var(--color-primary-light) 0%, transparent 70%);
+    opacity: 0.15;
+    animation: shop-hero-pulse 10s infinite alternate ease-in-out;
+}
+
+.shop-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--color-primary) 2px, transparent 2px);
+    background-size: 50px 50px;
+    mask-image: radial-gradient(circle at center, black 10%, transparent 60%);
+    opacity: 0.4;
+    animation: particles-float 20s infinite linear;
+}
+
+@keyframes shop-hero-pulse {
+    0% { transform: scale(1); opacity: 0.1; }
+    100% { transform: scale(1.2); opacity: 0.2; }
+}
+
+@keyframes particles-float {
+    from { background-position: 0 0; }
+    to { background-position: 100px 100px; }
+}
+
+@media (max-width: 768px) {
+    .shop-hero { padding: 2rem 0; }
+    .shop-hero h1 { font-size: 2rem !important; }
+}
+
 .shop-main-layout {
     display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 3rem;
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
     align-items: start;
     margin-top: 2rem;
 }

@@ -2024,26 +2024,22 @@ const App = {
 
         main.innerHTML = `
 
-            <div class="container" style="margin-top: 3rem; margin-bottom: 4rem;">
+            <section class="shop-hero">
+                <div class="shop-hero-waves"></div>
+                <div class="container" style="position:relative; z-index:2; text-align:center;">
+                    <h1 style="font-size:3rem; font-weight:900; margin:0 0 0.5rem 0; letter-spacing:-1.5px; color:var(--color-text); line-height:1.2;">Nuestra Tienda</h1>
+                    <p style="font-size:1rem; color:var(--color-text-muted); max-width:600px; margin:0 auto; font-weight:500;">🌎 Mostrando productos en <b>${currentRegionObj.nombre}</b> \u2022 <a href="#" onclick="event.preventDefault(); document.getElementById('region-dropdown').style.display='block'" style="color:var(--color-primary); text-decoration:underline; font-weight:700;">Cambiar regi\u00F3n</a></p>
+                </div>
+            </section>
 
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; border-bottom: 1px solid var(--color-border); padding-bottom: 1rem;">
-
-                    <div>
-
-                        <h1 style="margin:0;">Nuestra Tienda</h1>
-
-                        <p style="font-size:13px; color:var(--color-text-muted); margin-top:0.5rem;">🌎 Mostrando productos disponibles en <b>${currentRegionObj.nombre}</b>    <a href="#" onclick="event.preventDefault(); document.getElementById('region-dropdown').style.display='block'" style="color:var(--color-primary);">Cambiar región</a></p>
-                    </div>
-
-                    <div style="display:flex; align-items:center; gap:1rem;">
-                        <label style="font-size:12px; font-weight:700; color:var(--color-text-muted); text-transform:uppercase;">Ordenar por:</label>
-                        <select onchange="App._shopFilters.sortBy=this.value; App.applyShopFilters();" style="padding:8px 12px; border:1px solid var(--color-border); border-radius:var(--radius-sm); font-size:13px; background:var(--color-bg); color:var(--color-text); cursor:pointer; min-width:180px;">
-                            <option value="default" ${this._shopFilters.sortBy==='default'?'selected':''}>Recomendados</option>
-                            <option value="price_asc" ${this._shopFilters.sortBy==='price_asc'?'selected':''}>Precio: Menor a Mayor</option>
-                            <option value="price_desc" ${this._shopFilters.sortBy==='price_desc'?'selected':''}>Precio: Mayor a Menor</option>
-                        </select>
-                    </div>
-
+            <div class="container" style="margin-bottom: 4rem;">
+                <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 2rem; padding: 1rem 0; border-bottom: 1px solid var(--color-border); gap: 1rem;">
+                    <label style="font-size:12px; font-weight:700; color:var(--color-text-muted); text-transform:uppercase;">Ordenar por:</label>
+                    <select onchange="App._shopFilters.sortBy=this.value; App.applyShopFilters();" style="padding:10px 16px; border:1px solid var(--color-border); border-radius:12px; font-size:13px; background:var(--color-bg); color:var(--color-text); cursor:pointer; min-width:200px; box-shadow:var(--shadow-sm);">
+                        <option value="default" ${this._shopFilters.sortBy==='default'?'selected':''}>Recomendados</option>
+                        <option value="price_asc" ${this._shopFilters.sortBy==='price_asc'?'selected':''}>Precio: Menor a Mayor</option>
+                        <option value="price_desc" ${this._shopFilters.sortBy==='price_desc'?'selected':''}>Precio: Mayor a Menor</option>
+                    </select>
                 </div>
 
                 <!-- Controles M\u00F3viles (B\u00FAsqueda + Filtros) -->
