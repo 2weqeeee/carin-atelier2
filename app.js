@@ -1310,13 +1310,16 @@ const App = {
 
 
         document.getElementById('header-container').innerHTML = `
-
             <header style="${headerStyle}">
-
-                <div style="display:flex; align-items:center; gap: 2.5rem;">
-
+                <div style="display:flex; align-items:center; gap: 1rem;">
+                    <!-- Bot\u00F3n Men\u00FA M\u00F3vil -->
+                    <button id="mobile-menu-btn" onclick="App.toggleMobileMenu()" 
+                            style="display:none; background:none; border:none; font-size:24px; cursor:pointer; color:${isCarinPlus ? 'white' : 'var(--color-text)'}; padding:0;">
+                        \u2630
+                    </button>
                     <a href="#/" class="logo" style="display:flex; align-items:center; ${isCarinPlus ? 'color: white;' : ''}">${logoHtml}</a>
-
+                </div>
+                <div style="display:flex; align-items:center; gap: 2.5rem;" class="desktop-only-flex">
                     <nav class="desktop-nav">
 
                         <ul>
@@ -1347,7 +1350,6 @@ const App = {
                         </ul>
 
                     </nav>
-
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -1503,8 +1505,66 @@ const App = {
                 </div>
 
             </header>
-
         `;
+
+        this.renderMobileDrawer(user, isCarinPlus, navLinkStyle);
+    },
+
+    renderMobileDrawer(user, isCarinPlus, navLinkStyle) {
+        let drawer = document.getElementById('mobile-drawer');
+        let overlay = document.getElementById('mobile-drawer-overlay');
+
+        if (!drawer) {
+            drawer = document.createElement('div');
+            drawer.id = 'mobile-drawer';
+            document.body.appendChild(drawer);
+
+            overlay = document.createElement('div');
+            overlay.id = 'mobile-drawer-overlay';
+            overlay.onclick = () => this.toggleMobileMenu();
+            document.body.appendChild(overlay);
+        }
+
+        drawer.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; padding-bottom:1rem; border-bottom:1px solid var(--color-border);">
+                <div class="logo" style="font-size:1.2rem;">Carin Atelier</div>
+                <button onclick="App.toggleMobileMenu()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--color-text);">&times;</button>
+            </div>
+            
+            <nav style="display:flex; flex-direction:column; gap:1.5rem;">
+                <a href="#/" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/')} font-size:1.2rem; text-decoration:none;">Inicio</a>
+                <a href="#/tienda" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/tienda')} font-size:1.2rem; text-decoration:none;">Tienda</a>
+                <a href="#/cursos" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/cursos')} font-size:1.2rem; text-decoration:none;">Cursos</a>
+                <a href="#/carin-plus" onclick="App.toggleMobileMenu()" class="header-carin-btn" style="margin:0; text-align:center;"><span class="cp-text">Carin+</span> \u2728</a>
+                
+                <hr style="border:0; border-top:1px solid var(--color-border); margin:1rem 0;">
+                
+                ${user ? `
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem;">
+                        <img src="${user.foto || 'https://www.gravatar.com/avatar/0?d=mp'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                        <div>
+                            <div style="font-weight:700; font-size:14px; color:var(--color-text);">${user.nombre}</div>
+                            <div style="font-size:12px; color:var(--color-text-muted);">${user.rango}</div>
+                        </div>
+                    </div>
+                    <a href="#/mi-cuenta" onclick="App.toggleMobileMenu()" style="text-decoration:none; color:var(--color-text); font-weight:600;">Mi Cuenta</a>
+                    ${db.hasAnyRole(user.userId, ['admin', 'tecnico']) ? `<a href="#/admin" onclick="App.toggleMobileMenu()" style="text-decoration:none; color:var(--color-primary); font-weight:700;">Panel Admin</a>` : ''}
+                    <button onclick="App.handleLogout(); App.toggleMobileMenu();" style="text-align:left; background:none; border:none; color:#ef4444; font-weight:600; cursor:pointer; padding:0;">Cerrar Sesi\u00F3n</button>
+                ` : `
+                    <a href="#/login" onclick="App.toggleMobileMenu()" class="btn btn-dark" style="width:100%;">Ingresar</a>
+                `}
+            </nav>
+        `;
+    },
+
+    toggleMobileMenu() {
+        const drawer = document.getElementById('mobile-drawer');
+        const overlay = document.getElementById('mobile-drawer-overlay');
+        if (drawer && overlay) {
+            drawer.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+    },
 
 
 
