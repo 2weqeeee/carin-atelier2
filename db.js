@@ -603,6 +603,8 @@ class DB {
                 if (!p.roles) {
                     p.roles = p.rango ? [p.rango] : ['usuario'];
                 }
+            });
+
             // Ensure rango is always updated to reflect the highest role for UI compatibility
             this.checkExpiredRoles();
             this.data.profiles.forEach(p => {
