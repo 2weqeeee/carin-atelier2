@@ -1531,7 +1531,6 @@ footer {
     #mobile-drawer a, #mobile-drawer span, #mobile-drawer div {
         color: var(--color-text);
     }
-}
 
     /* Bot\u00F3n Preferencias de Tienda */
     #mobile-shop-prefs-btn {
@@ -1614,10 +1613,40 @@ footer {
     .section-title { font-size: 1.5rem; margin: 2rem 0 1rem; }
 }
 
-#mobile-drawer { position: fixed; top: 0; left: -100%; width: 80%; max-width: 300px; height: 100vh; background: var(--color-bg); z-index: 1000; transition: left 0.3s ease; padding: 2rem; box-shadow: 10px 0 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 1rem; }
-#mobile-drawer.active { left: 0; }
-#mobile-drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; backdrop-filter: blur(2px); }
-#mobile-drawer-overlay.active { display: block; }
+/* Ocultar elementos de m\u00F3vil en PC por defecto */
+#mobile-drawer, #mobile-drawer-overlay { display: none; }
+
+@media (max-width: 768px) {
+    /* Drawer M\u00F3vil - Solo se activa en m\u00F3vil */
+    #mobile-drawer { 
+        display: flex;
+        position: fixed; 
+        top: 0; 
+        left: -100%; 
+        width: 85%; 
+        max-width: 320px; 
+        height: 100vh; 
+        background: var(--color-bg); 
+        z-index: 1000; 
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        padding: 1.5rem; 
+        box-shadow: 10px 0 30px rgba(0,0,0,0.1); 
+        flex-direction: column; 
+        gap: 1rem; 
+        overflow-y: auto;
+    }
+    #mobile-drawer.active { left: 0; }
+    
+    #mobile-drawer-overlay { 
+        display: none;
+        position: fixed; 
+        inset: 0; 
+        background: rgba(0,0,0,0.5); 
+        z-index: 999; 
+        backdrop-filter: blur(2px); 
+    }
+    #mobile-drawer-overlay.active { display: block; }
+}
 
 @keyframes modalAppear {
     from { opacity: 0; transform: translateY(20px) scale(0.95); }

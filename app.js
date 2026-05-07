@@ -1369,6 +1369,7 @@ const App = {
                         <button onclick="App._toggleRegionDropdown()" class="header-icon-btn">
                             <span style="font-size:12px; font-weight:600;">${currentRegionObj.id.substring(0,2)} \u2022 ${showUSD?'USD':'ARS'}</span>
                         </button>
+                        ${user ? this.renderUserBadge(user, config) : ''}
                     </div>
 
                     <!-- Cart (Siempre visible) -->
