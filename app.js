@@ -3799,7 +3799,11 @@ Mi Direcci\u00F3n: ${direccion}
 Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         window.open(`https://wa.me/5493547000000?text=${encodeURIComponent(msg)}`, '_blank');
-         viewLogin(main) {
+        document.getElementById('reservation-modal').style.display = 'none';
+        this.showToast('\u2705 Solicitud enviada correctamente');
+    },
+
+    viewLogin(main) {
         const isRegister = this._authMode === 'register';
         main.innerHTML = `
             <div class="container" style="max-width: 450px; margin-top: 5rem; margin-bottom: 5rem;">
