@@ -3559,24 +3559,49 @@ respuesta: null,
                 </div>`;
         } else if (step === 2) {
             content = `
-                <div class="modal-content" style="max-width:500px;">
-                    <h2 style="margin-bottom:1rem;">\uD83D\uDCCD Tu Ubicaci\u00F3n</h2>
-                    <p style="color:var(--color-text-muted); margin-bottom:1.5rem;">Para este curso presencial, debes residir en <b>C\u00F3rdoba, Argentina</b>.</p>
+                <div class="modal-content" style="max-width:550px; padding:2.5rem; border:1px solid var(--color-border); box-shadow:var(--shadow-lg);">
+                    <h2 style="margin-bottom:0.5rem; display:flex; align-items:center; gap:0.75rem;">\uD83D\uDCCD Tu Ubicaci\u00F3n</h2>
+                    <p style="color:var(--color-text-muted); margin-bottom:2rem; font-size:14px;">Para este curso presencial, verificamos tu zona de residencia.</p>
                     
-                    <div style="background:#f1f5f9; border-radius:12px; height:200px; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:center; flex-direction:column; border:2.5px solid #e2e8f0; position:relative; overflow:hidden;">
-                        <!-- Mapa decorativo de fallback ya que el API Key es externo -->
-                        <div style="font-size:4rem; margin-bottom:0.5rem; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));">🗺️</div>
-                        <div style="background:white; padding:10px 20px; border-radius:999px; box-shadow:var(--shadow-md); font-weight:700; color:var(--color-primary); font-size:13px;">
-                            📍 Ingresa tu dirección debajo
+                    <div style="display:grid; gap:1.25rem; margin-bottom:2rem;">
+                        <!-- Pa\u00EDs -->
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.5rem; text-transform:uppercase;">Pa\u00EDs</label>
+                            <input type="text" id="res-country" list="countries-list" placeholder="Selecciona o escribe..." style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--color-border); background:var(--color-bg-alt); font-size:14px;">
+                            <datalist id="countries-list">
+                                <option value="Argentina">
+                                <option value="Uruguay">
+                                <option value="Chile">
+                                <option value="Paraguay">
+                                <option value="Bolivia">
+                                <option value="Brasil">
+                            </datalist>
+                        </div>
+
+                        <!-- Provincia -->
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.5rem; text-transform:uppercase;">Provincia / Estado</label>
+                            <input type="text" id="res-province" list="provinces-list" placeholder="Selecciona o escribe..." style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--color-border); background:var(--color-bg-alt); font-size:14px;">
+                            <datalist id="provinces-list">
+                                <option value="C\u00F3rdoba">
+                                <option value="Buenos Aires">
+                                <option value="Santa Fe">
+                                <option value="Mendoza">
+                                <option value="Entre R\u00EDos">
+                                <option value="Tucum\u00E1n">
+                            </datalist>
+                        </div>
+
+                        <!-- Direcci\u00F3n -->
+                        <div>
+                            <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.5rem; text-transform:uppercase;">Direcci\u00F3n Exacta</label>
+                            <input type="text" id="res-address" placeholder="Ej: Av. Duarte Quir\u00F3s 1200" style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--color-border); background:var(--color-bg-alt); font-size:14px;">
                         </div>
                     </div>
 
-                    <input type="text" id="res-address" placeholder="Escribe tu direcci\u00F3n exacta..." style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--color-border); margin-bottom:10px;">
-                    <div style="font-size:12px; color:var(--color-text-muted); margin-bottom:1.5rem;">Ej: Duarte Quir\u00F3s 1200, C\u00F3rdoba</div>
-
-                    <div style="display:flex; gap:10px;">
-                        <button onclick="App._renderReservationStep(1)" class="btn btn-default" style="flex:1;">Atr\u00E1s</button>
-                        <button onclick="App._verifyLocation()" class="btn btn-dark" style="flex:2;">Verificar y Continuar</button>
+                    <div style="display:flex; gap:12px; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--color-border);">
+                        <button onclick="App._renderReservationStep(1)" class="btn btn-default" style="flex:1; padding:12px;">Atr\u00E1s</button>
+                        <button onclick="App._verifyLocation()" class="btn btn-dark" style="flex:2; padding:12px; font-weight:800;">Verificar Ubicaci\u00F3n \u276F</button>
                     </div>
                 </div>`;
         } else if (step === 3) {
@@ -3601,11 +3626,19 @@ respuesta: null,
     },
 
     _verifyLocation() {
+        const country = document.getElementById('res-country').value.trim();
+        const province = document.getElementById('res-province').value.trim();
         const addr = document.getElementById('res-address').value.trim();
-        if (!addr) return this.showToast('   Por favor, ingresa tu direcci\u00F3n');
+
+        if (!country || !province || !addr) {
+            return this.showToast('   Completa todos los campos de ubicaci\u00F3n');
+        }
         
-        if (addr.toLowerCase().includes('cordoba') || addr.toLowerCase().includes('c\u00F3rdoba')) {
-            this._reservationData.direccion = addr;
+        const isArgentina = country.toLowerCase() === 'argentina';
+        const isCordoba = province.toLowerCase().includes('cordoba') || province.toLowerCase().includes('c\u00F3rdoba');
+
+        if (isArgentina && isCordoba) {
+            this._reservationData.direccion = `${addr}, ${province}, ${country}`;
             this._reservationData.enCordoba = true;
             this._renderReservationStep(3);
         } else {
