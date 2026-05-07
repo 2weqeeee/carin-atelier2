@@ -403,11 +403,8 @@ class DB {
         try {
             this.data = saved ? JSON.parse(saved) : DEFAULT_DATA;
             
-            if (saved && (saved.includes('\u2728') || saved.includes(' ? ') || saved.includes(' ?') || saved.includes('? '))) {
-                console.warn("\u26A0\uFE0F Mangled data detected in localStorage. Resetting local copy...");
-                this.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-                // No guardamos a la nube para no sobreescribir lo que haya all\u00ED
-            }
+            // Ya no necesitamos la limpieza de signos de pregunta, 
+            // ahora solo interfiere con las URLs de las fotos.
         } catch (e) {
             console.error("Error parsing local storage, falling back to default data", e);
             this.data = DEFAULT_DATA;
