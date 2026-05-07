@@ -1586,23 +1586,53 @@ footer {
     .product-card {
         padding: 0.4rem !important;
         border-radius: 10px !important;
+        min-width: unset !important;
     }
+    
+    .product-grid.featured-scroll .product-card {
+        flex: 0 0 47.5% !important; /* Agrandado un 15% (de 42% a 47.5%) */
+        min-width: 47.5% !important;
+        scroll-snap-align: start;
+    }
+
     .product-info {
-        padding: 0.7rem !important;
+        padding: 0.5rem !important;
     }
     .product-image, .product-emoji {
-        height: 85px !important; /* Más pequeño para ahorrar espacio */
+        height: 82px !important; /* Agrandado un 15% (de 70px a 82px) */
+    }
+    .product-image img {
+        object-fit: contain !important;
+        background: var(--color-bg-alt);
     }
     .product-info h3 {
-        font-size: 13px !important;
-        margin-bottom: 4px !important;
+        font-size: 11px !important;
+        margin-bottom: 2px !important;
+        height: 28px;
     }
     .product-info p {
-        display: none !important; /* Escondemos descripción para que quepan más */
+        display: none !important;
     }
-    .product-info .btn-cart {
-        padding: 8px !important;
+    
+    /* Precios más pequeños */
+    .product-info div[style*="font-size:1.1rem"] {
+        font-size: 14px !important;
+    }
+    .product-info span[style*="font-size:9px"] {
+        font-size: 7px !important;
+        padding: 1px 4px !important;
+    }
+    .product-info div[style*="color:var(--color-text-muted)"] {
         font-size: 11px !important;
+    }
+    .product-info div[style*="color:var(--color-text-muted)"] span {
+        display: none; /* Escondemos 'Precio normal' */
+    }
+
+    .product-info .btn-cart {
+        padding: 6px !important;
+        font-size: 10px !important;
+        margin-top: 5px;
     }
 
     .shop-categories {
@@ -1620,6 +1650,11 @@ footer {
         flex-direction: column;
         gap: 1rem;
         margin-top: 1rem;
+    }
+    
+    .shop-main-layout .product-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.6rem !important;
     }
 
     .shop-sidebar {
