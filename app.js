@@ -1213,7 +1213,7 @@ const App = {
 
         const currentRegion = this._currentRegion || 'global';
 
-        const currentRegionObj = regiones.find(r => r.id === currentRegion) || regiones[0] || { nombre: 'Global', emoji: '🌎' };
+        const currentRegionObj = regiones.find(r => r.id === currentRegion) || regiones[0] || { nombre: 'Global', emoji: '\uD83C\uDF10' };
 
         const showUSD = this._showUSD || false;
 
@@ -1408,7 +1408,7 @@ const App = {
 
                             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/><path d="M2 12H22"/><path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z"/></svg>
 
-                            <span style="font-size:12px; font-weight:600; text-transform:uppercase;">${currentRegionObj.emoji} ${currentRegionObj.id.substring(0,2)} \u2022 ${showUSD?'USD':'ARS'}</span>
+                            <span style="font-size:12px; font-weight:600; text-transform:uppercase;">${currentRegionObj.id.substring(0,2)} \u2022 ${showUSD?'USD':'ARS'}</span>
 
                         </button>
 
@@ -1442,7 +1442,7 @@ const App = {
 
                                     <button onclick="App.setRegion('${r.id}')" class="dropdown-item ${r.id === currentRegion ? 'active' : ''}">
 
-                                        <span>${r.emoji} ${r.nombre}</span>
+                                        <span>${r.nombre}</span>
 
                                         ${r.id === currentRegion ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
 
@@ -1668,7 +1668,7 @@ const App = {
 
                         onmouseout="this.style.opacity='1'">
 
-                        <div style="width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#db2777,#9333ea); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 12px rgba(219,39,119,0.4); flex-shrink:0;"> ?</div>
+                        <div style="width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#db2777,#9333ea); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 12px rgba(219,39,119,0.4); flex-shrink:0;"> \u2728</div>
 
                         <div>
 
@@ -1684,7 +1684,7 @@ const App = {
 
                     <div style="display:flex; align-items:center; gap:14px; padding:14px 18px; border-bottom:1px solid ${dropBorder}; background:linear-gradient(135deg, ${isDark ? 'rgba(219,39,119,0.15)' : '#fdf2f8'}, ${isDark ? 'rgba(147,51,234,0.12)' : '#fce7f3'});">
 
-                        <div style="width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#db2777,#9333ea); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 12px rgba(219,39,119,0.4); flex-shrink:0;"> ?</div>
+                        <div style="width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#db2777,#9333ea); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 12px rgba(219,39,119,0.4); flex-shrink:0;"> \u2728</div>
 
                         <div>
 
@@ -1712,7 +1712,7 @@ const App = {
 
                             onmouseout="this.style.background='transparent'">
 
-                            <span style="width:32px; height:32px; border-radius:8px; background:${isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9'}; display:flex; align-items:center; justify-content:center; font-size:16px;">👤</span>
+                            <span style="width:32px; height:32px; border-radius:8px; background:${isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9'}; display:flex; align-items:center; justify-content:center; font-size:16px;">\uD83D\uDC64</span>
 
                             <div>
 
@@ -1728,7 +1728,7 @@ const App = {
                             style="display:flex; align-items:center; gap:12px; padding:11px 18px; text-decoration:none; color:${dropText}; font-size:13px; font-weight:600; transition:background 0.15s;"
                             onmouseover="this.style.background='${hoverBg}'"
                             onmouseout="this.style.background='transparent'">
-                            <span style="width:32px; height:32px; border-radius:8px; background:${isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9'}; display:flex; align-items:center; justify-content:center; font-size:16px;">📚</span>
+                            <span style="width:32px; height:32px; border-radius:8px; background:${isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9'}; display:flex; align-items:center; justify-content:center; font-size:16px;">\uD83D\uDCC3</span>
                             <div>
                                 <div>Mis Cursos</div>
                                 <div style="font-size:11px; color:${dropMuted}; font-weight:400;">Classroom y materiales</div>
@@ -1745,7 +1745,7 @@ const App = {
 
                             onmouseout="this.style.background='transparent'">
 
-                            <span style="width:32px; height:32px; border-radius:8px; background:${isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9'}; display:flex; align-items:center; justify-content:center; font-size:16px;"> ?</span>
+                            <span style="width:32px; height:32px; border-radius:8px; background:${isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9'}; display:flex; align-items:center; justify-content:center; font-size:16px;">\uD83C\uDFA7</span>
 
                             <div>
 
@@ -1775,7 +1775,7 @@ const App = {
 
                             onmouseout="this.style.background='transparent'">
 
-                            <span style="width:32px; height:32px; border-radius:8px; background:${isDark ? 'rgba(239,68,68,0.12)' : '#fef2f2'}; display:flex; align-items:center; justify-content:center; font-size:16px;"> ?</span>
+                            <span style="width:32px; height:32px; border-radius:8px; background:${isDark ? 'rgba(239,68,68,0.12)' : '#fef2f2'}; display:flex; align-items:center; justify-content:center; font-size:16px;">\uD83D\uDEAA</span>
 
                             <span>Cerrar Sesión</span>
 
