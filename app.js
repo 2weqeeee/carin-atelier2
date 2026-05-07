@@ -3563,12 +3563,11 @@ respuesta: null,
                     <h2 style="margin-bottom:1rem;">\uD83D\uDCCD Tu Ubicaci\u00F3n</h2>
                     <p style="color:var(--color-text-muted); margin-bottom:1.5rem;">Para este curso presencial, debes residir en <b>C\u00F3rdoba, Argentina</b>.</p>
                     
-                    <div style="background:#f1f5f9; border-radius:12px; height:200px; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:center; flex-direction:column; border:2px dashed #cbd5e1; position:relative; overflow:hidden;">
-                        <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSy...&q=Cordoba,Argentina" allowfullscreen></iframe>
-                        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.4); display:flex; align-items:center; justify-content:center; pointer-events:none;">
-                            <div style="background:white; padding:10px 20px; border-radius:999px; box-shadow:var(--shadow-md); font-weight:700; color:var(--color-primary);">
-                                \uD83D\uDCCD Selecciona tu direcci\u00F3n en el mapa
-                            </div>
+                    <div style="background:#f1f5f9; border-radius:12px; height:200px; margin-bottom:1.5rem; display:flex; align-items:center; justify-content:center; flex-direction:column; border:2.5px solid #e2e8f0; position:relative; overflow:hidden;">
+                        <!-- Mapa decorativo de fallback ya que el API Key es externo -->
+                        <div style="font-size:4rem; margin-bottom:0.5rem; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.1));">🗺️</div>
+                        <div style="background:white; padding:10px 20px; border-radius:999px; box-shadow:var(--shadow-md); font-weight:700; color:var(--color-primary); font-size:13px;">
+                            📍 Ingresa tu dirección debajo
                         </div>
                     </div>
 
