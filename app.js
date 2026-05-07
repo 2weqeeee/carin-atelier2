@@ -3776,8 +3776,11 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         const compras = db.get('compras').filter(c => c.userId === user.userId);
 
         const misCursos = db.get('cursos').filter(c => c.alumnos.includes(user.userId));
-
         
+        const isMobile = window.innerWidth <= 768;
+        if (!this._accountTab) {
+            this._accountTab = isMobile ? 'perfil' : 'compras';
+        }
 
         const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
@@ -3833,11 +3836,27 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                     <div>
                         <!-- Tabs -->
                         <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:2rem; border-bottom:1px solid var(--color-border);">
-                            <div style="display:flex; gap:2.5rem; padding-bottom:0.5rem; min-width:max-content;">
+                            <div style="display:flex; gap:2rem; padding-bottom:0.5rem; min-width:max-content;">
+                                ${isMobile ? `<div style="cursor:pointer; padding:10px 0; font-weight:700; font-size:1.1rem; color:${this._accountTab === 'perfil' ? 'var(--color-primary)' : 'var(--color-text-muted)'}; border-bottom:3px solid ${this._accountTab === 'perfil' ? 'var(--color-primary)' : 'transparent'}; transition:all 0.3s;" onclick="App.setAccountTab('perfil')">Mi Perfil</div>` : ''}
                                 <div style="cursor:pointer; padding:10px 0; font-weight:700; font-size:1.1rem; color:${this._accountTab === 'compras' ? 'var(--color-primary)' : 'var(--color-text-muted)'}; border-bottom:3px solid ${this._accountTab === 'compras' ? 'var(--color-primary)' : 'transparent'}; transition:all 0.3s;" onclick="App.setAccountTab('compras')">Mis Compras</div>
                                 <div style="cursor:pointer; padding:10px 0; font-weight:700; font-size:1.1rem; color:${this._accountTab === 'cursos' ? 'var(--color-primary)' : 'var(--color-text-muted)'}; border-bottom:3px solid ${this._accountTab === 'cursos' ? 'var(--color-primary)' : 'transparent'}; transition:all 0.3s;" onclick="App.setAccountTab('cursos')">Mis Cursos</div>
                             </div>
                         </div>
+
+                        ${this._accountTab === 'perfil' ? `
+                            <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md); margin-bottom:2rem;">
+                                <h3 style="margin-bottom:1.5rem;">Detalles del Perfil</h3>
+                                <div style="margin-bottom:1.5rem;">
+                                    <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.25rem;">Nombre Completo</label>
+                                    <input type="text" value="${user.nombre}" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" readonly>
+                                </div>
+                                <div style="margin-bottom:1.5rem;">
+                                    <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.25rem;">Correo Electr\u00F3nico</label>
+                                    <input type="text" value="${user.email}" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" readonly>
+                                </div>
+                                <p style="font-size:12px; color:var(--color-text-muted);">Los datos de tu perfil solo pueden ser modificados por un administrador por motivos de seguridad.</p>
+                            </div>
+                        ` : ''}
 
                         ${this._accountTab === 'cursos' ? `
                         <!-- Mis Cursos -->
@@ -3973,29 +3992,23 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-                    <!-- Datos Personales Panel Lateral -->
-
+                    <!-- Datos Personales Panel Lateral (Solo PC) -->
+                    ${!isMobile ? `
                     <div>
-
                         <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md); position:sticky; top:2rem;">
-
                             <h3 style="margin-bottom:1.5rem;">Detalles del Perfil</h3>
-
-                            
-
                             <div style="margin-bottom:1.5rem;">
-
                                 <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.25rem;">Nombre Completo</label>
-
                                 <input type="text" value="${user.nombre}" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" readonly>
-
                             </div>
-
-                            
-
                             <div style="margin-bottom:1.5rem;">
-
-                                <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.25rem;">Correo Electrónico</label>
+                                <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.25rem;">Correo Electr\u00F3nico</label>
+                                <input type="text" value="${user.email}" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" readonly>
+                            </div>
+                            <p style="font-size:12px; color:var(--color-text-muted);">Los datos de tu perfil solo pueden ser modificados por un administrador por motivos de seguridad.</p>
+                        </div>
+                    </div>
+                    ` : ''}
 
                                 <input type="email" value="${user.email}" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border); background:var(--color-bg-alt);" readonly>
 
