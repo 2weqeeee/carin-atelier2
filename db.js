@@ -295,6 +295,7 @@ class DB {
         
         this.supabase = supabase.createClient(this.supabaseUrl, this.supabaseKey);
         
+        this.isSynced = false;
         this.load();
         if (!this.data.profiles) this.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
         
@@ -320,10 +321,13 @@ class DB {
         } else if (data && data.content) {
             console.log("\u2705 Datos cargados desde la nube con \u00E9xito.");
             this.data = data.content;
+            this.isSynced = true; // Desbloqueamos el guardado
             localStorage.setItem('carin_atelier_db', JSON.stringify(this.data));
             if (window.App && typeof window.App.renderLayout === 'function') {
                 window.App.renderLayout();
             }
+        } else {
+            this.isSynced = true; // Es la primera vez, tambi\u00E9n desbloqueamos
         }
 
         // 2. Escuchar cambios en tiempo real
@@ -343,6 +347,11 @@ class DB {
     }
 
     async saveToCloud() {
+        if (!this.isSynced) {
+            console.warn("\u26A0\uFE0F Guardado en la nube bloqueado: Esperando sincronizaci\u00F3n inicial...");
+            return;
+        }
+
         console.log("?? Intentando guardar en la nube...");
         const { data, error } = await this.supabase
             .from('system_data')
