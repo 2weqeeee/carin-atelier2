@@ -1584,6 +1584,21 @@ const App = {
                             </div>
                         </a>
 
+                        ${db.hasAnyRole(user.userId, ['admin', 'owner']) ? `
+                        <a href="#/admin" onclick="document.getElementById('user-dropdown').style.display='none'"
+                            style="display:flex; align-items:center; gap:12px; padding:11px 18px; text-decoration:none; color:var(--color-primary); font-size:13px; font-weight:700; transition:background 0.15s;"
+                            onmouseover="this.style.background='${hoverBg}'"
+                            onmouseout="this.style.background='transparent'">
+                            <span style="width:32px; height:32px; border-radius:8px; background:var(--color-primary-light); display:flex; align-items:center; justify-content:center; font-size:16px;">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </span>
+                            <div>
+                                <div>Panel Admin</div>
+                                <div style="font-size:11px; color:var(--color-primary); font-weight:400; opacity:0.8;">Gesti\u00F3n de tienda y cursos</div>
+                            </div>
+                        </a>
+                        ` : ''}
+
                         <a href="javascript:void(0)" onclick="App.navigateAccountTab('cursos'); document.getElementById('user-dropdown').style.display='none'"
                             style="display:flex; align-items:center; gap:12px; padding:11px 18px; text-decoration:none; color:${dropText}; font-size:13px; font-weight:600; transition:background 0.15s;"
                             onmouseover="this.style.background='${hoverBg}'"
@@ -3860,7 +3875,12 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                             <h1 style="margin:0; font-size:2.5rem; line-height:1;">${user.nombre}</h1>
 
-                            ${user.rango === 'carin_plus' ? '<span class="badge-premium" style="font-size:11px;"> ? Miembro Carin+</span>' : ''}
+                            ${user.roles.includes('carin_plus') ? `
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <span class="badge-premium" style="font-size:11px;"> \u2728 Miembro Carin+</span>
+                                    ${user.carinPlusExpiry ? `<span style="font-size:9px; color:#db2777; font-weight:800; background:#fce7f3; padding:1px 6px; border-radius:4px; width:fit-content;">Expira: ${new Date(user.carinPlusExpiry).toLocaleDateString()}</span>` : ''}
+                                </div>
+                            ` : ''}
 
                             ${user.rango === 'admin' || user.rango === 'owner' ? '<span style="background:#1e293b; color:white; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700;"> Admin</span>' : ''}
 
@@ -5995,130 +6015,74 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
         const stats = db.getStats();
-
         const compras = db.get('compras');
-
         const cursos = db.get('cursos');
-
         const productos = db.get('productos');
-
         const users = db.get('profiles');
-
         const tickets = db.get('tickets') || [];
-
         const cats = db.get('categorias');
 
-
-
         const isAct = (sec) => section === sec ? 'active' : '';
-
         const sidebarLink = (hash, sec, icon, label) => `<a href="${hash}" class="admin-nav-btn ${isAct(sec)}">${icon} ${translateText(label)}</a>`;
-
-
+        
+        const isAdmin = db.hasAnyRole(db.currentUser.userId, ['admin', 'owner']);
 
         const sidebar = `
+            <aside id="admin-sidebar" class="admin-sidebar">
+                <button class="btn-close-sidebar" onclick="document.getElementById('admin-sidebar').classList.remove('active')" style="display:none; margin-bottom:1.5rem; align-items:center; gap:0.5rem; background:none; border:none; color:var(--color-primary); font-weight:800; cursor:pointer;">
+                    \u2190 Cerrar Men\u00FA
+                </button>
 
-            <aside style="padding-right:1.5rem; position:sticky; top:80px; align-self:start; height:calc(100vh - 100px); overflow-y:auto; scrollbar-width: thin;">
-
-                
-
+                ${isAdmin ? `
                 <div class="admin-sidebar-category">${translateText('Principal')}</div>
-
-                <span class="admin-sidebar-desc">Resumen general y configuración básica del sitio.</span>
-
+                <span class="admin-sidebar-desc">Resumen general y configuraci\u00F3n b\u00E1sica del sitio.</span>
                 <div class="admin-subnav">
-
-                    ${sidebarLink('#/admin/dashboard','dashboard','📊','Dashboard')}
-
-                    ${sidebarLink('#/admin/anuncios','anuncios','📢','Anuncios')}
-
-                    ${sidebarLink('#/admin/inicio','inicio','🏠','Página Inicio')}
-
-                    ${sidebarLink('#/admin/regiones','regiones','🌎','Regiones')}
-
+                    ${sidebarLink('#/admin/dashboard','dashboard','\uD83D\uDCCA','Dashboard')}
+                    ${sidebarLink('#/admin/anuncios','anuncios','\uD83D\uDCE2','Anuncios')}
+                    ${sidebarLink('#/admin/inicio','inicio','\uD83D\uDCC4','P\u00E1gina Inicio')}
+                    ${sidebarLink('#/admin/regiones','regiones','\uD83C\uDF0E','Regiones')}
                 </div>
-
-
 
                 <div class="admin-sidebar-category">${translateText('Tienda')}</div>
-
-                <span class="admin-sidebar-desc">Gestión de productos, categorías y ofertas premium.</span>
-
+                <span class="admin-sidebar-desc">Gesti\u00F3n de productos, categor\u00EDas y ofertas premium.</span>
                 <div class="admin-subnav">
-
-                    ${sidebarLink('#/admin/productos','productos','📦','Productos')}
-
-                    ${sidebarLink('#/admin/categorias','categorias','📁','Categorías')}
-
-                    ${sidebarLink('#/admin/descuentos','descuentos','🏷️','Descuentos')}
-
-                    ${sidebarLink('#/admin/carin_plus','carin_plus','✨','Carin+ Ofertas')}
-
-                    ${sidebarLink('#/admin/config_carrito','config_carrito','🛒','Config. Carrito')}
-
-                    ${sidebarLink('#/admin/carin_plus_pagina','carin_plus_pagina','📄','Carin+ Página')}
-
-                    ${sidebarLink('#/admin/planes_carin','planes_carin','💎','Planes Carin+')}
-
+                    ${sidebarLink('#/admin/productos','productos','\uD83D\uDCE6','Productos')}
+                    ${sidebarLink('#/admin/categorias','categorias','\uD83D\uDCC1','Categor\u00EDas')}
+                    ${sidebarLink('#/admin/descuentos','descuentos','\uD83C\uDFF7\uFE0F','Descuentos')}
+                    ${sidebarLink('#/admin/carin_plus','carin_plus','\u2728','Carin+ Ofertas')}
+                    ${sidebarLink('#/admin/config_carrito','config_carrito','\uD83D\uDED2','Config. Carrito')}
+                    ${sidebarLink('#/admin/carin_plus_pagina','carin_plus_pagina','\uD83D\uDCC4','Carin+ P\u00E1gina')}
+                    ${sidebarLink('#/admin/planes_carin','planes_carin','\uD83D\uDC8E','Planes Carin+')}
                 </div>
 
-
-
-                <div class="admin-sidebar-category">${translateText('Gestión de Cursos')}</div>
-
-                <span class="admin-sidebar-desc">Administración de contenido educativo y docentes.</span>
-
+                <div class="admin-sidebar-category">${translateText('Gesti\u00F3n de Cursos')}</div>
+                <span class="admin-sidebar-desc">Administraci\u00F3n de contenido educativo y docentes.</span>
                 <div class="admin-subnav">
-
-                    ${sidebarLink('#/admin/cursos','cursos','🎓','Cursos y Alumnos')}
-
-                    ${sidebarLink('#/admin/profesores','profesores','👩‍🏫','Profesores')}
-
+                    ${sidebarLink('#/admin/cursos','cursos','\uD83C\uDF93','Cursos y Alumnos')}
+                    ${sidebarLink('#/admin/profesores','profesores','\uD83D\uDC69\u200D\uD83C\uDFEB','Profesores')}
                 </div>
+                ` : ''}
 
-
-
-                <div class="admin-sidebar-category">${translateText('Soporte Técnico')}</div>
-
-                <span class="admin-sidebar-desc">Atención al cliente y resolución de incidencias.</span>
-
+                <div class="admin-sidebar-category">${translateText('Soporte T\u00E9cnico')}</div>
+                <span class="admin-sidebar-desc">Atenci\u00F3n al cliente y resoluci\u00F3n de incidencias.</span>
                 <div class="admin-subnav">
-
-                    ${sidebarLink('#/admin/equipo','equipo','🛠️','Equipo Técnico')}
-
-                    ${sidebarLink('#/admin/chat','chat','💬','Chat Soporte')}
-
-                    ${sidebarLink('#/admin/tickets','tickets','📋','Tickets Kanban')}
-
+                    ${sidebarLink('#/admin/equipo','equipo','\uD83D\uDEE0\uFE0F','Equipo T\u00E9cnico')}
+                    ${sidebarLink('#/admin/chat','chat','\uD83D\uDCAC','Chat Soporte')}
+                    ${sidebarLink('#/admin/tickets','tickets','\uD83D\uDCCB','Tickets Kanban')}
                 </div>
-
-
 
                 <div class="admin-sidebar-category">${translateText('Avanzado')}</div>
-
-                <span class="admin-sidebar-desc">Control de usuarios y configuraciones críticas.</span>
-
+                <span class="admin-sidebar-desc">Control de usuarios y configuraciones cr\u00EDticas.</span>
                 <div class="admin-subnav">
-
-                    ${sidebarLink('#/admin/usuarios','usuarios','👥','Gestión Usuarios')}
-
+                    ${sidebarLink('#/admin/usuarios','usuarios','\uD83D\uDC65','Gesti\u00F3n Usuarios')}
                 </div>
-
             </aside>`;
 
-
-
         const secHeader = (title, subtitle, btn = '') => `
-
             <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--color-border);padding-bottom:1.5rem;margin-bottom:2rem;">
-
                 <div><h2 style="margin:0">${translateText(title)}</h2><p style="color:var(--color-text-muted);font-size:14px;margin-top:0.25rem;">${translateText(subtitle)}</p></div>
-
                 ${btn}
-
             </div>`;
-
-
 
         let content = '';
 
@@ -6869,36 +6833,87 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                 <div style="display:grid; gap:2rem; max-width:800px; margin-bottom:3rem;">
 
-                    <div style="background:var(--color-bg); border:1px solid #fbcfe8; padding:2rem; border-radius:var(--radius-md); box-shadow:0 4px 20px rgba(236,72,153,0.05);">
-
+                    <div style="background:var(--color-bg); border:1px solid #db2777; padding:2rem; border-radius:var(--radius-md); box-shadow:0 4px 20px rgba(236,72,153,0.05); margin-bottom:2rem;">
                         <h3 style="color:#db2777; margin-bottom:1.5rem;">Ajustes Globales Carin+</h3>
-
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
-
                             <div>
-
                                 <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Descuento Base (%)</label>
-
                                 <input type="number" id="cp-global-desc" value="${cpConfig.descuentoGlobal}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
-
-                                <div style="font-size:11px; color:var(--color-text-muted); margin-top:4px;">Se aplica a todo el catálogo automáticamente.</div>
-
                             </div>
-
                             <div>
-
-                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Título del Badge</label>
-
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">T\u00EDtulo del Badge</label>
                                 <input type="text" id="cp-global-title" value="${cpConfig.tituloBadge}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
-
                             </div>
-
                         </div>
-
                         <button class="btn btn-dark" style="background:#db2777; border-color:#db2777;" onclick="App.saveCarinPlusConfig()">Guardar Ajustes</button>
-
                     </div>
 
+                    <div style="background:var(--color-bg); border:1px solid #7c3aed; padding:2rem; border-radius:var(--radius-md); box-shadow:0 4px 20px rgba(124,58,237,0.05); margin-bottom:3rem;">
+                        <h3 style="color:#7c3aed; margin-bottom:1.5rem;">Gesti\u00F3n de Suscripciones Temporales</h3>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem; padding-bottom:2rem; border-bottom:1px solid var(--color-border);">
+                            <div>
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Usuario</label>
+                                <select id="cp-temp-user" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                                    <option value="">-- Seleccionar Usuario --</option>
+                                    ${users.map(u => `<option value="${u.userId}">${u.nombre} (${u.email})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Duraci\u00F3n (D:H:M:S)</label>
+                                <div style="display:flex; gap:5px;">
+                                    <input type="number" id="cp-days" placeholder="D" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
+                                    <input type="number" id="cp-hours" placeholder="H" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
+                                    <input type="number" id="cp-mins" placeholder="M" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
+                                    <input type="number" id="cp-secs" placeholder="S" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:4px;">
+                                </div>
+                            </div>
+                            <button class="btn btn-dark" style="background:#7c3aed; border-color:#7c3aed; grid-column:span 2;" onclick="App.setCarinPlusTemporalUI()">Activar Carin+ Temporal</button>
+                        </div>
+
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                                <thead>
+                                    <tr style="text-align:left; border-bottom:2px solid var(--color-border); color:var(--color-text-muted);">
+                                        <th style="padding:0.5rem;">Usuario</th>
+                                        <th style="padding:0.5rem;">Expiraci\u00F3n</th>
+                                        <th style="padding:0.5rem;">Estado</th>
+                                        <th style="padding:0.5rem; text-align:right;">Acci\u00F3n</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${users.filter(u => u.roles.includes('carin_plus'))
+                                        .sort((a,b) => {
+                                            const actA = db.isCarinPlusActive(a);
+                                            const actB = db.isCarinPlusActive(b);
+                                            if (actA && !actB) return -1;
+                                            if (!actA && actB) return 1;
+                                            return new Date(b.carinPlusExpiry || 0) - new Date(a.carinPlusExpiry || 0);
+                                        })
+                                        .map(u => {
+                                            const active = db.isCarinPlusActive(u);
+                                            return `
+                                            <tr style="border-bottom:1px solid var(--color-border); opacity:${active?1:0.6};">
+                                                <td style="padding:0.75rem 0.5rem;">
+                                                    <div style="font-weight:700;">${u.nombre}</div>
+                                                    <div style="font-size:11px; color:var(--color-text-muted);">${u.email}</div>
+                                                </td>
+                                                <td style="padding:0.75rem 0.5rem;">
+                                                    ${u.carinPlusExpiry ? new Date(u.carinPlusExpiry).toLocaleString() : 'Permanente'}
+                                                </td>
+                                                <td style="padding:0.75rem 0.5rem;">
+                                                    <span style="padding:2px 8px; border-radius:10px; font-size:10px; font-weight:900; background:${active?'#dcfce7':'#fee2e2'}; color:${active?'#166534':'#991b1b'};">
+                                                        ${active?'ACTIVO':'EXPIRADO'}
+                                                    </span>
+                                                </td>
+                                                <td style="padding:0.75rem 0.5rem; text-align:right;">
+                                                    <button class="btn btn-default" style="font-size:10px; padding:4px 8px;" onclick="db.toggleUserRole('${u.userId}', 'carin_plus'); App.viewAdmin(document.getElementById('main-content'), 'carin_plus');">Quitar</button>
+                                                </td>
+                                            </tr>`;
+                                        }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
 
 
@@ -7795,13 +7810,14 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
         container.innerHTML = `
-
-            <div class="container" style="display:grid;grid-template-columns:220px 1fr;gap:3rem;margin-top:2rem;min-height:80vh;align-items:start;">
-
-                ${sidebar}
-
-                <div id="admin-main-area" class="fade-in">${content}</div>
-
+            <div class="container" style="margin-top:2rem; margin-bottom:5rem;">
+                <div class="admin-layout">
+                    ${sidebar}
+                    <div id="admin-main-area" class="fade-in admin-main">${content}</div>
+                </div>
+                <button class="admin-sidebar-toggle-btn" onclick="document.getElementById('admin-sidebar').classList.toggle('active')">
+                    \u2630
+                </button>
             </div>`;
 
     },
@@ -7862,12 +7878,17 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                     <div>
                         <label style="display:block; font-size:12px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:1rem;">Roles y Permisos</label>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
-                            ${['admin', 'tecnico', 'profesor', 'carin_plus', 'usuario'].map(r => `
+                            ${['admin', 'tecnico', 'profesor', 'carin_plus', 'usuario'].map(r => {
+                                const isSensitive = ['admin', 'tecnico', 'profesor', 'owner'].includes(r);
+                                const isAdminOrOwner = db.hasAnyRole(db.currentUser.userId, ['admin', 'owner']);
+                                if (isSensitive && !isAdminOrOwner) return '';
+                                
+                                return `
                                 <label style="display:flex; align-items:center; gap:8px; background:var(--color-bg-alt); padding:10px 14px; border-radius:10px; cursor:pointer; border:1px solid var(--color-border);">
                                     <input type="checkbox" name="edit-user-roles" value="${r}" ${roles.includes(r) ? 'checked' : ''} style="width:18px; height:18px;">
                                     <span style="font-size:12px; font-weight:700; text-transform:capitalize;">${r.replace('_', ' ')}</span>
                                 </label>
-                            `).join('')}
+                            `;}).join('')}
                         </div>
                     </div>
                 </div>
@@ -8052,6 +8073,24 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
     },
 
 
+
+    setCarinPlusTemporalUI() {
+        const userId = document.getElementById('cp-temp-user').value;
+        const days = parseInt(document.getElementById('cp-days').value) || 0;
+        const hours = parseInt(document.getElementById('cp-hours').value) || 0;
+        const mins = parseInt(document.getElementById('cp-mins').value) || 0;
+        const secs = parseInt(document.getElementById('cp-secs').value) || 0;
+        
+        if (!userId) return this.showToast('\u26A0\uFE0F Selecciona un usuario');
+        
+        const totalSeconds = (days * 86400) + (hours * 3600) + (mins * 60) + secs;
+        if (totalSeconds <= 0) return this.showToast('\u26A0\uFE0F Ingresa una duraci\u00F3n v\u00E1lida');
+        
+        if (db.setCarinPlusTemporal(userId, totalSeconds)) {
+            this.showToast('\u2728 Carin+ Temporal activado correctamente');
+            this.viewAdmin(document.getElementById('main-content'), 'carin_plus');
+        }
+    },
 
     saveCarinPlusConfig() {
 

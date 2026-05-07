@@ -724,10 +724,23 @@ class DB {
         return roles.some(r => user.roles.includes(r));
     }
 
+    isCarinPlusActive(user) {
+        if (!user || !user.roles || !user.roles.includes('carin_plus')) return false;
+        if (!user.carinPlusExpiry) return true; // Legacy or permanent
+        return new Date(user.carinPlusExpiry) > new Date();
+    }
+
     getHighestRole(user) {
         if (!user || !user.roles || user.roles.length === 0) return 'usuario';
+        
+        // If they have carin_plus but it expired, treat it as not having it
+        const effectiveRoles = user.roles.filter(r => {
+            if (r === 'carin_plus') return this.isCarinPlusActive(user);
+            return true;
+        });
+
         for (const role of ROLE_PRIORITY) {
-            if (user.roles.includes(role)) return role;
+            if (effectiveRoles.includes(role)) return role;
         }
         return 'usuario';
     }
@@ -791,6 +804,24 @@ class DB {
         }
 
         this.logActivity('system', `Perfil de ${user.nombre} actualizado por admin`, { userId, data });
+        this.save();
+        return true;
+    }
+
+    setCarinPlusTemporal(userId, seconds) {
+        const user = this.data.profiles.find(p => p.userId === userId);
+        if (!user) return false;
+
+        if (!user.roles.includes('carin_plus')) {
+            user.roles.push('carin_plus');
+        }
+
+        const now = new Date();
+        const expiry = new Date(now.getTime() + seconds * 1000);
+        user.carinPlusExpiry = expiry.toISOString();
+        user.rango = this.getHighestRole(user);
+
+        this.logActivity('system', `Carin+ Temporal activado para ${user.nombre} por ${seconds} seg. Expira: ${user.carinPlusExpiry}`, { userId, seconds });
         this.save();
         return true;
     }
