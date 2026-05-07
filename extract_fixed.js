@@ -1,0 +1,2865 @@
+﻿/* app.js - Carin Atelier SPA Logic */
+class ParticleBackground {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        if (!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        this.targetMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        this.time = 0;
+        this.active = true;
+        this.shapes = ['heart', 'flower', 'percent', 'star', 'hashtag'];
+        this.shapeIndex = 0;
+        this.colors = ['#f472b6', '#db2777', '#8b5cf6', '#6366f1', '#fbbf24', '#f59e0b'];
+        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('mousemove', (e) => {
+            this.targetMouse.x = e.clientX;
+            this.targetMouse.y = e.clientY;
+        this.resize();
+        this.init();
+        this.animate();
+        setInterval(() => {
+            this.shapeIndex = (this.shapeIndex + 1) % this.shapes.length;
+            this.morph(this.shapes[this.shapeIndex]);
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        this.init();
+    init() {
+        const count = 3000; 
+        this.particles = [];
+        for (let i = 0; i < count; i++) {
+            this.particles.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height,
+                targetX: 0,
+                targetY: 0,
+                size: Math.random() * 2 + 0.5,
+                color: this.colors[Math.floor(Math.random() * this.colors.length)],
+                angle: Math.random() * Math.PI * 2,
+                fillRatio: Math.random() // Used to fill the shape inside
+        this.morph(this.shapes[this.shapeIndex]);
+    morph(shape) {
+        const count = this.particles.length;
+        const isMobile = window.innerWidth < 768;
+        const scale = isMobile ? 10 : 20; 
+        this.particles.forEach((p, i) => {
+            const t = p.angle;
+            let tx = 0, ty = 0;
+            if (shape === 'heart') {
+                const r = Math.sqrt(p.fillRatio); 
+                tx = 16 * Math.pow(Math.sin(t), 3) * r;
+                ty = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * r;
+            } else if (shape === 'flower') {
+                const r = (14 + 8 * Math.cos(5 * t)) * Math.sqrt(p.fillRatio);
+                tx = r * Math.cos(t);
+                ty = r * Math.sin(t);
+            } else if (shape === 'star') {
+                // Cartesian interpolation for perfectly straight edges
+                const starPoints = [];
+                for(let j=0; j<10; j++) {
+                    const angle = j * Math.PI / 5 - Math.PI / 2;
+                    const radius = (j % 2 === 0) ? 22 : 9;
+                    starPoints.push({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+                const index = Math.floor((t / (Math.PI * 2)) * 10);
+                const A = starPoints[index];
+                const B = starPoints[(index + 1) % 10];
+                const v = ((t * 10) / (Math.PI * 2)) % 1;
+                const r = Math.sqrt(p.fillRatio);
+                tx = r * (v * B.x + (1 - v) * A.x);
+                ty = r * (v * B.y + (1 - v) * A.y);
+            } else if (shape === 'percent') {
+                const thickness = 2.5;
+                const offX = (p.fillRatio - 0.5) * thickness;
+                const offY = ((p.angle / (Math.PI*2)) - 0.5) * thickness;
+                if (i < count * 0.3) { 
+                    const ratio = i / (count * 0.3);
+                    tx = -18 + 36 * ratio + offX;
+                    ty = 18 - 36 * ratio + offY;
+                } else if (i < count * 0.65) { 
+                    const ratio = (i - count * 0.3) / (count * 0.35);
+                    const rad = 6 + p.fillRatio * 3; 
+                    tx = -12 + rad * Math.cos(ratio * Math.PI * 2);
+                    ty = -12 + rad * Math.sin(ratio * Math.PI * 2);
+                } else { 
+                    const ratio = (i - count * 0.65) / (count * 0.35);
+                    const rad = 6 + p.fillRatio * 3; 
+                    tx = 12 + rad * Math.cos(ratio * Math.PI * 2);
+                    ty = 12 + rad * Math.sin(ratio * Math.PI * 2);
+            } else if (shape === 'hashtag') {
+                const thickness = 2.5;
+                const offX = (p.fillRatio - 0.5) * thickness;
+                const offY = ((p.angle / (Math.PI*2)) - 0.5) * thickness;
+                const seg = Math.floor(i / (count / 4));
+                const pos = ((i % (count / 4)) / (count / 4)) * 36 - 18;
+                if (seg === 0) { // Vertical left
+                    tx = -8 + offX; ty = pos;
+                } else if (seg === 1) { // Vertical right
+                    tx = 8 + offX; ty = pos;
+                } else if (seg === 2) { // Horizontal top
+                    tx = pos; ty = -8 + offY;
+                } else { // Horizontal bottom
+                    tx = pos; ty = 8 + offY;
+            p.targetX = tx * scale;
+            p.targetY = ty * scale;
+    animate() {
+        if (!this.active) return;
+        this.time += 0.02;
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.mouse.x += (this.targetMouse.x - this.mouse.x) * 0.1;
+        this.mouse.y += (this.targetMouse.y - this.mouse.y) * 0.1;
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        this.particles.forEach((p, i) => {
+            const baseX = centerX + p.targetX;
+            const baseY = centerY + p.targetY;
+            // Suave ondulaci??n para que parezca vivo, no roto
+            const globalWaveX = Math.sin(this.time * 1.2 + p.targetY * 0.02) * 5;
+            const globalWaveY = Math.cos(this.time * 1.2 + p.targetX * 0.02) * 5;
+            let finalX = baseX + globalWaveX;
+            let finalY = baseY + globalWaveY;
+            let currentSize = p.size;
+            let currentAlpha = 0.5 + Math.sin(this.time + i * 0.05) * 0.2;
+            const dx = finalX - this.mouse.x;
+            const dy = finalY - this.mouse.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const maxDist = 250; 
+            if (dist < maxDist && dist > 0) {
+                const force = Math.pow((maxDist - dist) / maxDist, 2); 
+                const ripple = Math.sin(force * Math.PI * 3 - this.time * 5); 
+                // Menos agresivo para no destruir la forma
+                const displacement = ripple * force * 25;
+                finalX += (dx / dist) * displacement;
+                finalY += (dy / dist) * displacement;
+                currentSize += Math.max(0, ripple * force * 3);
+                currentAlpha += Math.max(0, ripple * force * 0.4);
+            p.x += (finalX - p.x) * 0.15; // Retorno m??s r??pido a la forma
+            p.y += (finalY - p.y) * 0.15;
+            this.ctx.fillStyle = p.color;
+            this.ctx.globalAlpha = Math.max(0.1, Math.min(1, currentAlpha));
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, Math.max(0.1, currentSize), 0, Math.PI * 2);
+            this.ctx.fill();
+        requestAnimationFrame(() => this.animate());
+const App = {
+    init() {
+        this.bg = new ParticleBackground('bg-canvas');
+        db.checkMonthTransition();
+        this.renderLayout();
+        this.handleRouting();
+        window.addEventListener('hashchange', () => this.handleRouting());
+        window.addEventListener('scroll', () => this.handleScroll());
+        setInterval(() => {
+            if (window.location.hash === '#/admin/chat' && db.currentUser && ['admin', 'tecnico'].includes(db.currentUser.rango)) {
+                this.viewAdmin(document.getElementById('main-content'), 'chat');
+        // Global click listener to close dropdowns (Move here to avoid leaks)
+        document.addEventListener('click', (e) => {
+            const regionWrap = document.getElementById('region-selector-wrap');
+            const regionDd = document.getElementById('region-dropdown');
+            if (regionWrap && regionDd && !regionWrap.contains(e.target)) regionDd.style.display = 'none';
+            const userWrap = document.getElementById('user-badge-wrap');
+            const userDd = document.getElementById('user-dropdown');
+            if (userWrap && userDd && !userWrap.contains(e.target)) userDd.style.display = 'none';
+    renderLayout() {
+        const announcement = db.get('anuncios').find(a => a.activo);
+        const user = db.currentUser;
+        const config = db.get('rangoConfig');
+        const regiones = (db.get('regiones') || []).filter(r => r.activa);
+        const currentRegion = this._currentRegion || 'global';
+        const currentRegionObj = regiones.find(r => r.id === currentRegion) || regiones[0] || { nombre: 'Global', emoji: '????' };
+        const showUSD = this._showUSD || false;
+        document.getElementById('announcement-container').innerHTML = announcement ? `
+            <div class="announcement-bar" style="background-color: ${announcement.colorFondo}">
+                ${announcement.texto}
+                <button onclick="this.parentElement.remove()">&times;</button>
+            </div>
+        const currentLanguage = this._currentLanguage || 'es';
+        document.getElementById('header-container').innerHTML = `
+            <header>
+                <div style="display:flex; align-items:center; gap: 2.5rem;">
+                    <a href="#/" class="logo">Carin Atelier</a>
+                    <nav class="desktop-nav">
+                        <ul>
+                            <li><a href="#/" class="${this.isActive('/')}">Inicio</a></li>
+                            <li><a href="#/tienda" class="${this.isActive('/tienda')}">Tienda</a></li>
+                            <li><a href="#/cursos" class="${this.isActive('/cursos')}">Cursos</a></li>
+                            <li><a href="#/carin-plus" class="${this.isActive('/carin-plus')}" style="color:var(--color-primary); font-weight:700;">Carin+ ???</a></li>
+                            ${user ? `
+                                <li><a href="#/mi-cuenta" class="${this.isActive('/mi-cuenta')}">Mi Cuenta</a></li>
+                                ${['admin', 'tecnico'].includes(user.rango) ? `<li><a href="#/admin" class="${this.isActive('/admin')}">Admin</a></li>` : ''}
+                                ${this.isProfessor(user) ? `<li><a href="#/panel-profesor" class="${this.isActive('/panel-profesor')}">Profesor</a></li>` : ''}
+                                <li><a href="#/login" class="${this.isActive('/login')}">Ingresar</a></li>
+                        </ul>
+                    </nav>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <!-- Settings Selector (Region, Lang, Currency) -->
+                    <div style="position:relative;" id="region-selector-wrap">
+                        <button onclick="App._toggleRegionDropdown()" class="header-icon-btn">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/><path d="M2 12H22"/><path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z"/></svg>
+                            <span style="font-size:12px; font-weight:600; text-transform:uppercase;">${currentRegionObj.id.substring(0,2)} ?? ${showUSD?'USD':'ARS'}</span>
+                        </button>
+                        <div id="region-dropdown" class="settings-dropdown">
+                            <!-- Language -->
+                            <div class="dropdown-header">Idioma / Language</div>
+                            <div style="display:flex; gap: 8px; padding: 0 16px;">
+                                <button onclick="App.setLanguage('es')" class="setting-pill ${currentLanguage === 'es' ? 'active' : ''}">ES</button>
+                                <button onclick="App.setLanguage('en')" class="setting-pill ${currentLanguage === 'en' ? 'active' : ''}">EN</button>
+                            </div>
+                            <!-- Region -->
+                            <div class="dropdown-header" style="margin-top:12px;">Regi??n de Env??o</div>
+                            <div style="padding: 0 8px;">
+                                ${regiones.map(r => `
+                                    <button onclick="App.setRegion('${r.id}')" class="dropdown-item ${r.id === currentRegion ? 'active' : ''}">
+                                        <span>${r.nombre}</span>
+                                        ${r.id === currentRegion ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+                                    </button>
+                                `).join('')}
+                            </div>
+                            <!-- Currency -->
+                            <div class="dropdown-header" style="margin-top:4px; padding-top:12px; border-top:1px solid rgba(0,0,0,0.05);">Moneda</div>
+                            <div style="padding: 0 8px; margin-bottom: 8px;">
+                                <button onclick="App.setUSD(false)" class="dropdown-item ${!showUSD ? 'active' : ''}">
+                                    <span>ARS (Pesos Argentinos)</span>
+                                    ${!showUSD ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+                                </button>
+                                <button onclick="App.setUSD(true)" class="dropdown-item ${showUSD ? 'active' : ''}">
+                                    <span>USD (D??lares)</span>
+                                    ${showUSD ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Cart -->
+                    <a href="#/carrito" class="header-icon-btn" style="position:relative;">
+                        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z"/><path d="M3 6H21"/><path d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10"/></svg>
+                        ${db.cart.length ? `<span class="cart-badge">${db.cart.length}</span>` : ''}
+                    </a>
+                    ${user ? this.renderUserBadge(user, config) : ''}
+                </div>
+            </header>
+        this.renderFooter();
+        this.renderCart();
+    renderUserBadge(user, config) {
+        const c = config[user.rango] || { c1: '#ccc', c2: '#999', text: '#000' };
+        const isCarinPlus = user.rango === 'carin_plus';
+        return `
+            <div class="user-badge" id="user-badge-wrap" style="position:relative;">
+                <button onclick="document.getElementById('user-dropdown').style.display = document.getElementById('user-dropdown').style.display === 'none' ? 'block' : 'none'" style="background:none; border:none; cursor:pointer; display:flex; align-items:center; gap:8px; padding:4px;">
+                    <span class="user-name">${user.nombre}</span>
+                    <span class="rank-pill" style="background: linear-gradient(90deg, ${c.c1}, ${c.c2}); color: ${c.text}">
+                        ${isCarinPlus ? '??? Carin+' : user.rango}
+                    </span>
+                    <span style="font-size:10px; opacity:0.5;">&#9660;</span>
+                </button>
+                <div id="user-dropdown" style="position:absolute; top:calc(100% + 8px); right:0; background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); min-width:200px; box-shadow:var(--shadow-md); z-index:300; display:none; overflow:hidden;">
+                    <div style="padding:12px 16px; border-bottom:1px solid var(--color-border); background:var(--color-bg-alt);">
+                        <div style="font-weight:700; font-size:14px;">${user.nombre}</div>
+                        <div style="font-size:11px; color:var(--color-text-muted);">${user.email}</div>
+                    </div>
+                    ${!isCarinPlus ? `
+                    <a href="#/carin-plus" onclick="document.getElementById('user-dropdown').style.display='none'" style="display:flex; align-items:center; gap:10px; padding:12px 16px; text-decoration:none; color:var(--color-text); font-size:13px; font-weight:600; background:linear-gradient(90deg,#fdf2f8,#fce7f3); border-bottom:1px solid #fbcfe8;">
+                        <span style="font-size:1.2rem;">???</span>
+                        <div><div style="color:#be185d;">Suscribirse a Carin+</div><div style="font-size:10px; color:#db2777; font-weight:400;">Descuentos premium en toda la tienda</div></div>
+                    </a>` : `
+                    <div style="display:flex; align-items:center; gap:10px; padding:10px 16px; background:linear-gradient(90deg,#fdf2f8,#fce7f3); border-bottom:1px solid #fbcfe8;">
+                        <span style="font-size:1.2rem;">???</span>
+                        <div style="font-size:12px; color:#be185d; font-weight:700;">Miembro Carin+ Activo</div>
+                    </div>`}
+                    <a href="#/mi-cuenta" onclick="document.getElementById('user-dropdown').style.display='none'" style="display:flex; align-items:center; gap:10px; padding:12px 16px; text-decoration:none; color:var(--color-text); font-size:13px; border-bottom:1px solid var(--color-border); transition:background 0.15s;" onmouseover="this.style.background='var(--color-bg-alt)'" onmouseout="this.style.background='none'">
+                        <span style="font-size:1.1rem;">&#128100;</span> Mi Perfil
+                    </a>
+                    <button onclick="App.handleLogout()" style="display:flex; align-items:center; gap:10px; width:100%; padding:12px 16px; background:none; border:none; cursor:pointer; color:#ef4444; font-size:13px; font-weight:600; text-align:left; transition:background 0.15s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
+                        <span style="font-size:1.1rem;">&#128682;</span> Cerrar Sesi??n
+                    </button>
+                </div>
+            </div>
+    _toggleRegionDropdown() {
+        const dd = document.getElementById('region-dropdown');
+        if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    setRegion(regionId) {
+        this._currentRegion = regionId;
+        const dd = document.getElementById('region-dropdown');
+        if (dd) dd.style.display = 'none';
+        this.renderLayout();
+        const hash = window.location.hash;
+        const main = document.getElementById('main-content');
+        if (hash === '#/tienda') this.viewShop(main);
+        else if (hash === '#/' || hash === '' || hash === '#') this.viewHome(main);
+    setUSD(isUSD) {
+        this._showUSD = isUSD;
+        document.getElementById('region-dropdown').style.display = 'none';
+        const doRender = () => {
+            this.renderLayout();
+            const hash = window.location.hash;
+            const main = document.getElementById('main-content');
+            if (hash === '#/carrito') this.viewCartPage(main);
+            else if (hash === '#/tienda') this.viewShop(main);
+            else if (hash === '#/' || hash === '' || hash === '#') this.viewHome(main);
+        if (isUSD && !this._dolarRate) {
+            this._fetchDolarRate().then(doRender);
+        } else {
+            doRender();
+    async _fetchDolarRate() {
+        try {
+            const resp = await fetch('https://dolarapi.com/v1/dolares/blue');
+            const data = await resp.json();
+            this._dolarRate = data.venta || 1200;
+        } catch {
+            this._dolarRate = 1200; // fallback
+    renderFooter() {
+        const texts = db.get('textosPagina');
+        document.getElementById('footer-container').innerHTML = `
+            <footer>
+                <div class="container footer-content">
+                    <div class="footer-section">
+                        <h4>Carin Atelier</h4>
+                        <p>${texts.sloganFooter}</p>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Contacto</h4>
+                        <p>${texts.direccionLocal}</p>
+                        <p>${texts.telefonoLocal}</p>
+                    </div>
+                    <div class="footer-section">
+                        <h4>Enlaces</h4>
+                        <a href="#/tienda">Tienda</a>
+                        <a href="#/soporte">Soporte</a>
+                    </div>
+                </div>
+            </footer>
+    navigate(path) {
+        window.location.hash = path;
+    isActive(path) {
+        if (path === '/' && (!window.location.hash || window.location.hash === '#/')) return 'active';
+        return window.location.hash.startsWith('#' + path) && path !== '/' ? 'active' : '';
+    isProfessor(user) {
+        if (!user) return false;
+        return db.get('profesores').some(p => p.userId === user.userId);
+    handleRouting() {
+        let path = window.location.hash.slice(1) || '/';
+        const queryIndex = path.indexOf('?');
+        const cleanPath = queryIndex !== -1 ? path.slice(0, queryIndex) : path;
+        const main = document.getElementById('main-content');
+        const isHome = cleanPath === '/';
+        if (this.bg && this.bg.canvas) {
+            this.bg.active = isHome;
+            this.bg.canvas.style.display = isHome ? 'block' : 'none';
+        if (isHome) this.viewHome(main);
+        else if (cleanPath === '/tienda') this.viewShop(main);
+        else if (cleanPath === '/cursos') this.viewCourses(main);
+        else if (cleanPath.startsWith('/cursos/')) {
+            const cid = cleanPath.split('/')[2];
+            this.viewCourseDetail(main, cid);
+        else if (cleanPath === '/login') this.viewLogin(main);
+        else if (cleanPath === '/mi-cuenta') this.viewAccount(main);
+        else if (cleanPath === '/soporte') this.viewSupport(main);
+        else if (cleanPath === '/panel-profesor') this.viewProfessorPanel(main);
+        else if (cleanPath === '/carrito') this.viewCartPage(main);
+        else if (cleanPath === '/carin-plus') this.viewCarinPlusPage(main);
+        else if (cleanPath.startsWith('/producto/')) {
+            const pid = cleanPath.split('/')[2];
+            this.viewProduct(main, pid);
+        else if (cleanPath.startsWith('/admin')) {
+            const section = cleanPath.split('/')[2] || 'dashboard';
+            this.viewAdmin(main, section);
+        else main.innerHTML = '<div class="container" style="margin-top:5rem;"><h1>404 - No encontrado</h1><a href="#/" class="btn btn-dark">Volver</a></div>';
+        // Render header links active state
+        const links = document.querySelectorAll('header nav a');
+        links.forEach(l => {
+            const href = l.getAttribute('href').slice(1) || '/';
+            if (path.startsWith(href) && href !== '/') l.classList.add('active');
+            else if (path === '/' && href === '/') l.classList.add('active');
+            else l.classList.remove('active');
+        window.scrollTo(0,0);
+    viewHome(main) {
+        const texts = db.get('textosPagina');
+        const config = db.get('configInicio');
+        const featured = db.get('productos').filter(p => p.destacado && p.visible).slice(0, config.maxDestacados || 6);
+        const courses = db.get('cursos').filter(c => c.destacado).slice(0, config.maxCursos || 4);
+        const configCarin = db.get('configCarinPlus') || { descuentoGlobal: 15 };
+        const cfgPage = db.get('configCarinPlusPagina') || {};
+        const isCarinPlus = db.currentUser && db.currentUser.rango === 'carin_plus';
+        const carinBanner = !isCarinPlus ? `
+        <section style="margin-top:5rem;">
+            <div class="container">
+                <div style="background:linear-gradient(135deg,#ec4899,#be185d); border-radius:var(--radius-md); padding:3rem; text-align:center; color:white; position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:-30px; right:-30px; font-size:8rem; opacity:0.1; pointer-events:none;">???</div>
+                    <div class="badge-premium" style="display:inline-block; margin-bottom:1rem; background:rgba(255,255,255,0.25); font-size:10px;">MEMBERSHIP</div>
+                    <h2 style="font-size:2rem; font-weight:900; margin-bottom:0.75rem;">${cfgPage.titulo || 'Descubr?? Carin+'}</h2>
+                    <p style="font-size:1rem; opacity:0.9; max-width:500px; margin:0 auto 2rem;">${cfgPage.subtitulo || `Obten?? un ${configCarin.descuentoGlobal}% de descuento en toda la tienda, siempre.`}</p>
+                    <a href="#/carin-plus" class="btn btn-dark" style="background:white; color:#be185d; border:none; padding:12px 28px; font-size:0.95rem; font-weight:800;">
+                        Ver beneficios ???
+                    </a>
+                </div>
+            </div>
+        </section>` : '';
+        main.innerHTML = `
+            <section class="hero">
+                <div class="container">
+                    <h1>${texts.tituloHero || 'Dise??o y Confecci??n con Pasi??n'}</h1>
+                    <p>${texts.subtituloHero || 'Encuentra los mejores moldes digitales y cursos presenciales.'}</p>
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                        <a href="#/tienda" class="btn btn-dark">Ver Tienda</a>
+                        <a href="#/cursos" class="btn btn-default">Nuestros Cursos</a>
+                    </div>
+                </div>
+            </section>
+            <section class="container" style="margin-top: 4rem;">
+                <h2 style="text-align: center; margin-bottom: 3rem;">Productos Destacados</h2>
+                <div class="product-grid">
+                    ${featured.map(p => this.renderProductCard(p)).join('')}
+                </div>
+            </section>
+            ${carinBanner}
+            ${courses.length ? `
+            <section class="container" style="margin-top: 6rem; margin-bottom: 6rem;">
+                <h2 style="text-align: center; margin-bottom: 3rem;">Pr??ximos Cursos</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    ${courses.map(c => this.renderCourseCard(c)).join('')}
+                </div>
+            </section>` : ''}
+    viewShop(main) {
+        const currentRegion = this._currentRegion || 'global';
+        const allProducts = db.get('productos').filter(p => p.visible);
+        // Show products that are global OR match the selected region
+        const products = allProducts.filter(p => !p.region || p.region === 'global' || p.region === currentRegion);
+        const categories = db.get('categorias');
+        const regiones = (db.get('regiones') || []).filter(r => r.activa);
+        const currentRegionObj = regiones.find(r => r.id === currentRegion) || { nombre: 'Global', emoji: '????' };
+        main.innerHTML = `
+            <div class="container" style="margin-top: 3rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <h1>Nuestra Tienda</h1>
+                        <p style="font-size:13px; color:var(--color-text-muted); margin-top:0.25rem;">${currentRegionObj.emoji} Mostrando productos disponibles en <b>${currentRegionObj.nombre}</b> ?? <a href="#" onclick="event.preventDefault(); document.getElementById('region-dropdown').style.display='block'" style="color:var(--color-primary);">Cambiar regi??n</a></p>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <select onchange="App.filterShop(this.value)" class="btn btn-default" style="padding: 10px 20px;">
+                            <option value="all">Todas las categor??as</option>
+                            ${categories.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+                <div id="shop-grid" class="product-grid">
+                    ${products.length ? products.map(p => this.renderProductCard(p)).join('') : `<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--color-text-muted);"><div style="font-size:3rem; margin-bottom:1rem;">????</div><p>No hay productos disponibles en ${currentRegionObj.nombre} a??n.</p><a href="#" onclick="event.preventDefault(); App.setRegion('global')" class="btn btn-dark" style="margin-top:1rem;">Ver todos (Global)</a></div>`}
+                </div>
+            </div>
+    renderProductCard(p) {
+        const isCarinPlus = db.currentUser && db.currentUser.rango === 'carin_plus';
+        const configCarin = db.get('configCarinPlus') || { descuentoGlobal: 15, tituloBadge: 'CARIN+' };
+        const configRebajas = db.get('configRebajas') || { activa: false, porcentaje: 0, titulo: '' };
+        const globalSaleDesc = configRebajas.activa ? configRebajas.porcentaje : 0;
+        const baseDesc = p.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
+        const extraDesc = p.carinPlusDescuento || 0;
+        // FIX: extra discount REPLACES the base, not adds to it
+        const carinDiscount = extraDesc > 0 ? extraDesc : baseDesc;
+        const totalCarinDesc = p.excluirCarinPlus ? 0 : carinDiscount;
+        const totalDesc = totalCarinDesc + globalSaleDesc;
+        const pFinal = totalDesc > 0 ? Math.round(p.precio * (1 - (totalDesc / 100))) : p.precio;
+        // Currency formatting
+        const showUSD = this._showUSD || false;
+        const dolarRate = this._dolarRate || null;
+        const fmt = (n) => {
+            if (showUSD && dolarRate) return 'US$' + (n / dolarRate).toFixed(2);
+            return '$' + n.toLocaleString('es-AR');
+        let badgeHtml = '';
+        if (globalSaleDesc > 0) {
+            badgeHtml += `<span class="badge" style="position:absolute; top:1rem; left:1rem; z-index:10; background:#ef4444; color:white; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; box-shadow:0 4px 10px rgba(239,68,68,0.3);">???? ${configRebajas.titulo} -${globalSaleDesc}%</span>`;
+        // Show Carin badge ONLY if has an extra override discount
+        if (extraDesc > 0 && !p.excluirCarinPlus) {
+            badgeHtml += `<span class="badge-premium" style="position:absolute; top:1rem; right:1rem; z-index:10;">CARIN+<br><span style="font-size:8px;">${configCarin.tituloBadge}</span></span>`;
+        } else if (p.precioAntes > 0 && totalCarinDesc === 0 && globalSaleDesc === 0) {
+            badgeHtml += `<span class="badge" style="position:absolute; top:1rem; right:1rem; z-index:10; background:var(--color-primary); color:white; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700;">Oferta</span>`;
+        return `
+            <div class="product-card" ${extraDesc > 0 && !p.excluirCarinPlus ? 'style="border-color:#ec4899;"' : (globalSaleDesc > 0 ? 'style="border-color:#ef4444;"' : '')}>
+                ${badgeHtml}
+                <div class="product-emoji" style="padding:0; overflow:hidden; background:var(--color-bg-alt); display:flex; align-items:center; justify-content:center;">
+                    ${p.imagen ? `<img src="${p.imagen}" style="width:100%; height:100%; object-fit:cover;" alt="${p.nombre}">` : `<span style="font-size:4rem; padding:1.5rem;">${p.emoji}</span>`}
+                </div>
+                <div class="product-info" style="display:flex; flex-direction:column; gap:0.25rem;">
+                    <h3 class="product-title" style="font-size:1.25rem; font-weight:800; margin:0;">${p.nombre}</h3>
+                    <p style="font-size: 0.9rem; color: var(--color-text-muted); margin: 0 0 0.5rem 0;">${p.descCorta}</p>
+                    <div style="margin-bottom: 0.5rem;">
+                        ${totalCarinDesc > 0
+                            ? `<div class="price-premium" style="font-size:1.2rem; font-weight:800;">${fmt(pFinal)} <span style="font-size:10px; font-weight:700;">(-${totalDesc}% CON CARIN+)</span></div>
+                               <div style="font-size: 0.8rem; color: var(--color-text-muted);">${fmt(p.precio)} (Normal)</div>`
+                            : (globalSaleDesc > 0
+                                ? `<div class="product-price" style="font-size:1.1rem; font-weight:700; color:#ef4444;">${fmt(pFinal)}</div>
+                                   <div style="text-decoration: line-through; font-size: 0.8rem; color: var(--color-text-muted);">${fmt(p.precio)} (Normal)</div>`
+                                : `<div class="product-price" style="font-size:1.1rem; font-weight:700; color:var(--color-text);">${fmt(p.precio)}</div>
+                                   ${p.precioAntes > 0 ? `<div style="text-decoration: line-through; font-size: 0.8rem; color: var(--color-text-muted);">${fmt(p.precioAntes)}</div>` : ''}`
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:0.5rem;">
+                        <span class="product-cat" style="font-size:11px; color:var(--color-text-muted); text-transform:uppercase; font-weight:700; background:var(--color-bg-alt); padding:2px 8px; border-radius:4px;">${p.cat}</span>
+                        <div style="display:flex; gap:0.4rem;">
+                            <a href="#/producto/${p.id}" class="btn btn-default" style="padding: 6px 10px; font-size: 0.8rem;">Ver</a>
+                            <button onclick="App.addToCart('${p.id}')" class="btn btn-dark" style="padding: 6px 12px; font-size: 0.85rem;">+ Carrito</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    filterShop(cat) {
+        const currentRegion = this._currentRegion || 'global';
+        const products = db.get('productos').filter(p => p.visible
+            && (cat === 'all' || p.cat === cat)
+            && (!p.region || p.region === 'global' || p.region === currentRegion));
+        document.getElementById('shop-grid').innerHTML = products.length
+            ? products.map(p => this.renderProductCard(p)).join('')
+            : `<div style="grid-column:1/-1; text-align:center; padding:2rem; color:var(--color-text-muted);">No hay productos en esta categor??a para tu regi??n.</div>`;
+    viewProduct(main, pid) {
+        const p = db.get('productos').find(x => x.id === pid);
+        if (!p) {
+            main.innerHTML = `<div class="container" style="margin-top:5rem; text-align:center;">
+                <div style="font-size:4rem; margin-bottom:1rem;">????</div>
+                <h2>Producto no encontrado</h2>
+                <a href="#/tienda" class="btn btn-dark" style="margin-top:1rem;">Volver a la Tienda</a>
+            </div>`;
+            return;
+        const configCarin = db.get('configCarinPlus') || { descuentoGlobal: 15 };
+        const configRebajas = db.get('configRebajas') || { activa: false, porcentaje: 0 };
+        const isCarinPlus = db.currentUser && db.currentUser.rango === 'carin_plus';
+        const globalSaleDesc = configRebajas.activa ? configRebajas.porcentaje : 0;
+        const baseDesc = p.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
+        const extraDesc = p.carinPlusDescuento || 0;
+        const carinDiscount = extraDesc > 0 ? extraDesc : baseDesc;
+        const totalCarinDesc = p.excluirCarinPlus ? 0 : carinDiscount;
+        const totalDesc = (isCarinPlus ? totalCarinDesc : 0) + globalSaleDesc;
+        const pFinal = totalDesc > 0 ? Math.round(p.precio * (1 - totalDesc / 100)) : p.precio;
+        // Currency formatting
+        const showUSD = this._showUSD || false;
+        const dolarRate = this._dolarRate || null;
+        const fmt = (n) => {
+            if (showUSD && dolarRate) return 'US$' + (n / dolarRate).toFixed(2);
+            return '$' + n.toLocaleString('es-AR');
+        // Related products
+        const related = db.get('productos').filter(x => x.visible && x.id !== p.id && x.cat === p.cat).slice(0, 4);
+        const whatsappMsg = encodeURIComponent(`Hola! Me interesa el producto: ${p.nombre} (Precio: ${fmt(pFinal)})`);
+        const whatsappUrl = `https://wa.me/5493547000000?text=${whatsappMsg}`;
+        main.innerHTML = `
+        <div class="container" style="margin-top:2.5rem; margin-bottom:5rem;">
+            <!-- Breadcrumb -->
+            <nav style="font-size:13px; color:var(--color-text-muted); margin-bottom:2rem;">
+                <a href="#/" style="color:var(--color-text-muted); text-decoration:none;">Inicio</a>
+                <span style="margin:0 6px;">???</span>
+                <a href="#/tienda" style="color:var(--color-text-muted); text-decoration:none;">Tienda</a>
+                <span style="margin:0 6px;">???</span>
+                <span style="color:var(--color-text);">${p.nombre}</span>
+            </nav>
+            <!-- Main product grid -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:start;">
+                <!-- Image -->
+                <div style="position:sticky; top:100px;">
+                    <div style="border-radius:var(--radius-md); overflow:hidden; background:var(--color-bg-alt); aspect-ratio:1; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--color-border);">
+                        ${p.imagen
+                            ? `<img src="${p.imagen}" style="width:100%; height:100%; object-fit:cover;" alt="${p.nombre}">`
+                            : `<span style="font-size:8rem;">${p.emoji || '????'}</span>`}
+                    </div>
+                    ${globalSaleDesc > 0 ? `<div style="margin-top:0.75rem; background:#fef2f2; border:1px solid #fecaca; border-radius:var(--radius-sm); padding:8px 14px; text-align:center; font-size:13px; color:#b91c1c; font-weight:700;">???? ${configRebajas.titulo || 'Rebaja'} ??? ${globalSaleDesc}% OFF aplicado</div>` : ''}
+                </div>
+                <!-- Info -->
+                <div>
+                    <span style="font-size:11px; background:var(--color-bg-alt); border:1px solid var(--color-border); color:var(--color-text-muted); padding:3px 10px; border-radius:999px; font-weight:700; text-transform:uppercase;">${p.cat}</span>
+                    <h1 style="font-size:2rem; font-weight:900; margin:1rem 0 0.5rem; line-height:1.2;">${p.nombre}</h1>
+                    <p style="color:var(--color-text-muted); font-size:1rem; margin-bottom:1.5rem;">${p.descCorta}</p>
+                    <!-- Price block -->
+                    <div style="background:var(--color-bg-alt); border-radius:var(--radius-sm); padding:1.25rem 1.5rem; margin-bottom:1.5rem; border:1.5px solid var(--color-border);">
+                            if (totalCarinDesc > 0) {
+                                return `<div class="price-premium" style="font-size:2rem; font-weight:900;">${fmt(pFinal)}</div>
+                                        <div style="display:flex; align-items:center; gap:8px; margin-top:0.25rem;">
+                                            <span style="text-decoration:line-through; color:var(--color-text-muted); font-size:1rem;">${fmt(p.precio)}</span>
+                                            <span style="background:#fce7f3; color:#be185d; font-size:11px; font-weight:800; padding:2px 8px; border-radius:999px;">-${totalDesc}% CON CARIN+</span>
+                                        </div>`;
+                            } else if (globalSaleDesc > 0) {
+                                return `<div style="font-size:2rem; font-weight:900; color:#ef4444;">${fmt(pFinal)}</div>
+                                        <div style="text-decoration:line-through; color:var(--color-text-muted); font-size:1rem; margin-top:0.25rem;">${fmt(p.precio)}</div>`;
+                            } else {
+                                return `<div style="font-size:2rem; font-weight:900;">${fmt(p.precio)}</div>` +
+                                       (p.precioAntes > 0 ? `<div style="text-decoration:line-through; color:var(--color-text-muted); font-size:1rem; margin-top:0.25rem;">${fmt(p.precioAntes)}</div>` : '');
+                        ${!isCarinPlus && !p.excluirCarinPlus ? `
+                        <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--color-border); font-size:13px; color:#be185d;">
+                            ??? Con <strong>Carin+</strong> pagar??as <strong>${fmt(Math.round(p.precio * (1 - (totalCarinDesc || baseDesc) / 100)))}</strong>
+                            <a href="#/carin-plus" style="margin-left:6px; color:#db2777; font-weight:700; font-size:11px;">Ver planes ???</a>
+                        </div>` : ''}
+                    </div>
+                    <!-- Talles -->
+                    ${p.talles && p.talles.length > 0 ? `
+                    <div style="margin-bottom:1.5rem;">
+                        <div style="font-size:13px; font-weight:700; margin-bottom:0.5rem;">Talles disponibles</div>
+                        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                            ${p.talles.map(t => `<span style="border:1.5px solid var(--color-border); border-radius:var(--radius-sm); padding:4px 12px; font-size:13px; font-weight:600;">${t}</span>`).join('')}
+                        </div>
+                    </div>` : ''}
+                    <!-- Stock -->
+                    <div style="margin-bottom:1.5rem; font-size:13px; color:${p.stock === 'Disponible' ? '#15803d' : '#b91c1c'}; font-weight:700;">
+                        ${p.stock === 'Disponible' ? '??? En stock' : '??? Sin stock'}
+                    </div>
+                    <!-- CTAs -->
+                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                        <button onclick="App.addToCart('${p.id}'); App.showToast('??? Agregado al carrito')" class="btn btn-dark" style="width:100%; padding:14px; font-size:1rem; font-weight:700;">
+                            ???? Agregar al carrito
+                        </button>
+                        <a href="${whatsappUrl}" target="_blank" class="btn btn-default" style="width:100%; padding:14px; font-size:1rem; text-align:center;">
+                            ???? Consultar por WhatsApp
+                        </a>
+                    </div>
+                    <!-- Payment method -->
+                    ${p.metodoPago ? `<p style="font-size:12px; color:var(--color-text-muted); margin-top:1rem; text-align:center;">???? M??todo de pago: ${p.metodoPago}</p>` : ''}
+                </div>
+            </div>
+            <!-- Description -->
+            ${p.descLarga ? `
+            <div style="margin-top:4rem; padding-top:4rem; border-top:1px solid var(--color-border);">
+                <h2 style="margin-bottom:1.5rem;">Descripci??n del producto</h2>
+                <div style="font-size:15px; line-height:1.8; color:var(--color-text); max-width:700px; white-space:pre-line;">${p.descLarga}</div>
+            </div>` : ''}
+            <!-- Related products -->
+            ${related.length > 0 ? `
+            <div style="margin-top:4rem; padding-top:4rem; border-top:1px solid var(--color-border);">
+                <h2 style="margin-bottom:2rem;">Tambi??n te puede interesar</h2>
+                <div class="product-grid">
+                    ${related.map(r => this.renderProductCard(r)).join('')}
+                </div>
+            </div>` : ''}
+        </div>`;
+        // Responsive: make product grid single column on mobile
+        if (window.innerWidth < 768) {
+            const grid = main.querySelector('div[style*="grid-template-columns:1fr 1fr"]');
+            if (grid) grid.style.gridTemplateColumns = '1fr';
+    viewCourses(main) {
+        const courses = db.get('cursos');
+        main.innerHTML = `
+            <div class="container" style="margin-top: 3rem;">
+                <div style="text-align: center; margin-bottom: 4rem;">
+                    <h1>Cursos y Talleres</h1>
+                    <p style="color: var(--color-text-muted); max-width: 600px; margin: 1rem auto;">Aprende las t??cnicas m??s avanzadas de costura y dise??o en nuestras clases presenciales.</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3rem;">
+                    ${courses.map(c => this.renderCourseCard(c)).join('')}
+                </div>
+            </div>
+    viewCourseDetail(main, id) {
+        const c = db.get('cursos').find(x => x.id === id);
+        if (!c) {
+            main.innerHTML = `<div class="container" style="margin-top:5rem; text-align:center;">
+                <h2>Curso no encontrado</h2>
+                <a href="#/cursos" class="btn btn-dark">Volver a Cursos</a>
+            </div>`;
+            return;
+        const profe = db.get('profesores').find(p => p.id === c.profeId);
+        const profeNombre = profe ? profe.nombre : c.profeId;
+        const slotsAvailable = c.maxAlumnos - c.alumnos.length;
+        const currentUser = db.currentUser;
+        let adminBannerHtml = '';
+        if (currentUser) {
+            const isAdmin = currentUser.rango === 'admin' || currentUser.rango === 'owner';
+            const isAssignedProfe = (currentUser.rango === 'profesor') && (profe && profe.userId === currentUser.userId);
+            if (isAdmin || isAssignedProfe) {
+                const navTarget = isAdmin ? `App.navigate('/admin/cursos'); setTimeout(()=>App.viewAdminEnrollment('${c.id}'), 100);` : `App.navigate('/panel-profesor');`;
+                adminBannerHtml = `
+                    <div style="background:linear-gradient(90deg, var(--color-primary), #db2777); padding:1rem; text-align:center; color:white; font-weight:700;">
+                        <span>???? Tienes acceso administrativo a este curso.</span>
+                        <button onclick="${navTarget}" style="margin-left:1rem; padding:6px 15px; border-radius:999px; border:none; background:white; color:var(--color-primary); font-weight:800; cursor:pointer; font-size:12px;">?????? Administrar Curso</button>
+                    </div>`;
+        // Horarios Board
+        let boardHtml = '';
+        if (c.schedule && c.schedule.length > 0) {
+            boardHtml = `
+            <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-top:2rem;">
+                <h3 style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">???? Tablero de Horarios Mensual</h3>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+                    ${c.schedule.map(s => `
+                        <div style="background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border); text-align:center;">
+                            <div style="font-weight:800; font-size:1.1rem; color:var(--color-primary); margin-bottom:0.25rem;">${s.dia}</div>
+                            <div style="font-size:1.2rem; font-weight:700;">${s.horaInicio} - ${s.horaFin}</div>
+                            <div style="font-size:0.85rem; color:var(--color-text-muted); margin-top:0.5rem; font-weight:600; text-transform:uppercase;">???? ${s.frecuencia}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top:1rem; font-size:0.85rem; color:var(--color-text-muted); text-align:center;">Estos horarios se repiten todas las semanas del mes. Puedes asistir la cantidad de meses que desees.</div>
+            </div>`;
+        main.innerHTML = `
+            ${adminBannerHtml}
+            <div class="course-banner-detail" style="height:350px; background-size:cover; background-position:center; background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('${c.banner}'); display:flex; align-items:flex-end; padding-bottom:3rem;">
+                <div class="container" style="color:white; width:100%;">
+                    <div style="font-size:1rem; font-weight:700; text-transform:uppercase; letter-spacing:2px; margin-bottom:0.5rem; color:#fbcfe8;">${c.subtitulo || 'Curso Presencial'}</div>
+                    <h1 style="font-size:3rem; margin:0; line-height:1.1; color:white;">${c.titulo}</h1>
+                </div>
+            </div>
+            <div class="container" style="margin-top:3rem; margin-bottom:5rem;">
+                <div style="display:grid; grid-template-columns:2fr 1fr; gap:4rem; align-items:start;">
+                    <!-- Columna Izquierda -->
+                    <div>
+                        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:2rem; padding-bottom:2rem; border-bottom:1px solid var(--color-border);">
+                            <div style="width:50px; height:50px; border-radius:50%; background:var(--color-primary); color:white; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:700;">${profeNombre.charAt(0)}</div>
+                            <div>
+                                <div style="font-size:0.9rem; color:var(--color-text-muted);">Profesor a cargo</div>
+                                <div style="font-size:1.1rem; font-weight:700;">${profeNombre}</div>
+                            </div>
+                        </div>
+                        <h3 style="margin-bottom:1rem;">Sobre este curso</h3>
+                        <div style="font-size:1.05rem; line-height:1.8; color:var(--color-text); margin-bottom:2rem; white-space:pre-line;">${c.descripcionLarga || c.descripcion}</div>
+                        ${c.requisitos && c.requisitos.length ? `
+                        <h3 style="margin-bottom:1rem; margin-top:3rem;">Requisitos</h3>
+                        <ul style="padding-left:1.5rem; line-height:1.8; margin-bottom:2rem;">
+                            ${c.requisitos.map(r => `<li>${r}</li>`).join('')}
+                        </ul>` : ''}
+                        ${c.incluye && c.incluye.length ? `
+                        <h3 style="margin-bottom:1rem; margin-top:3rem;">El curso incluye</h3>
+                        <ul style="padding-left:1.5rem; line-height:1.8; margin-bottom:2rem;">
+                            ${c.incluye.map(i => `<li>${i}</li>`).join('')}
+                        </ul>` : ''}
+                        ${boardHtml}
+                    </div>
+                    <!-- Columna Derecha (Fija) -->
+                    <div style="position:sticky; top:100px; background:var(--color-bg); border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; box-shadow:var(--shadow-md);">
+                        <div style="font-size:0.9rem; color:var(--color-text-muted); font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;">Precio Mensual</div>
+                        <div style="font-size:2.5rem; font-weight:900; color:var(--color-text); margin-bottom:1.5rem;">$${(c.precio||0).toLocaleString()}</div>
+                        <div style="margin-bottom:2rem;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.9rem;">
+                                <span>Cupos disponibles:</span>
+                                <strong>${slotsAvailable} de ${c.maxAlumnos}</strong>
+                            </div>
+                            <div style="width:100%; height:8px; background:var(--color-bg-alt); border-radius:999px; overflow:hidden;">
+                                <div style="width:${(c.alumnos.length/c.maxAlumnos)*100}%; height:100%; background:var(--color-primary);"></div>
+                            </div>
+                        </div>
+                        <button onclick="App.enrollCourse('${c.id}')" class="btn btn-dark" style="width:100%; padding:14px; font-size:1.1rem; font-weight:700; margin-bottom:1rem;" ${slotsAvailable <= 0 ? 'disabled' : ''}>
+                            ${slotsAvailable <= 0 ? 'Cupo Lleno' : 'Inscribirme este mes'}
+                        </button>
+                        <p style="font-size:0.8rem; color:var(--color-text-muted); text-align:center; margin:0;">El pago se coordina v??a WhatsApp. Puedes inscribirte y pagar mes a mes.</p>
+                    </div>
+                </div>
+            </div>
+    renderCourseCard(c) {
+        const slotsAvailable = c.maxAlumnos - c.alumnos.length;
+        const profe = db.get('profesores').find(p => p.id === c.profeId);
+        const profeNombre = profe ? profe.nombre : c.profeId;
+        return `
+            <div class="course-card" style="background:var(--color-bg); border:1.5px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; position:relative; display:flex; flex-direction:column;">
+                <div class="course-banner" style="height:150px; background-size:cover; background-position:center; background-color:var(--color-bg-alt); background-image: url('${c.banner}')">
+                    ${c.oferta ? `<span class="badge" style="position:absolute; top:1rem; right:1rem; background:var(--color-primary); color:white; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700;">??Oferta!</span>` : ''}
+                </div>
+                <div class="course-info" style="padding:1.25rem; flex:1; display:flex; flex-direction:column;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                        <div>
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--color-primary); text-transform: uppercase; letter-spacing: 1px;">${c.subtitulo}</span>
+                            <h3 style="margin-top: 0.25rem; font-size:1.1rem; font-weight:700;">${c.titulo}</h3>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--color-text-muted); margin-bottom: 1.5rem; flex:1;">${c.descripcion}</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; font-size: 0.85rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span>????</span> <b>${c.horarios}</b>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span>???????????</span> <b>${profeNombre}</b>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+                        <span style="padding:2px 8px; border-radius:999px; font-size:10px; ${slotsAvailable > 0 ? 'background:#dcfce7; color:#15803d;' : 'background:#fee2e2; color:#b91c1c;'}">
+                            ${slotsAvailable > 0 ? `Quedan ${slotsAvailable} cupos` : 'Cupo lleno'}
+                        </span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <a href="#/cursos/${c.id}" class="btn btn-default" style="padding:6px 12px; font-size:0.85rem;">Detalles</a>
+                            <button onclick="App.enrollCourse('${c.id}')" class="btn btn-dark" style="padding:6px 12px; font-size:0.85rem;" ${slotsAvailable <= 0 ? 'disabled' : ''}>Anotarme</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    enrollCourse(id) {
+        if (!db.currentUser) {
+            this.showToast('?????? Debes iniciar sesi??n para inscribirte');
+            this.navigate('/login');
+            return;
+        this.showToast('???? Redirigiendo a WhatsApp para confirmar inscripci??n...');
+        const course = db.get('cursos').find(c => c.id === id);
+        const msg = `Hola! Quiero inscribirme al curso: ${course.titulo}. Mi email es ${db.currentUser.email}`;
+        window.open(`https://wa.me/5493547000000?text=${encodeURIComponent(msg)}`, '_blank');
+    viewLogin(main) {
+        main.innerHTML = `
+            <div class="container" style="max-width: 400px; margin-top: 5rem; margin-bottom: 5rem;">
+                <div style="background: var(--color-bg); border: 1.5px solid var(--color-border); padding: 2.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">
+                    <h1 style="text-align: center; margin-bottom: 2rem;">Ingresar</h1>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 0.5rem;">Email</label>
+                        <input type="email" id="login-email" placeholder="tu@email.com" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
+                    </div>
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 0.5rem;">Contrase??a</label>
+                        <input type="password" id="login-pass" placeholder="????????????????????????" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
+                    </div>
+                    <button onclick="App.handleLogin()" class="btn btn-dark" style="width: 100%; padding: 12px; font-size: 1rem;">Entrar</button>
+                    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); text-align: center;">
+                        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 1rem;">Solo para pruebas r??pidas:</p>
+                        <button onclick="App.demoLogin('admin')" class="btn btn-default" style="width: 100%; font-size: 0.8rem; margin-bottom: 0.5rem;">Entrar como Admin</button>
+                        <button onclick="App.demoLogin('tecnico')" class="btn btn-default" style="width: 100%; font-size: 0.8rem; margin-bottom: 0.5rem;">Entrar como T??cnico</button>
+                        <button onclick="App.demoLogin('profesor')" class="btn btn-default" style="width: 100%; font-size: 0.8rem; margin-bottom: 0.5rem;">Entrar como Profesor</button>
+                        <button onclick="App.demoLogin('carin_plus')" class="btn btn-default" style="width: 100%; font-size: 0.8rem; margin-bottom: 0.5rem;">Entrar como Usuario Carin+</button>
+                    </div>
+                </div>
+            </div>
+    handleLogin() {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+        if (db.login(email, pass)) {
+            this.showToast('??? ??Bienvenido/a!');
+            this.navigate('/');
+            this.renderLayout();
+        } else {
+            this.showToast('??? Email no encontrado');
+    demoLogin(role) {
+        const emails = {
+            'admin': 'admin@carin.com',
+            'tecnico': 'soporte@carin.com',
+            'profesor': 'profe@carin.com',
+            'carin_plus': 'vip@gmail.com',
+            'usuario': 'cliente@gmail.com'
+        if (db.login(emails[role], '')) {
+            this.showToast('??? Modo Demo Activo');
+            this.navigate('/');
+            this.renderLayout();
+    viewAccount(main) {
+        const user = db.currentUser;
+        if (!user) return this.navigate('/login');
+        const compras = db.get('compras').filter(c => c.userId === user.userId);
+        const misCursos = db.get('cursos').filter(c => c.alumnos.includes(user.userId));
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const fechaActual = new Date();
+        const mesActual = meses[fechaActual.getMonth()];
+        const a??oActual = fechaActual.getFullYear();
+        main.innerHTML = `
+            <div class="container" style="margin-top: 4rem; margin-bottom: 5rem;">
+                <div style="background:linear-gradient(135deg, var(--color-bg), var(--color-bg-alt)); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:3rem; display:flex; align-items:center; gap:2rem; margin-bottom:3rem; box-shadow:var(--shadow-sm); position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:0; right:0; width:300px; height:300px; background:radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%); opacity:0.1; transform:translate(30%, -30%); border-radius:50%;"></div>
+                    <div style="width:100px; height:100px; border-radius:50%; background:var(--color-primary); color:white; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:800; box-shadow:0 10px 25px rgba(236,72,153,0.3); z-index:1;">
+                        ${user.nombre.charAt(0).toUpperCase()}
+                    </div>
+                    <div style="z-index:1;">
+                        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:0.5rem;">
+                            <h1 style="margin:0; font-size:2.5rem; line-height:1;">${user.nombre}</h1>
+                            ${user.rango === 'carin_plus' ? '<span class="badge-premium" style="font-size:11px;">??? Miembro Carin+</span>' : ''}
+                            ${user.rango === 'admin' || user.rango === 'owner' ? '<span style="background:#1e293b; color:white; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700;">??????? Admin</span>' : ''}
+                        </div>
+                        <p style="color:var(--color-text-muted); font-size:1.1rem; margin:0;">${user.email}</p>
+                    </div>
+                    <button onclick="App.handleLogout()" class="btn btn-default" style="margin-left:auto; color:#ef4444; border-color:#fca5a5; z-index:1;">Cerrar Sesi??n</button>
+                </div>
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 3rem;">
+                    <div>
+                        <!-- Mis Cursos -->
+                        <h2 style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">???? Mis Cursos</h2>
+                        ${misCursos.length === 0 ? `
+                            <div style="background:var(--color-bg); border:1px dashed var(--color-border); padding:3rem; border-radius:var(--radius-md); text-align:center; color:var(--color-text-muted);">
+                                <div style="font-size:3rem; margin-bottom:1rem;">????</div>
+                                <h3 style="margin-bottom:0.5rem;">A??n no est??s inscrito en ning??n curso</h3>
+                                <p style="margin-bottom:1.5rem;">Explora nuestros talleres y aprend?? algo nuevo hoy.</p>
+                                <a href="#/cursos" class="btn btn-dark">Ver Cursos</a>
+                            </div>
+                            <div style="display:grid; gap:1.5rem;">
+                                ${misCursos.map(c => {
+                                    const inscActual = db.get('inscripciones').find(i => i.cursoId === c.id && i.userId === user.userId && i.mes === mesActual && i.a??o == a??oActual) || { estadoPago: 'Sin Pagar' };
+                                    const siguienteMesIdx = (fechaActual.getMonth() + 1) % 12;
+                                    const siguienteMes = meses[siguienteMesIdx];
+                                    const siguienteA??o = fechaActual.getFullYear() + (siguienteMesIdx === 0 ? 1 : 0);
+                                    const inscSiguiente = db.get('inscripciones').find(i => i.cursoId === c.id && i.userId === user.userId && i.mes === siguienteMes && i.a??o == siguienteA??o);
+                                    return `
+                                    <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-sm); padding:1rem; margin-bottom:1rem;">
+                                        <div style="display:flex; align-items:center; gap:1rem; border-bottom:1px solid var(--color-border-alt); padding-bottom:1rem;">
+                                            <div style="width:50px; height:50px; border-radius:8px; background:url('${c.banner}') center/cover;"></div>
+                                            <div style="flex:1;">
+                                                <h3 style="margin:0; font-size:1.05rem;">${c.titulo}</h3>
+                                                <div style="font-size:11px; color:var(--color-text-muted);">Cuota mensual: $${c.precio}</div>
+                                            </div>
+                                        </div>
+                                        <!-- Mes Actual -->
+                                        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 0;">
+                                            <div style="font-size:13px; font-weight:600;">??????? ${mesActual}:</div>
+                                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                                ${App.getStatusBadge(inscActual.estadoPago)}
+                                                ${inscActual.estadoPago === 'Sin Pagar' ? `
+                                                    <label class="btn btn-dark" style="font-size:10px; margin:0; padding:4px 8px; cursor:pointer;">
+                                                        Pagar <input type="file" accept="image/*" style="display:none;" onchange="App.uploadStudentComprobante(event, '${c.id}', '${user.userId}')">
+                                                    </label>
+                                                ` : inscActual.comprobante ? `
+                                                    <button onclick="App.viewImageModal('${inscActual.comprobante}')" class="btn btn-default" style="font-size:10px; padding:4px 8px;">Ver Ticket</button>
+                                            </div>
+                                        </div>
+                                        <!-- Mes Siguiente (Reserva) -->
+                                        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:0.5rem; border-top:1px dashed var(--color-border);">
+                                            <div style="font-size:12px; color:var(--color-text-muted);">Pr??ximo mes (${siguienteMes}):</div>
+                                            <div style="display:flex; align-items:center; gap:0.5rem;">
+                                                ${inscSiguiente ? 
+                                                    App.getStatusBadge(inscSiguiente.estadoPago) : 
+                                                    `<button onclick="App.requestReservation('${c.id}', '${user.userId}', '${siguienteMes}', ${siguienteA??o})" class="btn btn-default" style="font-size:10px; padding:4px 10px; border:1px solid var(--color-primary); color:var(--color-primary);">Solicitar Reserva</button>`
+                                                ${(inscSiguiente && (inscSiguiente.estadoPago === 'Reservado' || inscSiguiente.estadoPago === 'Sin Pagar')) ? `
+                                                    <label class="btn btn-dark" style="font-size:10px; margin:0; padding:4px 8px; cursor:pointer;">
+                                                        Pagar <input type="file" accept="image/*" style="display:none;" onchange="App.uploadStudentComprobante(event, '${c.id}', '${user.userId}', '${siguienteMes}', ${siguienteA??o})">
+                                                    </label>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        <!-- Mis Pedidos -->
+                        <h2 style="margin-top:3rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">??????? Historial de Compras</h2>
+                        ${compras.length ? `
+                            <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden;">
+                                <table style="width:100%;border-collapse:collapse;">
+                                    <thead><tr style="text-align:left;border-bottom:1px solid var(--color-border);font-size:12px;color:var(--color-text-muted);text-transform:uppercase;background:var(--color-bg-alt);">
+                                        <th style="padding:1rem 1.5rem;">Producto</th>
+                                        <th style="padding:1rem 1.5rem;">Fecha</th>
+                                        <th style="padding:1rem 1.5rem; text-align:right;">Monto</th>
+                                        <th style="padding:1rem 1.5rem; text-align:center;">Estado</th>
+                                    </tr></thead>
+                                    <tbody>
+                                    ${compras.map(c => `
+                                        <tr style="border-bottom:1px solid var(--color-border);">
+                                            <td style="padding:1rem 1.5rem; font-weight:600;">${c.nombreProducto}</td>
+                                            <td style="padding:1rem 1.5rem; font-size:13px; color:var(--color-text-muted);">${new Date(c.fecha).toLocaleDateString()}</td>
+                                            <td style="padding:1rem 1.5rem; font-weight:700; color:var(--color-primary); text-align:right;">$${c.precio}</td>
+                                            <td style="padding:1rem 1.5rem; text-align:center;">
+                                                <span style="padding:4px 10px; border-radius:999px; font-size:10px; font-weight:700; background:#dcfce7; color:#15803d; text-transform:uppercase;">${c.estado}</span>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="background:var(--color-bg); border:1px dashed var(--color-border); padding:2rem; border-radius:var(--radius-md); text-align:center; color:var(--color-text-muted);">
+                                <p>A??n no has realizado compras en nuestra tienda.</p>
+                                <a href="#/tienda" class="btn btn-default" style="margin-top:0.5rem;">Ir a la tienda</a>
+                            </div>
+                    </div>
+                    <!-- Datos Personales Panel Lateral -->
+                    <div>
+                        <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md); position:sticky; top:2rem;">
+                            <h3 style="margin-bottom:1.5rem;">Detalles del Perfil</h3>
+                            <div style="margin-bottom:1.5rem;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.25rem;">Nombre Completo</label>
+                                <input type="text" value="${user.nombre}" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" readonly>
+                            </div>
+                            <div style="margin-bottom:1.5rem;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.25rem;">Correo Electr??nico</label>
+                                <input type="email" value="${user.email}" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border); background:var(--color-bg-alt);" readonly>
+                            </div>
+                            <div style="margin-bottom:1.5rem;">
+                                <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.25rem;">Tel??fono</label>
+                                <input type="text" id="perfil-telefono" value="${user.telefono || ''}" placeholder="Ej: +54 9 351 0000" style="width:100%; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                            </div>
+                            <button class="btn btn-dark" style="width:100%;" onclick="App.showToast('?????? Los cambios de perfil estar??n disponibles pr??ximamente')">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    uploadStudentComprobante(event, cursoId, userId, mes = null, a??o = null) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const fechaActual = new Date();
+            const targetMes = mes || meses[fechaActual.getMonth()];
+            const targetA??o = a??o || fechaActual.getFullYear();
+            db.updatePagoEstado(cursoId, userId, targetMes, targetA??o, 'En Proceso', e.target.result);
+            App.showToast('??? Comprobante subido para ' + targetMes + '. Esperando revisi??n.');
+            App.viewAccount(document.getElementById('main-content'));
+        reader.readAsDataURL(file);
+    getStatusBadge(estado) {
+        if (estado === 'Pagado') return `<span style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800;">??? AL D??A</span>`;
+        if (estado === 'En Proceso') return `<span style="background:#fef9c3; color:#a16207; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800;">??? EN REVISI??N</span>`;
+        if (estado === 'Solicitado') return `<span style="background:#fdf2f8; color:#db2777; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800;">???? SOLICITADO</span>`;
+        if (estado === 'Reservado') return `<span style="background:#e0f2fe; color:#0369a1; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800;">???? RESERVADO</span>`;
+        if (estado === 'No Anotado') return `<span style="background:#f3f4f6; color:#6b7280; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800;">??? NO ANOTADO</span>`;
+        return `<span style="background:#fee2e2; color:#b91c1c; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800;">???? PAGO PENDIENTE</span>`;
+    viewImageModal(base64) {
+        let modal = document.getElementById('image-viewer-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'image-viewer-modal';
+            modal.style.position = 'fixed';
+            modal.style.top = '0'; modal.style.left = '0'; modal.style.width = '100%'; modal.style.height = '100%';
+            modal.style.background = 'rgba(0,0,0,0.85)'; modal.style.zIndex = '9999';
+            modal.style.display = 'flex'; modal.style.alignItems = 'center'; modal.style.justifyContent = 'center';
+            modal.innerHTML = `
+                <div style="position:relative; max-width:90%; max-height:90%;">
+                    <button onclick="document.getElementById('image-viewer-modal').style.display='none'" style="position:absolute; top:-40px; right:0; background:none; border:none; color:white; font-size:30px; cursor:pointer;">&times;</button>
+                    <img id="image-viewer-img" src="" style="max-width:100%; max-height:90vh; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+                </div>
+            document.body.appendChild(modal);
+        document.getElementById('image-viewer-img').src = base64;
+        modal.style.display = 'flex';
+    handleLogout() {
+        db.logout();
+        this.showToast('Sesi??n cerrada');
+        this.navigate('/');
+        this.renderLayout();
+    // CART PAGE (Full page view)
+    viewCartPage(main) {
+        const configCarin = db.get('configCarinPlus') || { descuentoGlobal: 15 };
+        const configRebajas = db.get('configRebajas') || { activa: false, porcentaje: 0 };
+        const configCarrito = db.get('configCarrito') || { tarifaServicio: 5 };
+        const isCarinPlus = db.currentUser && db.currentUser.rango === 'carin_plus';
+        const globalSaleDesc = configRebajas.activa ? configRebajas.porcentaje : 0;
+        const activeCoupon = this._activeCoupon || null;
+        const showUSD = this._showUSD || false;
+        const dolarRate = this._dolarRate || null;
+        const calcItemPrice = (item) => {
+            const baseDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
+            const extraDesc = item.carinPlusDescuento || 0;
+            // FIX: extra replaces base, doesn't stack
+            const carinDiscount = item.excluirCarinPlus ? 0 : (extraDesc > 0 ? extraDesc : baseDesc);
+            const totalDesc = (isCarinPlus ? carinDiscount : 0) + globalSaleDesc;
+            return totalDesc > 0 ? Math.round(item.precio * (1 - totalDesc / 100)) : item.precio;
+        const calcCarinPlusPrice = (item) => {
+            const baseDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
+            const extraDesc = item.carinPlusDescuento || 0;
+            // FIX: extra replaces base
+            const carinDiscount = item.excluirCarinPlus ? 0 : (extraDesc > 0 ? extraDesc : baseDesc);
+            const totalDesc = carinDiscount + globalSaleDesc;
+            return totalDesc > 0 ? Math.round(item.precio * (1 - totalDesc / 100)) : item.precio;
+        if (db.cart.length === 0) {
+            main.innerHTML = `
+                <div class="container" style="margin-top:5rem; text-align:center; padding-bottom:5rem;">
+                    <div style="font-size:5rem; margin-bottom:1.5rem;">????</div>
+                    <h2>Tu carrito est?? vac??o</h2>
+                    <p style="color:var(--color-text-muted); margin:1rem 0 2rem;">Explor?? nuestra tienda y encontr?? lo que am??s.</p>
+                    <a href="#/tienda" class="btn btn-dark">Ir a la Tienda</a>
+                </div>`;
+            return;
+        const subtotal = db.cart.reduce((acc, item) => acc + calcItemPrice(item), 0);
+        const tarifaServicio = Math.round(subtotal * (configCarrito.tarifaServicio / 100));
+        const couponDiscount = activeCoupon ? Math.round(subtotal * (activeCoupon.porcentaje / 100)) : 0;
+        const total = subtotal + tarifaServicio - couponDiscount;
+        // Carin+ upsell: if user isn't carin plus, show what they'd save
+        const carinSubtotal = db.cart.reduce((acc, item) => acc + calcCarinPlusPrice(item), 0);
+        const carinTotal = carinSubtotal + Math.round(carinSubtotal * (configCarrito.tarifaServicio / 100)) - couponDiscount;
+        const carinSavings = total - carinTotal;
+        const formatARS = (n) => '$' + n.toLocaleString('es-AR');
+        const formatUSD = (n) => dolarRate ? 'US$' + (n / dolarRate).toFixed(2) : '...';
+        const fmt = (n) => showUSD ? formatUSD(n) : formatARS(n);
+        // Recommendations: up to 4 products NOT in cart
+        const cartIds = new Set(db.cart.map(i => i.id));
+        const recs = db.get('productos').filter(p => p.visible && !cartIds.has(p.id)).slice(0, 4);
+        main.innerHTML = `
+        <div class="container" style="margin-top:2.5rem; margin-bottom:5rem;">
+            <h1 style="margin-bottom:0.25rem;">Tu Carrito</h1>
+            <p style="color:var(--color-text-muted); margin-bottom:2rem;">${db.cart.length} producto${db.cart.length !== 1 ? 's' : ''}</p>
+            <div class="cart-page-grid">
+                <!-- Left: Items -->
+                <div>
+                    <div style="background:var(--color-bg); border:1.5px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; margin-bottom:2rem;">
+                        ${db.cart.map((item, idx) => {
+                            const price = calcItemPrice(item);
+                            const globalDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
+                            const totalDisc = (isCarinPlus ? globalDesc + (item.carinPlusDescuento || 0) : 0) + globalSaleDesc;
+                            return `
+                            <div class="cart-item-row">
+                                <div class="cart-item-thumb">
+                                    ${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}">` : item.emoji}
+                                </div>
+                                <div style="flex:1;">
+                                    <div style="font-weight:700; font-size:15px;">${item.nombre}</div>
+                                    <div style="font-size:12px; color:var(--color-text-muted);">${item.cat}</div>
+                                    ${totalDisc > 0 ? `<div style="font-size:11px; color:#db2777;">-${totalDisc}% aplicado</div>` : ''}
+                                </div>
+                                <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
+                                    ${price < item.precio ? `<div style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through;">${fmt(item.precio)}</div>` : ''}
+                                    <div style="font-weight:800; font-size:15px; color:${price < item.precio ? '#db2777' : 'var(--color-text)'};">${fmt(price)}</div>
+                                    <div style="display:flex; gap:0.5rem;">
+                                        <a href="#/tienda" class="btn btn-default" style="font-size:10px; padding:3px 8px;">Ver</a>
+                                        <button class="btn btn-default" style="font-size:10px; padding:3px 8px; color:#ef4444;" onclick="App.removeFromCart(${idx}); App.viewCartPage(document.getElementById('main-content'))">Quitar</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <!-- Coupon Area -->
+                    <div style="background:var(--color-bg); border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem;">
+                        <div style="font-weight:700; font-size:14px; margin-bottom:1rem;">???? C??digo de Descuento</div>
+                        ${activeCoupon ? `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:#dcfce7; padding:0.75rem 1rem; border-radius:var(--radius-sm);">
+                                <span style="color:#15803d; font-weight:700; font-size:13px;">??? ${activeCoupon.codigo} (-${activeCoupon.porcentaje}%)</span>
+                                <button onclick="App.quitarCupon(); App.viewCartPage(document.getElementById('main-content'))" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:12px;">??? Quitar</button>
+                            </div>
+                            <div style="display:flex; gap:0.75rem;">
+                                <input type="text" id="cupon-input" placeholder="Ej: BIENVENIDA10" style="flex:1; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm); text-transform:uppercase; font-size:13px;">
+                                <button class="btn btn-dark" onclick="App.aplicarCuponPage()">Aplicar</button>
+                            </div>
+                    </div>
+                    <!-- Recommendations -->
+                    ${recs.length ? `
+                    <div>
+                        <h3 style="margin-bottom:1rem;">???? Tambi??n te puede interesar</h3>
+                        <div class="recommendations-strip">
+                            ${recs.map(p => {
+                                const configCarinPlusLocal = db.get('configCarinPlus') || { descuentoGlobal: 0 };
+                                const globalDescP = p.excluirCarinPlus ? 0 : (configCarinPlusLocal.descuentoGlobal || 0);
+                                const totalDescP = globalDescP + (p.carinPlusDescuento || 0) + globalSaleDesc;
+                                const pFinal = totalDescP > 0 ? Math.round(p.precio * (1 - totalDescP / 100)) : p.precio;
+                                return `
+                                <div class="recommendation-card" onclick="App.addToCart('${p.id}'); App.viewCartPage(document.getElementById('main-content'))">
+                                    <div style="height:100px; background:var(--color-bg-alt); display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                        ${p.imagen ? `<img src="${p.imagen}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:3rem;">${p.emoji}</span>`}
+                                    </div>
+                                    <div style="padding:0.75rem;">
+                                        <div style="font-weight:700; font-size:13px; margin-bottom:0.25rem;">${p.nombre}</div>
+                                        ${totalDescP > 0 ? `<div class="price-premium" style="font-size:13px; font-weight:800;">${fmt(pFinal)} <span style="font-size:10px;">(-${totalDescP}%)</span></div>
+                                        <div style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through;">${fmt(p.precio)}</div>`
+                                        : `<div style="font-weight:700; font-size:13px;">${fmt(p.precio)}</div>`}
+                                        <div style="font-size:10px; margin-top:0.5rem; color:var(--color-primary); font-weight:700;">+ Agregar al carrito</div>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>` : ''}
+                </div>
+                <!-- Right: Summary -->
+                <div>
+                    <div class="cart-summary-box">
+                        <h3 style="margin-bottom:1.5rem;">Resumen de Compra</h3>
+                        <label class="usd-toggle" style="margin-bottom:1.5rem;">
+                            <input type="checkbox" ${showUSD ? 'checked' : ''} onchange="App.toggleUSD(this.checked)">
+                            <span>Ver precios en USD</span>
+                            ${dolarRate ? `<span style="font-size:10px; color:var(--color-text-muted);">(Blue $${dolarRate})</span>` : '<span style="font-size:10px; color:var(--color-text-muted);">Cargando...</span>'}
+                        </label>
+                        <div class="cart-summary-row">
+                            <span>Subtotal</span><span>${fmt(subtotal)}</span>
+                        </div>
+                        <div class="cart-summary-row">
+                            <span>Tarifa de Servicio (${configCarrito.tarifaServicio}%)</span>
+                            <span>+ ${fmt(tarifaServicio)}</span>
+                        </div>
+                        ${couponDiscount > 0 ? `<div class="cart-summary-row" style="color:#15803d;">
+                            <span>???? Cup??n ${activeCoupon.codigo}</span><span>- ${fmt(couponDiscount)}</span>
+                        </div>` : ''}
+                        <div class="cart-summary-row" style="font-size:1.15rem; font-weight:800;">
+                            <span>Total</span><span>${fmt(total)}</span>
+                        </div>
+                        ${!isCarinPlus && carinSavings > 0 ? `
+                        <div class="carin-plus-upsell">
+                            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                                <span class="badge-premium" style="font-size:10px; padding:2px 8px;">CARIN+</span>
+                                <span style="font-weight:700; font-size:13px; color:#be185d;">??Ahorrar??as ${fmt(carinSavings)}!</span>
+                            </div>
+                            <p style="font-size:12px; color:#9d174d; margin:0 0 0.75rem;">Con Carin+ pagar??as solo <b>${fmt(carinTotal)}</b> en vez de ${fmt(total)}.</p>
+                            <a href="#/carin-plus" class="btn btn-dark" style="width:100%; text-align:center; background:#db2777; border-color:#db2777; font-size:13px; display:block;">
+                                ??? Quiero Carin+
+                            </a>
+                        </div>` : ''}
+                        <button class="btn btn-dark" style="width:100%; padding:14px; font-size:1rem; margin-top:1.5rem;" onclick="App.checkout()">
+                            Confirmar Compra
+                        </button>
+                        <a href="#/tienda" style="display:block; text-align:center; font-size:13px; color:var(--color-text-muted); margin-top:1rem; text-decoration:none;">??? Seguir comprando</a>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        // Fetch USD rate if not cached
+        if (!this._dolarRate) this.fetchDolarRate();
+    async fetchDolarRate() {
+        try {
+            const res = await fetch('https://dolarapi.com/v1/dolares/blue');
+            const data = await res.json();
+            this._dolarRate = data.venta;
+            // Re-render cart if still on cart page
+            if (window.location.hash === '#/carrito') {
+                this.viewCartPage(document.getElementById('main-content'));
+        } catch (e) {
+            this._dolarRate = null;
+    toggleUSD(checked) {
+        this._showUSD = checked;
+        this.viewCartPage(document.getElementById('main-content'));
+    aplicarCuponPage() {
+        const input = document.getElementById('cupon-input');
+        if (!input) return;
+        const codigo = input.value.trim().toUpperCase();
+        const cupones = db.get('cupones') || [];
+        const c = cupones.find(x => x.codigo === codigo && x.activo);
+        if (c) {
+            this._activeCoupon = c;
+            c.usos = (c.usos || 0) + 1;
+            db.save();
+            this.showToast(`??? Cup??n ${c.codigo} aplicado (-${c.porcentaje}%)`);
+            this.viewCartPage(document.getElementById('main-content'));
+        } else {
+            this.showToast('??? Cup??n inv??lido o vencido');
+    checkout() {
+        this.showToast('???? Redirigiendo a WhatsApp para confirmar pedido...');
+        const items = db.cart.map(i => `??? ${i.nombre}`).join('\n');
+        const msg = `Hola! Quiero confirmar mi pedido:\n${items}`;
+        window.open(`https://wa.me/5493547000000?text=${encodeURIComponent(msg)}`, '_blank');
+    // CARIN+ LANDING PAGE
+    viewCarinPlusPage(main) {
+        const cfg = db.get('configCarinPlusPagina') || {};
+        const configCarin = db.get('configCarinPlus') || { descuentoGlobal: 15 };
+        const planes = db.get('configCarinPlusPlanes') || [];
+        const isAlready = db.currentUser && db.currentUser.rango === 'carin_plus';
+        const beneficios = cfg.beneficios || [];
+        const icons = ['???', '???????', '????', '????', '????', '????'];
+        const buildWhatsAppUrl = (plan) => {
+            const base = cfg.ctaUrl || 'https://wa.me/5493547000000';
+            const msg = `Hola! Me gustar??a suscribirme al plan Carin+ de ${plan.meses} meses por $${plan.precio.toLocaleString()}`;
+            return `${base}?text=${encodeURIComponent(msg)}`;
+        main.innerHTML = `
+            <!-- Hero -->
+            <div class="carin-plus-hero" style="padding-bottom:6rem;">
+                <div class="container">
+                    ${isAlready ? '<div style="font-size:0.9rem; background:rgba(255,255,255,0.25); display:inline-block; padding:6px 20px; border-radius:999px; margin-bottom:1.5rem; backdrop-filter:blur(4px);">??? Ya sos miembro Carin+</div>' : ''}
+                    <div class="badge-premium" style="display:inline-block; margin-bottom:1rem; background:rgba(255,255,255,0.2); font-size:11px; letter-spacing:2px;">MEMBERSHIP PREMIUM</div>
+                    <h1 style="font-size:3.5rem; font-weight:900; color:white; margin-bottom:1rem; line-height:1.1;">${cfg.titulo || 'Descubr?? Carin+'}</h1>
+                    <p style="font-size:1.2rem; color:rgba(255,255,255,0.85); max-width:600px; margin:0 auto 1rem;">${cfg.subtitulo || ''}</p>
+                    <p style="font-size:0.9rem; opacity:0.65;">Cancel?? cuando quieras ?? Sin compromisos</p>
+                </div>
+            </div>
+            <!-- Subscription Plans -->
+            <div class="container" style="margin-top:-3rem; margin-bottom:5rem; position:relative; z-index:10;">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1.5rem; max-width:900px; margin:0 auto;">
+                    ${planes.map(plan => {
+                        const precioMes = Math.round(plan.precio / plan.meses);
+                        const isPopular = plan.etiqueta === 'M??s Popular';
+                        const isBest = plan.etiqueta === 'Mejor Valor';
+                        const highlight = isPopular || isBest;
+                        return `
+                        <div style="background:var(--color-bg); border-radius:var(--radius-md); overflow:hidden; box-shadow:${highlight ? '0 20px 60px rgba(236,72,153,0.25)' : 'var(--shadow-sm)'}; border:${highlight ? '2px solid #ec4899' : '1.5px solid var(--color-border)'}; transform:${highlight ? 'scale(1.03)' : 'none'}; transition:transform 0.2s, box-shadow 0.2s; position:relative;">
+                            ${plan.etiqueta ? `<div style="background:${isPopular?'#ec4899':isBest?'#7c3aed':'#64748b'}; color:white; text-align:center; padding:6px; font-size:11px; font-weight:800; letter-spacing:1px; text-transform:uppercase;">${plan.etiqueta}</div>` : '<div style="padding:6px;"></div>'}
+                            <div style="padding:2rem; text-align:center;">
+                                <div style="font-size:1rem; font-weight:700; color:var(--color-text-muted); margin-bottom:0.5rem;">${plan.meses} MESES</div>
+                                <div style="font-size:2.8rem; font-weight:900; color:${highlight?'#db2777':'var(--color-text)'}; margin-bottom:0.25rem;">$${plan.precio.toLocaleString()}</div>
+                                <div style="font-size:13px; color:var(--color-text-muted); margin-bottom:1rem;">$${precioMes.toLocaleString()}/mes</div>
+                                ${plan.descuento > 0 ? `<div style="display:inline-block; background:#dcfce7; color:#15803d; font-size:11px; font-weight:800; padding:3px 12px; border-radius:999px; margin-bottom:1.5rem;">Ahorr??s ${plan.descuento}% vs mensual</div>` : '<div style="margin-bottom:1.5rem;"></div>'}
+                                ${!isAlready
+                                    ? `<a href="${buildWhatsAppUrl(plan)}" target="_blank" class="btn btn-dark" style="width:100%; text-align:center; display:block; padding:12px; ${highlight?'background:#db2777; border-color:#db2777;':''}">
+                                        ${highlight ? '??? ' : ''}Suscribirme
+                                    </a>`
+                                    : `<div style="background:#dcfce7; color:#15803d; border-radius:var(--radius-sm); padding:10px; font-size:13px; font-weight:700; text-align:center;">??? Plan activo</div>`
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+                <p style="text-align:center; font-size:12px; color:var(--color-text-muted); margin-top:1.5rem;">???? Pagos seguros v??a WhatsApp ?? Activaci??n inmediata</p>
+            </div>
+            <!-- Benefits Grid -->
+            <div style="background:var(--color-bg-alt); padding:5rem 0;">
+                <div class="container">
+                    <h2 style="text-align:center; margin-bottom:0.75rem;">??Qu?? incluye Carin+?</h2>
+                    <p style="text-align:center; color:var(--color-text-muted); margin-bottom:3rem;">Todo esto desde el primer d??a de tu suscripci??n</p>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1.5rem; margin-bottom:4rem;">
+                        ${beneficios.map((b, i) => `
+                        <div class="carin-plus-benefit-card">
+                            <span style="font-size:2rem; flex-shrink:0; width:48px; height:48px; background:linear-gradient(135deg,#fce7f3,#fbcfe8); border-radius:12px; display:flex; align-items:center; justify-content:center;">${icons[i % icons.length]}</span>
+                            <div style="font-weight:600; font-size:14px; line-height:1.6;">${b}</div>
+                        </div>`).join('')}
+                    </div>
+                    <!-- Discount highlight -->
+                    <div style="background:linear-gradient(135deg,#ec4899,#be185d); border-radius:var(--radius-md); padding:3rem; text-align:center; color:white; max-width:600px; margin:0 auto;">
+                        <div style="font-size:4rem; font-weight:900; margin-bottom:0.5rem;">${configCarin.descuentoGlobal}%</div>
+                        <div style="font-size:1.25rem; font-weight:700; margin-bottom:0.5rem;">de descuento en toda la tienda</div>
+                        <p style="opacity:0.85; font-size:14px; margin-bottom:1.5rem;">Aplicado autom??ticamente en cada compra. Se acumula con las ofertas del mes.</p>
+                        ${!isAlready && planes[0] ? `<a href="${buildWhatsAppUrl(planes[0])}" target="_blank" style="background:white; color:#be185d; padding:10px 28px; border-radius:999px; font-weight:800; text-decoration:none; font-size:14px;">Comenzar ahora ???</a>` : ''}
+                    </div>
+                </div>
+            </div>
+            <!-- FAQ -->
+            <div class="container" style="margin-top:5rem; margin-bottom:6rem; max-width:700px;">
+                <h2 style="text-align:center; margin-bottom:2rem;">Preguntas frecuentes</h2>
+                    ['??C??mo me suscribo?', 'Eleg??s un plan, hac??s clic en "Suscribirme" y te contactamos por WhatsApp para coordinar el pago y activar tu cuenta.'],
+                    ['??Puedo cancelar cuando quiero?', 'S??. Si en alg??n momento ya no quer??s continuar, nos avis??s por WhatsApp y no se renueva.'],
+                    ['??El descuento se aplica solo?', 'S??. Una vez activado tu plan Carin+, los precios con descuento aparecen autom??ticamente en toda la tienda.'],
+                    ['??Se acumula con otras ofertas?', 'S??. El descuento Carin+ se suma a los cupones y rebajas globales que est??n activos.'],
+                ].map(([q, a]) => `
+                <div style="border-bottom:1px solid var(--color-border); padding:1.25rem 0;">
+                    <div style="font-weight:700; font-size:15px; margin-bottom:0.5rem; color:var(--color-text);">???? ${q}</div>
+                    <div style="font-size:14px; color:var(--color-text-muted); line-height:1.6;">${a}</div>
+                </div>`).join('')}
+            </div>`;
+    viewSupport(main) {
+        const user = db.currentUser;
+        if (!user) return this.navigate('/login');
+        const tickets = db.get('tickets').filter(t => t.userId === user.userId);
+        main.innerHTML = `
+            <div class="container" style="margin-top: 3rem;">
+                <h1>Centro de Soporte</h1>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 3rem;">
+                    <div>
+                        <h3>Nuevo Ticket</h3>
+                        <div style="background: var(--color-bg); border: 1.5px solid var(--color-border); padding: 2rem; border-radius: var(--radius-md); margin-top: 1.5rem;">
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 0.5rem;">Asunto</label>
+                                <input type="text" id="ticket-subject" placeholder="Ej: Problema con descarga" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 0.5rem;">Mensaje</label>
+                                <textarea id="ticket-msg" style="width: 100%; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border); height: 100px;"></textarea>
+                            </div>
+                            <button onclick="App.createTicket()" class="btn btn-dark" style="width: 100%;">Enviar Ticket</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Mis Consultas</h3>
+                        <div style="margin-top: 1.5rem;">
+                            ${tickets.map(t => `
+                                <div style="background: var(--color-bg); border: 1px solid var(--color-border); padding: 1.25rem; border-radius: var(--radius-sm); margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div style="font-weight: 700;">${t.asunto}</div>
+                                        <span style="font-size:10px; padding:2px 8px; border-radius:999px; ${t.estado==='Abierto'?'background:#dbeafe; color:#1d4ed8;':t.estado==='En curso'?'background:#fef9c3; color:#a16207;':'background:#f3f4f6; color:#6b7280;'}">${t.estado}</span>
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.5rem;">${t.mensajes.length} mensajes - ??ltimo: ${new Date(t.mensajes[t.mensajes.length-1].fecha).toLocaleString()}</div>
+                                    <button onclick="App.viewUserTicket('${t.id}')" class="btn btn-default" style="font-size: 11px; padding: 5px 10px; margin-top: 1rem;">Ver conversaci??n</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+    createTicket() {
+        const asunto = document.getElementById('ticket-subject').value;
+        const msg = document.getElementById('ticket-msg').value;
+        if (!asunto || !msg) return this.showToast('Completa todos los campos');
+        const id = 'T' + Date.now();
+        const newTicket = {
+            id, userId: db.currentUser.userId, asunto, prioridad: 'Media', estado: 'Abierto', asignadoA: null,
+            mensajes: [{ id: 'm1', texto: msg, fecha: new Date().toISOString(), esEquipo: false }]
+        db.get('tickets').push(newTicket);
+        db.save();
+        this.showToast('??? Ticket creado con ??xito');
+        this.viewSupport(document.getElementById('main-content'));
+    // IMAGE UPLOAD SYSTEM
+    handleImageUpload(event, previewId, hiddenInputId) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800;
+                const MAX_HEIGHT = 800;
+                let width = img.width;
+                let height = img.height;
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width *= MAX_HEIGHT / height;
+                        height = MAX_HEIGHT;
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                // Compress and convert to Base64
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                const previewObj = document.getElementById(previewId);
+                if (previewObj) {
+                    previewObj.src = dataUrl;
+                    previewObj.style.display = 'block';
+                const hiddenObj = document.getElementById(hiddenInputId);
+                if (hiddenObj) {
+                    hiddenObj.value = dataUrl;
+            img.src = e.target.result;
+        reader.readAsDataURL(file);
+    // ADMIN PANEL V2 - REDESIGN
+    viewAdmin(container, section = 'dashboard') {
+        if (!db.currentUser || !['admin', 'tecnico'].includes(db.currentUser.rango)) {
+            this.navigate('/');
+            return;
+        const stats = db.getStats();
+        const compras = db.get('compras');
+        const cursos = db.get('cursos');
+        const productos = db.get('productos');
+        const users = db.get('profiles');
+        const tickets = db.get('tickets') || [];
+        const cats = db.get('categorias');
+        const isAct = (sec) => section === sec ? 'active' : '';
+        const sidebarLink = (hash, sec, icon, label) => `<a href="${hash}" class="admin-nav-btn ${isAct(sec)}">${icon} ${label}</a>`;
+        const sidebar = `
+            <aside style="border-right:1px solid var(--color-border);padding-right:1.5rem;position:sticky;top:80px;align-self:start;height:calc(100vh - 100px);overflow-y:auto;">
+                <div class="admin-sidebar-category">???? Principal</div>
+                <div class="admin-subnav">
+                    ${sidebarLink('#/admin/dashboard','dashboard','????','Dashboard')}
+                    ${sidebarLink('#/admin/anuncios','anuncios','????','Anuncios')}
+                    ${sidebarLink('#/admin/inicio','inicio','????','P??gina Inicio')}
+                    ${sidebarLink('#/admin/regiones','regiones','????','Regiones')}
+                </div>
+                <div class="admin-sidebar-category">??????? Tienda</div>
+                <div class="admin-subnav">
+                    ${sidebarLink('#/admin/productos','productos','????','Productos')}
+                    ${sidebarLink('#/admin/descuentos','descuentos','???????','Descuentos')}
+                    ${sidebarLink('#/admin/carin_plus','carin_plus','???','Carin+ Ofertas')}
+                    ${sidebarLink('#/admin/config_carrito','config_carrito','????','Config. Carrito')}
+                    ${sidebarLink('#/admin/carin_plus_pagina','carin_plus_pagina','????','Carin+ P??gina')}
+                    ${sidebarLink('#/admin/planes_carin','planes_carin','????','Planes Carin+')}
+                </div>
+                <div class="admin-sidebar-category">???? Gesti??n de Cursos</div>
+                <div class="admin-subnav">
+                    ${sidebarLink('#/admin/cursos','cursos','????','Cursos y Alumnos')}
+                    ${sidebarLink('#/admin/profesores','profesores','???????????','Profesores')}
+                </div>
+                <div class="admin-sidebar-category">???? Soporte T??cnico</div>
+                <div class="admin-subnav">
+                    ${sidebarLink('#/admin/equipo','equipo','????','Equipo T??cnico')}
+                    ${sidebarLink('#/admin/chat','chat','????','Chat Soporte')}
+                    ${sidebarLink('#/admin/tickets','tickets','????','Tickets Kanban')}
+                </div>
+                <div class="admin-sidebar-category">?????? Avanzado</div>
+                <div class="admin-subnav">
+                    ${sidebarLink('#/admin/usuarios','usuarios','????','Gesti??n Usuarios')}
+                </div>
+            </aside>`;
+        const secHeader = (title, subtitle, btn = '') => `
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--color-border);padding-bottom:1.5rem;margin-bottom:2rem;">
+                <div><h2 style="margin:0">${title}</h2><p style="color:var(--color-text-muted);font-size:14px;margin-top:0.25rem;">${subtitle}</p></div>
+                ${btn}
+            </div>`;
+        let content = '';
+        /* --- 1. PRINCIPAL --- */
+        if (section === 'dashboard') {
+            content = secHeader('Panel General', `${new Date().toLocaleDateString('es-AR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`) + `
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-bottom:3rem;">
+                    <div style="padding:1.5rem;background:linear-gradient(135deg,#fdf2f8,#fce7f3);border:1px solid #fbcfe8;border-radius:var(--radius-md);">
+                        <div style="font-size:12px;color:#9d174d;font-weight:700;text-transform:uppercase;">???? Ventas</div>
+                        <div style="font-size:28px;font-weight:800;color:#be185d;margin-top:0.5rem;">$${stats.totalVentas.toLocaleString()}</div>
+                    </div>
+                    <div style="padding:1.5rem;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0;border-radius:var(--radius-md);">
+                        <div style="font-size:12px;color:#15803d;font-weight:700;text-transform:uppercase;">???? Cursos</div>
+                        <div style="font-size:28px;font-weight:800;color:#16a34a;margin-top:0.5rem;">${cursos.length}</div>
+                    </div>
+                    <div style="padding:1.5rem;background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;border-radius:var(--radius-md);">
+                        <div style="font-size:12px;color:#1d4ed8;font-weight:700;text-transform:uppercase;">???? Clientes</div>
+                        <div style="font-size:28px;font-weight:800;color:#2563eb;margin-top:0.5rem;">${stats.totalClientes}</div>
+                    </div>
+                    <div style="padding:1.5rem;background:linear-gradient(135deg,#fefce8,#fef9c3);border:1px solid #fde68a;border-radius:var(--radius-md);">
+                        <div style="font-size:12px;color:#a16207;font-weight:700;text-transform:uppercase;">???? Tickets Abiertos</div>
+                        <div style="font-size:28px;font-weight:800;color:#ca8a04;margin-top:0.5rem;">${stats.ticketsAbiertos}</div>
+                    </div>
+                </div>
+                    const pendingConfirmations = db.get('inscripciones').filter(i => i.estadoPago === 'En Proceso' || i.estadoPago === 'Solicitado');
+                    if (pendingConfirmations.length === 0) return '';
+                    return `
+                        <div style="background:white; border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:3rem; box-shadow:var(--shadow-sm); border-top:4px solid var(--color-primary);">
+                            <h3 style="margin-top:0; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem; color:var(--color-primary);">
+                                ???? Bandeja de Notificaciones (Pagos y Reservas)
+                                <span style="background:var(--color-primary-light); color:var(--color-primary); font-size:12px; padding:2px 10px; border-radius:999px;">${pendingConfirmations.length} pendientes</span>
+                            </h3>
+                            <div style="display:flex; flex-direction:column; gap:1rem;">
+                                ${pendingConfirmations.map(insc => {
+                                    const u = db.get('profiles').find(p => p.userId === insc.userId);
+                                    const curso = db.get('cursos').find(c => c.id === insc.cursoId);
+                                    const isSolicitud = insc.estadoPago === 'Solicitado';
+                                    const accent = isSolicitud ? '#db2777' : '#ca8a04';
+                                    const bg = isSolicitud ? '#fdf2f8' : '#fef9c3';
+                                    return `
+                                        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border-left:4px solid ${accent};">
+                                            <div>
+                                                <div style="font-weight:700; font-size:15px;">${u ? u.nombre : 'Usuario'}</div>
+                                                <div style="font-size:12px; color:var(--color-text-muted); margin-top:2px;">
+                                                    ${isSolicitud ? `???? Solicit?? una <b>Reserva</b> para ` : `???? Subi?? comprobante para `} <b>${curso ? curso.titulo : 'Curso'}</b> (${insc.mes} ${insc.a??o})
+                                                </div>
+                                            </div>
+                                            <div style="display:flex; gap:0.5rem;">
+                                                <button class="btn btn-default" style="font-size:11px; padding:6px 12px;" onclick="App.viewAdminEnrollment('${insc.cursoId}')">Gestionar</button>
+                                                ${isSolicitud ? `
+                                                    <button class="btn btn-dark" style="font-size:11px; padding:6px 12px; background:#2563eb; border-color:#2563eb;" onclick="App.changePagoEstado('${insc.cursoId}', '${insc.userId}', '${insc.mes}', ${insc.a??o}, 'Reservado'); App.viewAdmin(document.getElementById('main-content'), 'dashboard');">Aceptar Reserva</button>
+                                                    <button class="btn btn-dark" style="font-size:11px; padding:6px 12px; background:#16a34a; border-color:#16a34a;" onclick="App.changePagoEstado('${insc.cursoId}', '${insc.userId}', '${insc.mes}', ${insc.a??o}, 'Pagado'); App.viewAdmin(document.getElementById('main-content'), 'dashboard');">Confirmar Pago</button>
+                                            </div>
+                                        </div>
+                                }).join('')}
+                            </div>
+                        </div>
+        else if (section === 'anuncios') {
+            const an = db.get('anuncios')[0] || {};
+            content = secHeader('Gesti??n de Anuncios', 'Modifica el banner superior de la p??gina') + `
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md); max-width:600px;">
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Texto del Anuncio</label>
+                        <input type="text" id="an-texto" value="${an.texto||''}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                    </div>
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Color de Fondo</label>
+                        <input type="color" id="an-color" value="${an.colorFondo||'#000000'}" style="width:100px; height:40px; padding:0; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                    </div>
+                    <div style="margin-bottom:2rem; display:flex; align-items:center; gap:0.5rem;">
+                        <input type="checkbox" id="an-activo" ${an.activo?'checked':''}>
+                        <label for="an-activo" style="font-weight:600; font-size:14px;">Banner Activo (Visible para todos)</label>
+                    </div>
+                    <button class="btn btn-dark" onclick="App.saveAnuncio()">Guardar Anuncio</button>
+                </div>`;
+        else if (section === 'inicio') {
+            const tp = db.get('textosPagina');
+            const ci = db.get('configInicio');
+            content = secHeader('P??gina de Inicio', 'Personaliza textos y configura m??ximos de destacados') + `
+                <div style="display:grid; gap:2rem; max-width:800px;">
+                    <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md);">
+                        <h3 style="margin-bottom:1.5rem;">Textos del Hero</h3>
+                        <div style="margin-bottom:1rem;">
+                            <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">T??tulo Principal</label>
+                            <input type="text" id="cfg-titulo" value="${tp.tituloHero}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                        </div>
+                        <div style="margin-bottom:1.5rem;">
+                            <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Subt??tulo</label>
+                            <input type="text" id="cfg-sub" value="${tp.subtituloHero}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                        </div>
+                        <button class="btn btn-dark" onclick="App.saveConfigInicioTextos()">Guardar Textos</button>
+                    </div>
+                    <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md);">
+                        <h3 style="margin-bottom:1.5rem;">L??mites de Destacados</h3>
+                        <p style="font-size:13px; color:var(--color-text-muted); margin-bottom:1.5rem;">Controla cu??ntos ??tems destacados se muestran como m??ximo en la portada.</p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                            <div>
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">M??x Productos Destacados</label>
+                                <input type="number" id="cfg-max-p" value="${ci.maxDestacados}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                            </div>
+                            <div>
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">M??x Cursos Destacados</label>
+                                <input type="number" id="cfg-max-c" value="${ci.maxCursos}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                            </div>
+                        </div>
+                        <button class="btn btn-dark" onclick="App.saveConfigInicioLimites()">Guardar L??mites</button>
+                    </div>
+                </div>`;
+        /* --- 2. TIENDA --- */
+        else if (section === 'productos') {
+            const isAdding = window.location.hash.includes('add_new');
+            if (isAdding) {
+                // Nuevo Producto Inline
+                content = secHeader('???? Nuevo Producto', 'Agrega un producto al inventario', `<a href="#/admin/productos" class="btn btn-default">Cancelar</a>`) + `
+                <div style="background:var(--color-bg);border:1px solid var(--color-border);padding:2rem;border-radius:var(--radius-md);">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Nombre *</label>
+                        <input id="np-nombre" type="text" placeholder="Ej: Molde Pollera A" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Categor??a *</label>
+                        <select id="np-cat" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);">${cats.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('')}</select></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Imagen (URL o Subir Archivo)</label>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input id="np-imagen" type="text" placeholder="https://ejemplo.com/foto.jpg o subir archivo ->" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);" oninput="document.getElementById('np-img-preview').src=this.value; document.getElementById('np-img-preview').style.display='block';">
+                            <label class="btn btn-default" style="cursor:pointer; margin:0; padding:10px 15px;">
+                                ???? Subir Local <input type="file" accept="image/*" style="display:none;" onchange="App.handleImageUpload(event, 'np-img-preview', 'np-imagen')">
+                            </label>
+                        </div>
+                        <img id="np-img-preview" src="" style="max-width:150px; margin-top:10px; display:none; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                        </div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Emoji (Opcional)</label>
+                        <input id="np-emoji" type="text" placeholder="????" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Precio ($ARS) *</label>
+                        <input id="np-precio" type="number" placeholder="0" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Precio Anterior</label>
+                        <input id="np-precioAntes" type="number" placeholder="0" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">M??todo de Pago</label>
+                        <select id="np-metodo" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"><option>Por la p??gina</option><option>WhatsApp</option><option>Ambas</option></select></div>
+                    </div>
+                    <div style="margin-top:1.5rem;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Descripci??n Corta</label>
+                    <input id="np-descCorta" type="text" placeholder="Breve descripci??n" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                    <div style="margin-top:1.5rem;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Descripci??n Completa</label>
+                    <textarea id="np-descLarga" placeholder="Detalles del producto..." style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);height:100px;"></textarea></div>
+                    <div style="margin-top:1.5rem;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Talles (separados por coma)</label>
+                    <input id="np-talles" type="text" placeholder="S, M, L, XL, XXL" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                    <div style="margin-top:1.5rem;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">???? Regi??n de Disponibilidad</label>
+                    <select id="np-region" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+                        ${(db.get('regiones') || []).filter(r=>r.activa).map(r => `<option value="${r.id}">${r.emoji} ${r.nombre}</option>`).join('')}
+                    </select>
+                    <p style="font-size:11px;color:var(--color-text-muted);margin-top:0.25rem;">Selecciona "Global" para que aparezca en todas las regiones.</p></div>
+                    <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:flex-end;">
+                        <a href="#/admin/productos" class="btn btn-default">Cancelar</a>
+                        <button class="btn btn-dark" onclick="App.saveNewProduct()">??? Guardar y Publicar</button>
+                    </div>
+                </div>`;
+            } else {
+                content = secHeader('???? Productos de la Tienda', `${productos.length} productos en el cat??logo`, `<a href="#/admin/productos?add_new=true" class="btn btn-dark">+ Nuevo Producto</a>`) + `
+                <div style="margin-bottom:1rem;"><input type="text" id="admin-search-prod" placeholder="???? Buscar producto..." style="width:100%; max-width:400px; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onkeyup="App.filterAdminTable('admin-search-prod', 'prod-table')"></div>
+                <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">
+                    <table id="prod-table" style="width:100%;border-collapse:collapse;">
+                        <thead><tr style="text-align:left;border-bottom:1px solid var(--color-border);font-size:12px;color:var(--color-text-muted);text-transform:uppercase;background:var(--color-bg-alt);">
+                            <th style="padding:0.75rem 1.5rem;">Producto</th><th style="padding:0.75rem 1.5rem;">Precio</th>
+                            <th style="padding:0.75rem 1.5rem;">Estado</th><th style="padding:0.75rem 1.5rem;text-align:right;">Acciones</th>
+                        </tr></thead>
+                        <tbody>${productos.map(p => `
+                            <tr style="border-bottom:1px solid var(--color-border);">
+                                <td style="padding:1rem 1.5rem;font-weight:600;">
+                                    <div style="display:flex;align-items:center;gap:0.75rem;">
+                                        <span style="font-size:22px;">${p.emoji}</span>
+                                        <div><div>${p.nombre}</div><div style="font-size:12px;color:var(--color-text-muted);">${p.cat}</div></div>
+                                    </div>
+                                </td>
+                                <td style="padding:1rem 1.5rem;font-weight:700;">$${p.precio.toLocaleString()}</td>
+                                <td style="padding:1rem 1.5rem;">
+                                    <span style="padding:2px 8px; border-radius:999px; font-size:10px; ${p.visible?'background:#dcfce7; color:#15803d;':'background:#f3f4f6; color:#6b7280;'}">${p.visible?'Visible':'Oculto'}</span>
+                                    ${p.destacado?'<span style="padding:2px 8px; border-radius:999px; font-size:10px; background:#fef9c3; color:#a16207; margin-left:4px;">??? Dest.</span>':''}
+                                </td>
+                                <td style="padding:1rem 1.5rem;text-align:right;">
+                                    <button class="btn btn-default" style="font-size:11px;padding:4px 8px;margin-right:4px;" onclick="db.toggleProductVisible('${p.id}');App.viewAdmin(document.getElementById('main-content'),'productos')">${p.visible?'Ocultar':'Mostrar'}</button>
+                                    <button class="btn btn-default" style="font-size:11px;padding:4px 8px;" onclick="db.toggleProductDestacado('${p.id}');App.viewAdmin(document.getElementById('main-content'),'productos')">${p.destacado?'Quitar ???':'??? Destacar'}</button>
+                                </td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        else if (section === 'descuentos') {
+            const rebajas = db.get('configRebajas') || { activa: false, porcentaje: 0, titulo: 'Cyber Monday' };
+            const cupones = db.get('cupones') || [];
+            content = secHeader('??????? Descuentos y Cupones', 'Gesti??n general de ofertas de la tienda') + `
+                <div style="display:grid; gap:2rem; max-width:900px; margin-bottom:3rem;">
+                    <div style="background:var(--color-bg); border:1px solid ${rebajas.activa ? '#fca5a5' : 'var(--color-border)'}; padding:2rem; border-radius:var(--radius-md); position:relative; overflow:hidden;">
+                        ${rebajas.activa ? '<div style="position:absolute; top:0; left:0; right:0; height:4px; background:#ef4444;"></div>' : ''}
+                        <h3 style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                            ???? Rebaja Global de Tienda 
+                            <span style="font-size:10px; padding:2px 8px; border-radius:999px; background:${rebajas.activa ? '#fee2e2' : '#f3f4f6'}; color:${rebajas.activa ? '#b91c1c' : '#6b7280'};">${rebajas.activa ? 'ACTIVA' : 'INACTIVA'}</span>
+                        </h3>
+                        <p style="font-size:13px; color:var(--color-text-muted); margin-bottom:1.5rem;">Aplica un porcentaje de descuento masivo a todos los productos de la tienda instant??neamente. Se mostrar?? una etiqueta especial en los productos.</p>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                            <div>
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Porcentaje de Descuento (%)</label>
+                                <input type="number" id="rebaja-pct" value="${rebajas.porcentaje}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                            </div>
+                            <div>
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Etiqueta (Ej. Cyber Monday)</label>
+                                <input type="text" id="rebaja-tit" value="${rebajas.titulo}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                            </div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label style="display:flex; align-items:center; gap:0.5rem; font-weight:700; cursor:pointer;">
+                                <input type="checkbox" id="rebaja-activa" ${rebajas.activa ? 'checked' : ''} style="width:18px; height:18px;">
+                                Activar Promoci??n Masiva
+                            </label>
+                            <button class="btn btn-dark" style="background:#ef4444; border-color:#ef4444;" onclick="App.saveConfigRebajas()">Guardar Rebaja</button>
+                        </div>
+                    </div>
+                    <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md);">
+                        <h3 style="margin-bottom:1.5rem;">???? Cupones Promocionales</h3>
+                        <p style="font-size:13px; color:var(--color-text-muted); margin-bottom:1.5rem;">Crea c??digos que los clientes pueden ingresar en el carrito de compras. (Se suman a los descuentos existentes).</p>
+                        <div style="display:flex; gap:1rem; align-items:end; margin-bottom:2rem; background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                            <div style="flex:2;">
+                                <label style="display:block; font-weight:700; font-size:12px; margin-bottom:0.5rem;">C??digo (Ej. VIP20)</label>
+                                <input type="text" id="new-cupon-cod" placeholder="C??digo en may??sculas" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:var(--radius-sm); text-transform:uppercase;">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="display:block; font-weight:700; font-size:12px; margin-bottom:0.5rem;">Descuento (%)</label>
+                                <input type="number" id="new-cupon-pct" placeholder="20" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                            </div>
+                            <button class="btn btn-dark" onclick="App.createCupon()">+ A??adir</button>
+                        </div>
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead><tr style="text-align:left;border-bottom:1px solid var(--color-border);font-size:12px;color:var(--color-text-muted);text-transform:uppercase;">
+                                <th style="padding:0.75rem 1rem;">C??digo</th>
+                                <th style="padding:0.75rem 1rem;">Descuento</th>
+                                <th style="padding:0.75rem 1rem;text-align:center;">Usos</th>
+                                <th style="padding:0.75rem 1rem;text-align:center;">Estado</th>
+                                <th style="padding:0.75rem 1rem;text-align:right;">Acci??n</th>
+                            </tr></thead>
+                            <tbody>${cupones.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--color-text-muted);">No hay cupones creados</td></tr>' : cupones.map(c => `
+                                <tr style="border-bottom:1px solid var(--color-border);">
+                                    <td style="padding:1rem;font-weight:800;letter-spacing:1px;color:var(--color-primary);">${c.codigo}</td>
+                                    <td style="padding:1rem;font-weight:700;">-${c.porcentaje}%</td>
+                                    <td style="padding:1rem;text-align:center;font-size:12px;">${c.usos}</td>
+                                    <td style="padding:1rem;text-align:center;">
+                                        <button class="btn btn-default" style="font-size:10px; padding:4px 8px; border:none; ${c.activo?'background:#dcfce7;color:#15803d;':'background:#fee2e2;color:#b91c1c;'}" onclick="App.toggleCupon('${c.id}')">${c.activo?'ACTIVO':'PAUSADO'}</button>
+                                    </td>
+                                    <td style="padding:1rem;text-align:right;">
+                                        <button class="btn btn-default" style="font-size:10px; color:#ef4444;" onclick="App.deleteCupon('${c.id}')">Eliminar</button>
+                                    </td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+        else if (section === 'carin_plus') {
+            const cpConfig = db.get('configCarinPlus') || { descuentoGlobal: 15, tituloBadge: 'CARIN+' };
+            const excepciones = productos.filter(p => (p.carinPlusDescuento > 0) || p.excluirCarinPlus);
+            const disponibles = productos.filter(p => !((p.carinPlusDescuento > 0) || p.excluirCarinPlus));
+            content = secHeader('??? Carin+ Ofertas Premium', 'Configuraci??n global y excepciones') + `
+                <div style="display:grid; gap:2rem; max-width:800px; margin-bottom:3rem;">
+                    <div style="background:var(--color-bg); border:1px solid #fbcfe8; padding:2rem; border-radius:var(--radius-md); box-shadow:0 4px 20px rgba(236,72,153,0.05);">
+                        <h3 style="color:#db2777; margin-bottom:1.5rem;">Ajustes Globales Carin+</h3>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                            <div>
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Descuento Base (%)</label>
+                                <input type="number" id="cp-global-desc" value="${cpConfig.descuentoGlobal}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                                <div style="font-size:11px; color:var(--color-text-muted); margin-top:4px;">Se aplica a todo el cat??logo autom??ticamente.</div>
+                            </div>
+                            <div>
+                                <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">T??tulo del Badge</label>
+                                <input type="text" id="cp-global-title" value="${cpConfig.tituloBadge}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                            </div>
+                        </div>
+                        <button class="btn btn-dark" style="background:#db2777; border-color:#db2777;" onclick="App.saveCarinPlusConfig()">Guardar Ajustes</button>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                    <h3 style="margin:0;">Excepciones y Ofertas Extra</h3>
+                    <div style="display:flex; gap:0.5rem;">
+                        <select id="cp-add-select" style="padding:8px; border-radius:var(--radius-sm); border:1px solid var(--color-border); max-width:250px;">
+                            <option value="">-- Seleccionar Producto --</option>
+                            ${disponibles.map(p => `<option value="${p.id}">${p.emoji} ${p.nombre}</option>`).join('')}
+                        </select>
+                        <button class="btn btn-dark" onclick="App.addCarinPlusException()">Agregar</button>
+                    </div>
+                </div>
+                <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">
+                    ${excepciones.length === 0 ? `<div style="padding:3rem; text-align:center; color:var(--color-text-muted);">No hay ofertas especiales ni exclusiones configuradas.<br>Todos los productos usan el descuento global del ${cpConfig.descuentoGlobal}%.</div>` : `
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead><tr style="text-align:left;border-bottom:1px solid var(--color-border);font-size:12px;color:var(--color-text-muted);text-transform:uppercase;background:var(--color-bg-alt);">
+                            <th style="padding:0.75rem 1.5rem;">Producto</th>
+                            <th style="padding:0.75rem 1.5rem;text-align:center;">??Excluir Global?</th>
+                            <th style="padding:0.75rem 1.5rem;text-align:center;">Dcto. Extra (%)</th>
+                            <th style="padding:0.75rem 1.5rem;text-align:right;">Precio Final Carin+</th>
+                            <th style="padding:0.75rem 1.5rem;text-align:center;">Quitar</th>
+                        </tr></thead>
+                        <tbody>${excepciones.map(p => {
+                            const globalDesc = p.excluirCarinPlus ? 0 : cpConfig.descuentoGlobal;
+                            const extraDesc = p.carinPlusDescuento || 0;
+                            const totalDesc = globalDesc + extraDesc;
+                            const pFinal = totalDesc > 0 ? Math.round(p.precio * (1 - (totalDesc/100))) : p.precio;
+                            return `<tr style="border-bottom:1px solid var(--color-border);">
+                                <td style="padding:1rem 1.5rem;font-weight:600;"><span style="margin-right:8px">${p.emoji}</span>${p.nombre}</td>
+                                <td style="padding:1rem 1.5rem;text-align:center;">
+                                    <input type="checkbox" ${p.excluirCarinPlus?'checked':''} onchange="App.toggleCarinPlusExclude('${p.id}', this.checked)">
+                                </td>
+                                <td style="padding:1rem 1.5rem;text-align:center;">
+                                    <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+                                        <input type="number" id="cp-desc-${p.id}" value="${p.carinPlusDescuento||0}" style="width:60px; padding:4px 8px; border:1px solid var(--color-border); border-radius:var(--radius-sm); text-align:center;">
+                                        <button class="btn btn-default" style="font-size:10px; padding:4px 8px;" onclick="App.saveCarinPlusDiscount('${p.id}')">????</button>
+                                    </div>
+                                </td>
+                                <td style="padding:1rem 1.5rem;text-align:right; font-weight:700; ${totalDesc>0?'color:#db2777;':''} ">$${pFinal} <span style="font-size:10px;font-weight:normal;color:var(--color-text-muted);">(-${totalDesc}%)</span></td>
+                                <td style="padding:1rem 1.5rem;text-align:center;">
+                                    <button class="btn btn-default" style="font-size:10px; color:#ef4444; padding:4px 8px;" onclick="App.removeCarinPlusException('${p.id}')">X</button>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                        </tbody>
+                    </table>`}
+                </div>`;
+        /* --- 3. GESTI??N DE CURSOS --- */
+        else if (section === 'cursos') {
+            const isAdding = window.location.hash.includes('add_new');
+            if (isAdding) {
+                const profes = db.get('profesores');
+                content = secHeader('Crear Nuevo Curso', 'A??ade un nuevo curso o taller al cat??logo', `<a href="#/admin/cursos" class="btn btn-default">??? Volver</a>`) + `
+                <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:2rem;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">T??tulo *</label>
+                        <input id="nc-titulo" type="text" placeholder="Ej: Curso de Lencer??a" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Subt??tulo</label>
+                        <input id="nc-subtitulo" type="text" placeholder="Ej: Taller de Dise??o y Confecci??n" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Profesor *</label>
+                        <select id="nc-profeId" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+                            ${profes.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')}
+                        </select></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Max. Alumnos *</label>
+                        <input id="nc-maxAlumnos" type="number" value="10" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Precio Mensual Visible ($)</label>
+                        <input id="nc-precio" type="number" placeholder="Ej: 15000" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Precio Interno (Privado Admin) ($)</label>
+                        <input id="nc-precioInterno" type="number" placeholder="Ej: 10000" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div style="grid-column:1/-1;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Resumen de Horarios (Texto Corto)</label>
+                        <input id="nc-horarios" type="text" placeholder="Ej: S??bados 10:00 - 12:00" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
+                        <div style="grid-column:1/-1; background:var(--color-bg-alt); padding:1.5rem; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                            <label style="display:block;font-size:13px;font-weight:700;margin-bottom:1rem;">Tablero de Horarios (Visual)</label>
+                            <div id="nc-schedule-container" style="display:grid; gap:1rem; margin-bottom:1rem;"></div>
+                            <button class="btn btn-default" style="font-size:12px;" onclick="App.addScheduleRow()">+ A??adir Horario</button>
+                        </div>
+                        <div style="grid-column:1/-1;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Descripci??n Corta (Cards)</label>
+                        <textarea id="nc-descripcion" placeholder="Aprende a realizar..." style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);height:60px;"></textarea></div>
+                        <div style="grid-column:1/-1;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Descripci??n Larga (P??gina Detalle)</label>
+                        <textarea id="nc-descripcionLarga" placeholder="Detalle completo del curso..." style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);height:120px;"></textarea></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Requisitos (uno por l??nea)</label>
+                        <textarea id="nc-requisitos" placeholder="M??quina de coser..." style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);height:80px;"></textarea></div>
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Qu?? incluye (uno por l??nea)</label>
+                        <textarea id="nc-incluye" placeholder="Apuntes..." style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);height:80px;"></textarea></div>
+                        <div style="grid-column:1/-1;"><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Banner (Imagen URL o Local)</label>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input id="nc-banner" type="text" placeholder="URL o subir archivo ->" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);" oninput="document.getElementById('nc-banner-preview').src=this.value; document.getElementById('nc-banner-preview').style.display='block';">
+                            <label class="btn btn-default" style="cursor:pointer; margin:0; padding:10px 15px;">
+                                ???? Subir Local <input type="file" accept="image/*" style="display:none;" onchange="App.handleImageUpload(event, 'nc-banner-preview', 'nc-banner')">
+                            </label>
+                        </div>
+                        <img id="nc-banner-preview" src="" style="max-width:300px; margin-top:10px; display:none; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                        </div>
+                        <div style="grid-column:1/-1;display:flex;gap:1.5rem;">
+                            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="nc-oferta"> Marcar como Oferta</label>
+                            <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;"><input type="checkbox" id="nc-destacado" checked> Destacar en Inicio</label>
+                        </div>
+                    </div>
+                    <div style="margin-top:2rem;border-top:1px solid var(--color-border);padding-top:1.5rem;display:flex;justify-content:flex-end;gap:1rem;">
+                        <a href="#/admin/cursos" class="btn btn-default">Cancelar</a>
+                        <button class="btn btn-dark" onclick="App.saveAdminCurso()">Guardar Curso</button>
+                    </div>
+                </div>`;
+                setTimeout(() => this.addScheduleRow(), 100);
+            } else {
+                content = secHeader('???? Gesti??n de Cursos', 'Administra inscripciones y crea talleres', `<a href="#/admin/cursos?add_new=true" class="btn btn-dark">+ Crear Curso</a>`) + `
+                <div style="display:grid;gap:1.5rem;">
+                    ${cursos.length === 0 ? '<div style="color:var(--color-text-muted);">No hay cursos creados.</div>' : ''}
+                    ${cursos.map(c => {
+                        const pct = Math.round((c.alumnos.length / c.maxAlumnos) * 100) || 0;
+                        return `<div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:1.5rem;box-shadow:var(--shadow-sm);">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div style="display:flex;gap:1rem;align-items:center;">
+                                    <div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--color-primary-light);display:flex;align-items:center;justify-content:center;font-size:20px;">????</div>
+                                    <div>
+                                        <h3 style="margin:0;font-size:1.1rem;">${c.titulo}</h3>
+                                        <div style="font-size:13px;color:var(--color-text-muted);">Profe: <b>${c.profeId}</b> ??? ${c.horarios}</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-default" style="font-size:12px; margin-right:0.5rem;" onclick="App.viewAdminEnrollment('${c.id}')">?????? Administrar</button>
+                                    <button class="btn btn-danger" style="font-size:12px; background:#fef2f2; border:1px solid #fca5a5; color:#b91c1c; padding:6px 12px; border-radius:var(--radius-sm);" onclick="if(confirm('??Eliminar curso?')) { db.deleteCurso('${c.id}'); App.viewAdmin(document.getElementById('main-content'), 'cursos'); }">??????? Eliminar</button>
+                                </div>
+                            </div>
+                            <div style="margin-top:1rem;background:var(--color-bg-alt);padding:0.75rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+                                <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:0.4rem;color:var(--color-text-muted);text-transform:uppercase;">
+                                    <span>Ocupaci??n</span><span>${c.alumnos.length} / ${c.maxAlumnos} alumnos</span>
+                                </div>
+                                <div style="width:100%;height:8px;background:var(--color-border);border-radius:999px;overflow:hidden;">
+                                    <div style="width:${pct}%;height:100%;background:${pct > 90 ? '#ef4444' : 'var(--color-primary)'};transition:width 0.3s;"></div>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+        else if (section === 'profesores') {
+            const profes = db.get('profesores');
+            const allUsers = db.get('profiles');
+            content = secHeader('??????????? Profesores', 'Personal docente asignado a cursos') + `
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem;">
+                    <h3 style="margin-bottom:1rem;">A??adir Nuevo Profesor</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+                        <div>
+                            <label style="font-size:12px; font-weight:700;">Correo Electr??nico *</label>
+                            <input type="email" id="np-user" placeholder="ejemplo@correo.com" style="width:100%; padding:8px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                        </div>
+                        <div>
+                            <label style="font-size:12px; font-weight:700;">Especialidad</label>
+                            <input type="text" id="np-especialidad" placeholder="Ej: Costura" style="width:100%; padding:8px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                        </div>
+                        <div style="display:flex; align-items:flex-end;">
+                            <button class="btn btn-dark" style="width:100%;" onclick="App.addProfesorAdmin()">Crear Profesor</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead><tr style="text-align:left;border-bottom:1px solid var(--color-border);font-size:12px;color:var(--color-text-muted);text-transform:uppercase;background:var(--color-bg-alt);">
+                            <th style="padding:0.75rem 1.5rem;">Nombre / Especialidad</th>
+                            <th style="padding:0.75rem 1.5rem;">Contacto</th>
+                            <th style="padding:0.75rem 1.5rem;">Cursos Asignados</th>
+                            <th style="padding:0.75rem 1.5rem; text-align:right;">Acci??n</th>
+                        </tr></thead>
+                        <tbody>${profes.map(p => {
+                            const cAsig = db.get('cursos').filter(c => c.profeId === p.id).length;
+                            return `<tr style="border-bottom:1px solid var(--color-border);">
+                                <td style="padding:1rem 1.5rem;"><div style="font-weight:700;">${p.nombre}</div><div style="font-size:12px;color:var(--color-text-muted);">${p.especialidad}</div></td>
+                                <td style="padding:1rem 1.5rem; font-size:13px;"><div>???? ${p.correo}</div><div>???? ${p.telefono}</div></td>
+                                <td style="padding:1rem 1.5rem; font-size:13px;"><b>${cAsig}</b> cursos</td>
+                                <td style="padding:1rem 1.5rem; text-align:right;">
+                                    <button class="btn btn-default" style="font-size:10px; color:#ef4444;" onclick="App.deleteProfesorAdmin('${p.id}')">Eliminar</button>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        /* --- 4. SOPORTE T??CNICO --- */
+        else if (section === 'equipo') {
+            const equipo = users.filter(u => ['admin', 'tecnico'].includes(u.rango));
+            content = secHeader('???? Equipo T??cnico', 'Estado de actividad del personal de soporte') + `
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:1.5rem;">
+                    ${equipo.map(u => {
+                        const asignados = tickets.filter(t => t.asignadoA === u.userId && t.estado !== 'Cerrado').length;
+                        const isActivo = u.estadoActividad === 'Activo';
+                        return `
+                        <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; text-align:center; position:relative;">
+                            <div style="width:12px; height:12px; border-radius:50%; background:${isActivo?'#10b981':'#ef4444'}; position:absolute; top:1.5rem; right:1.5rem; box-shadow:0 0 0 3px ${isActivo?'#d1fae5':'#fee2e2'};"></div>
+                            <div style="font-size:2.5rem; margin-bottom:1rem;">${u.rango==='admin'?'????':'????'}</div>
+                            <h3 style="margin:0 0 0.25rem 0;">${u.nombre}</h3>
+                            <div style="font-size:12px; color:var(--color-text-muted); text-transform:uppercase; font-weight:700; margin-bottom:1rem;">${u.rango}</div>
+                            <div style="background:var(--color-bg-alt); padding:0.5rem; border-radius:var(--radius-sm); font-size:13px; font-weight:600;">
+                                ???? ${asignados} Tickets Asignados
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+        else if (section === 'chat') {
+            const chatLog = db.get('chatEquipo');
+            content = secHeader('???? Chat de Soporte Interno', 'Comunicaci??n en vivo exclusiva para el equipo') + `
+                <div class="chat-container">
+                    <div class="chat-messages" id="admin-chat-window">
+                        ${chatLog.map(m => {
+                            const isMe = m.userId === db.currentUser.userId;
+                            const sender = users.find(u => u.userId === m.userId)?.nombre || m.userId;
+                            return `
+                            <div class="chat-message ${isMe ? 'me' : 'others'}">
+                                ${!isMe ? `<div style="font-size:11px; font-weight:700; margin-bottom:4px; opacity:0.7;">${sender}</div>` : ''}
+                                ${m.texto}
+                                <div style="font-size:9px; margin-top:4px; opacity:0.6; text-align:right;">${new Date(m.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="Escribe un mensaje al equipo..." style="flex:1; padding:12px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onkeypress="if(event.key==='Enter') App.sendChat()">
+                        <button class="btn btn-dark" onclick="App.sendChat()">Enviar</button>
+                    </div>
+                </div>`;
+            setTimeout(() => {
+                const w = document.getElementById('admin-chat-window');
+                if (w) w.scrollTop = w.scrollHeight;
+        else if (section === 'tickets') {
+            const abiertos = tickets.filter(t => t.estado === 'Abierto');
+            const enCurso = tickets.filter(t => t.estado === 'En curso');
+            const cerrados = tickets.filter(t => t.estado === 'Cerrado');
+            const renderKanbanCard = (t) => {
+                const cli = users.find(u => u.userId === t.userId);
+                const asig = users.find(u => u.userId === t.asignadoA);
+                return `
+                <div class="kanban-card" onclick="App.viewTicketDetailModal('${t.id}')">
+                    <div style="font-weight:700; font-size:14px; margin-bottom:0.5rem;">${t.asunto}</div>
+                    <div style="font-size:11px; color:var(--color-text-muted); margin-bottom:0.5rem;">???? ${cli?cli.nombre:'Usuario'}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
+                        <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:#f3f4f6; font-weight:600;">${t.mensajes.length} msgs</span>
+                        ${asig ? `<span title="Asignado a: ${asig.nombre}" style="font-size:12px; width:20px; height:20px; background:var(--color-primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center;">${asig.nombre[0]}</span>` : `<span style="font-size:10px; color:var(--color-text-muted);">Sin asignar</span>`}
+                    </div>
+                </div>`;
+            content = secHeader('???? Kanban de Tickets', 'Arrastra y gestiona los casos de soporte') + `
+                <div class="kanban-board">
+                    <div class="kanban-column">
+                        <div class="kanban-header"><span>???? Abiertos</span> <span>${abiertos.length}</span></div>
+                        ${abiertos.map(renderKanbanCard).join('')}
+                    </div>
+                    <div class="kanban-column">
+                        <div class="kanban-header"><span>???? En Curso</span> <span>${enCurso.length}</span></div>
+                        ${enCurso.map(renderKanbanCard).join('')}
+                    </div>
+                    <div class="kanban-column">
+                        <div class="kanban-header"><span>???? Cerrados</span> <span>${cerrados.length}</span></div>
+                        ${cerrados.map(renderKanbanCard).join('')}
+                    </div>
+                </div>
+                <!-- Modal Container for Ticket Detail -->
+                <div id="admin-ticket-modal-container"></div>`;
+        /* --- 5. AVANZADO --- */
+        else if (section === 'usuarios') {
+            content = secHeader('???? Gesti??n de Usuarios', `${users.length} perfiles registrados`) + `
+                <div style="margin-bottom:1rem;"><input type="text" id="admin-search-user" placeholder="???? Buscar por nombre o email..." style="width:100%; max-width:400px; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onkeyup="App.filterAdminTable('admin-search-user', 'user-table')"></div>
+                <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">
+                    <table id="user-table" style="width:100%;border-collapse:collapse;">
+                        <thead><tr style="text-align:left;border-bottom:1px solid var(--color-border);font-size:12px;color:var(--color-text-muted);text-transform:uppercase;background:var(--color-bg-alt);">
+                            <th style="padding:0.75rem 1.5rem;">Usuario</th>
+                            <th style="padding:0.75rem 1.5rem;">Registro</th>
+                            <th style="padding:0.75rem 1.5rem;">Rango Actual</th>
+                            <th style="padding:0.75rem 1.5rem;text-align:right;">Cambiar Rango</th>
+                        </tr></thead>
+                        <tbody>${users.map(u => {
+                            const rb = {admin:'#fce7f3',tecnico:'#dbeafe',carin_plus:'#fef9c3',usuario:'#f0fdf4'}[u.rango]||'#f3f4f6';
+                            const rc = {admin:'#9d174d',tecnico:'#1d4ed8',carin_plus:'#b45309',usuario:'#15803d'}[u.rango]||'#374151';
+                            return `<tr style="border-bottom:1px solid var(--color-border);">
+                                <td style="padding:1rem 1.5rem;">
+                                    <div style="font-weight:600;">${u.nombre}</div>
+                                    <div style="font-size:12px; color:var(--color-text-muted);">${u.email}</div>
+                                </td>
+                                <td style="padding:1rem 1.5rem; font-size:13px; color:var(--color-text-muted);">${new Date(u.fechaRegistro).toLocaleDateString()}</td>
+                                <td style="padding:1rem 1.5rem;"><span style="background:${rb};color:${rc};padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;">${u.rango}</span></td>
+                                <td style="padding:1rem 1.5rem;text-align:right;">
+                                    <select style="padding:4px 8px; font-size:12px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onchange="App.changeUserRole('${u.userId}', this.value)">
+                                        <option value="usuario" ${u.rango==='usuario'?'selected':''}>Usuario</option>
+                                        <option value="carin_plus" ${u.rango==='carin_plus'?'selected':''}>Carin+</option>
+                                        <option value="tecnico" ${u.rango==='tecnico'?'selected':''}>T??cnico</option>
+                                        <option value="admin" ${u.rango==='admin'?'selected':''}>Admin</option>
+                                    </select>
+                                </td>
+                            </tr>`;
+                        }).join('')}</tbody>
+                    </table>
+                </div>`;
+        else if (section === 'regiones') {
+            const regiones = db.get('regiones') || [];
+            content = secHeader('\ud83c\udf0e Gesti\u00f3n de Regiones', 'Define las regiones disponibles para filtrar productos', `<button class="btn btn-dark" onclick="App.createRegion()">+ Nueva Regi\u00f3n</button>`) + `
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem;">
+                    <p style="font-size:13px; color:var(--color-text-muted);">Las regiones segmentan el cat\u00e1logo por zona geogr\u00e1fica. Los productos "Global" aparecen en todas las regiones.</p>
+                    <div style="display:flex; gap:1rem; margin-top:1rem;">
+                        <input type="text" id="new-region-nombre" placeholder="Nombre (Ej: Europa)" style="flex:2; padding:8px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                        <input type="text" id="new-region-emoji" placeholder="Emoji (Ej: \ud83c\uddea\ud83c\uddfa)" style="flex:1; padding:8px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                        <button class="btn btn-dark" onclick="App.createRegion()">Agregar</button>
+                    </div>
+                </div>
+                <div style="display:grid; gap:1rem;">
+                    ${regiones.map(r => `
+                    <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:1rem 1.5rem; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:0.75rem; font-size:1.1rem;">
+                            <span>${r.emoji}</span>
+                            <span style="font-weight:700;">${r.nombre}</span>
+                            <span style="font-size:10px; padding:2px 8px; border-radius:999px; background:${r.activa?'#dcfce7':'#fee2e2'}; color:${r.activa?'#15803d':'#b91c1c'}; font-weight:700;">${r.activa?'ACTIVA':'INACTIVA'}</span>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn btn-default" style="font-size:11px;" onclick="App.toggleRegionAdmin('${r.id}')">${r.activa?'Desactivar':'Activar'}</button>
+                            ${r.id !== 'global' ? `<button class="btn btn-default" style="font-size:11px; color:#ef4444;" onclick="App.deleteRegion('${r.id}')">Eliminar</button>` : ''}
+                        </div>
+                    </div>`).join('')}
+                </div>`;
+        else if (section === 'config_carrito') {
+            const cfg = db.get('configCarrito') || { tarifaServicio: 5 };
+            content = secHeader('\ud83d\uded2 Config. Carrito', 'Ajustes de la experiencia de compra') + `
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; max-width:600px;">
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Tarifa de Servicio (%)</label>
+                        <input type="number" id="cfg-tarifa" value="${cfg.tarifaServicio}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                        <p style="font-size:11px; color:var(--color-text-muted); margin-top:0.25rem;">Se suma al subtotal en el carrito. 0 para desactivar.</p>
+                    </div>
+                    <button class="btn btn-dark" onclick="App.saveConfigCarrito()">Guardar Configuraci\u00f3n</button>
+                </div>`;
+        else if (section === 'carin_plus_pagina') {
+            const cfg = db.get('configCarinPlusPagina') || {};
+            const beneficios = cfg.beneficios || [];
+            content = secHeader('\ud83d\udc8e Carin+ P\u00e1gina', 'Edita el contenido de la landing page') + `
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; max-width:700px; display:grid; gap:1.25rem;">
+                    <div><label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">T\u00edtulo</label>
+                    <input type="text" id="cpp-titulo" value="${cfg.titulo||''}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);"></div>
+                    <div><label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Subt\u00edtulo</label>
+                    <input type="text" id="cpp-subtitulo" value="${cfg.subtitulo||''}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);"></div>
+                    <div><label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Precio Mensual ($ARS)</label>
+                    <input type="number" id="cpp-precio" value="${cfg.precio||2500}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);"></div>
+                    <div><label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Beneficios (uno por l\u00ednea)</label>
+                    <textarea id="cpp-beneficios" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm); height:120px;">${beneficios.join('\n')}</textarea></div>
+                    <div><label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Texto del bot\u00f3n CTA</label>
+                    <input type="text" id="cpp-ctatexto" value="${cfg.ctaTexto||''}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);"></div>
+                    <div><label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">URL del bot\u00f3n (WhatsApp, etc.)</label>
+                    <input type="text" id="cpp-ctaurl" value="${cfg.ctaUrl||''}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);"></div>
+                    <button class="btn btn-dark" onclick="App.saveCarinPlusPagina()">Guardar P\u00e1gina</button>
+                </div>`;
+        else if (section === 'planes_carin') {
+            const planes = db.get('configCarinPlusPlanes') || [];
+            content = secHeader('???? Planes de Suscripci??n', 'Configura los planes mensuales de Carin+') + `
+                <div style="display:grid; gap:1.5rem; max-width:700px;">
+                    ${planes.map((plan, idx) => `
+                    <div style="background:var(--color-bg); border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem;">
+                        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem;">
+                            <div style="background:${plan.etiqueta==='M??s Popular'?'#ec4899':plan.etiqueta==='Mejor Valor'?'#7c3aed':'var(--color-bg-alt)'}; color:${plan.etiqueta?'white':'var(--color-text)'}; padding:4px 14px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase;">${plan.etiqueta || plan.meses + ' meses'}</div>
+                            <div style="font-weight:700;">${plan.meses} meses</div>
+                        </div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+                            <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:0.4rem;">Precio Total ($ARS)</label>
+                            <input type="number" id="plan-precio-${idx}" value="${plan.precio}" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:var(--radius-sm);"></div>
+                            <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:0.4rem;">Descuento (%)</label>
+                            <input type="number" id="plan-desc-${idx}" value="${plan.descuento}" min="0" max="100" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:var(--radius-sm);"></div>
+                            <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:0.4rem;">Etiqueta Badge</label>
+                            <input type="text" id="plan-etiq-${idx}" value="${plan.etiqueta}" placeholder="Ej: M??s Popular" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:var(--radius-sm);"></div>
+                        </div>
+                        <button class="btn btn-dark" style="margin-top:1rem; font-size:12px;" onclick="App.savePlanCarin(${idx})">Guardar Plan</button>
+                    </div>`).join('')}
+                </div>`;
+        container.innerHTML = `
+            <div class="container" style="display:grid;grid-template-columns:220px 1fr;gap:3rem;margin-top:2rem;min-height:80vh;align-items:start;">
+                ${sidebar}
+                <div id="admin-main-area" class="fade-in">${content}</div>
+            </div>`;
+    // --- Admin Action Methods ---
+    filterAdminTable(inputId, tableId) {
+        const input = document.getElementById(inputId);
+        const filter = input.value.toLowerCase();
+        const trs = document.getElementById(tableId).getElementsByTagName('tr');
+        for (let i = 1; i < trs.length; i++) {
+            const td = trs[i].getElementsByTagName('td')[0];
+            if (td) {
+                const txtValue = td.textContent || td.innerText;
+                trs[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
+    saveAnuncio() {
+        const t = document.getElementById('an-texto').value;
+        const c = document.getElementById('an-color').value;
+        const a = document.getElementById('an-activo').checked;
+        const ans = db.get('anuncios');
+        if(ans.length > 0) { ans[0].texto = t; ans[0].colorFondo = c; ans[0].activo = a; }
+        else { ans.push({ id:'1', texto:t, colorFondo:c, activo:a }); }
+        db.save();
+        this.showToast('??? Anuncio actualizado');
+        this.renderLayout(); // refresh top banner
+    saveConfigInicioTextos() {
+        const tp = db.get('textosPagina');
+        tp.tituloHero = document.getElementById('cfg-titulo').value;
+        tp.subtituloHero = document.getElementById('cfg-sub').value;
+        db.save();
+        this.showToast('??? Textos guardados');
+    saveConfigInicioLimites() {
+        const ci = db.get('configInicio');
+        ci.maxDestacados = parseInt(document.getElementById('cfg-max-p').value) || 6;
+        ci.maxCursos = parseInt(document.getElementById('cfg-max-c').value) || 4;
+        db.save();
+        this.showToast('??? L??mites guardados');
+    saveCarinPlusDiscount(prodId) {
+        const val = parseInt(document.getElementById('cp-desc-'+prodId).value) || 0;
+        const p = db.get('productos').find(x => x.id === prodId);
+        if (p) { p.carinPlusDescuento = val; db.save(); this.showToast('??? Descuento Premium aplicado'); this.viewAdmin(document.getElementById('main-content'), 'carin_plus'); }
+    saveCarinPlusConfig() {
+        const desc = parseInt(document.getElementById('cp-global-desc').value) || 0;
+        const tit = document.getElementById('cp-global-title').value || 'CARIN+';
+        const cfg = db.get('configCarinPlus');
+        if (cfg) { cfg.descuentoGlobal = desc; cfg.tituloBadge = tit; }
+        else { db.data.configCarinPlus = { descuentoGlobal: desc, tituloBadge: tit }; }
+        db.save();
+        this.showToast('??? Configuraci??n Carin+ guardada');
+        this.viewAdmin(document.getElementById('main-content'), 'carin_plus');
+    addCarinPlusException() {
+        const id = document.getElementById('cp-add-select').value;
+        if (!id) return;
+        const p = db.get('productos').find(x => x.id === id);
+        if (p) {
+            p.excluirCarinPlus = false; // Add it with 0 extra, but it's now in the list (or it wouldn't show up unless we give it an extra desc)
+            // Wait, to show up in the exceptions list without extra discount, we can set a dummy extra discount or check 'excluir'.
+            // Actually, we can just set carinPlusDescuento to 1 so it appears, or toggle "excluir" to false.
+            // But if it's 0 and not excluded, it doesn't show up. Let's set it to 1% extra by default so it appears in the editor.
+            p.carinPlusDescuento = 1; 
+            db.save();
+            this.showToast('??? Producto agregado a excepciones');
+            this.viewAdmin(document.getElementById('main-content'), 'carin_plus');
+    toggleCarinPlusExclude(id, checked) {
+        const p = db.get('productos').find(x => x.id === id);
+        if (p) { p.excluirCarinPlus = checked; db.save(); this.viewAdmin(document.getElementById('main-content'), 'carin_plus'); }
+    removeCarinPlusException(id) {
+        const p = db.get('productos').find(x => x.id === id);
+        if (p) { p.carinPlusDescuento = 0; p.excluirCarinPlus = false; db.save(); this.viewAdmin(document.getElementById('main-content'), 'carin_plus'); }
+    saveConfigRebajas() {
+        const pct = parseInt(document.getElementById('rebaja-pct').value) || 0;
+        const tit = document.getElementById('rebaja-tit').value || 'Rebaja Especial';
+        const activa = document.getElementById('rebaja-activa').checked;
+        const cfg = db.get('configRebajas');
+        if (cfg) { cfg.porcentaje = pct; cfg.titulo = tit; cfg.activa = activa; }
+        else { db.data.configRebajas = { porcentaje: pct, titulo: tit, activa: activa }; }
+        db.save();
+        this.showToast(activa ? '???? Rebaja Global Activada' : '??? Rebaja Global Desactivada');
+        this.viewAdmin(document.getElementById('main-content'), 'descuentos');
+        this.renderLayout(); // Refresh cart badge if needed
+    createCupon() {
+        const cod = document.getElementById('new-cupon-cod').value.trim().toUpperCase();
+        const pct = parseInt(document.getElementById('new-cupon-pct').value);
+        if (!cod || !pct) return this.showToast('?????? Ingresa un c??digo y porcentaje v??lido');
+        const cupones = db.get('cupones');
+        if (cupones.find(c => c.codigo === cod)) return this.showToast('?????? El c??digo ya existe');
+        cupones.push({ id: 'C' + Date.now(), codigo: cod, porcentaje: pct, activo: true, usos: 0 });
+        db.save();
+        this.showToast('??? Cup??n Creado');
+        this.viewAdmin(document.getElementById('main-content'), 'descuentos');
+    toggleCupon(id) {
+        const c = db.get('cupones').find(x => x.id === id);
+        if (c) { c.activo = !c.activo; db.save(); this.viewAdmin(document.getElementById('main-content'), 'descuentos'); }
+    deleteCupon(id) {
+        if (!confirm('??Seguro que deseas eliminar este cup??n?')) return;
+        db.data.cupones = db.data.cupones.filter(c => c.id !== id);
+        db.save();
+        this.viewAdmin(document.getElementById('main-content'), 'descuentos');
+    createRegion() {
+        const nombre = document.getElementById('new-region-nombre')?.value.trim();
+        const emoji = document.getElementById('new-region-emoji')?.value.trim() || '????';
+        if (!nombre) return this.showToast('?????? Ingres?? un nombre para la regi??n');
+        const regiones = db.get('regiones');
+        const id = nombre.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+        if (regiones.find(r => r.id === id)) return this.showToast('?????? Ya existe una regi??n con ese nombre');
+        regiones.push({ id, nombre, emoji, activa: true });
+        db.save();
+        this.showToast('??? Regi??n creada');
+        this.viewAdmin(document.getElementById('main-content'), 'regiones');
+    toggleRegionAdmin(id) {
+        const r = db.get('regiones').find(x => x.id === id);
+        if (r) { r.activa = !r.activa; db.save(); this.viewAdmin(document.getElementById('main-content'), 'regiones'); }
+    deleteRegion(id) {
+        if (!confirm('??Eliminar esta regi??n? Los productos asignados a ella pasar??n a mostrarse como globales.')) return;
+        db.data.regiones = db.data.regiones.filter(r => r.id !== id);
+        db.save();
+        this.viewAdmin(document.getElementById('main-content'), 'regiones');
+    saveConfigCarrito() {
+        const tarifa = parseInt(document.getElementById('cfg-tarifa').value) || 0;
+        const cfg = db.get('configCarrito');
+        if (cfg) cfg.tarifaServicio = tarifa;
+        else db.data.configCarrito = { tarifaServicio: tarifa };
+        db.save();
+        this.showToast('??? Configuraci??n de carrito guardada');
+        this.viewAdmin(document.getElementById('main-content'), 'config_carrito');
+    saveCarinPlusPagina() {
+        const cfg = db.get('configCarinPlusPagina') || {};
+        cfg.titulo = document.getElementById('cpp-titulo').value;
+        cfg.subtitulo = document.getElementById('cpp-subtitulo').value;
+        cfg.precio = parseInt(document.getElementById('cpp-precio').value) || 0;
+        cfg.beneficios = document.getElementById('cpp-beneficios').value.split('\n').map(b => b.trim()).filter(Boolean);
+        cfg.ctaTexto = document.getElementById('cpp-ctatexto').value;
+        cfg.ctaUrl = document.getElementById('cpp-ctaurl').value;
+        db.data.configCarinPlusPagina = cfg;
+        db.save();
+        this.showToast('??? P??gina Carin+ actualizada');
+        this.viewAdmin(document.getElementById('main-content'), 'carin_plus_pagina');
+    savePlanCarin(idx) {
+        const planes = db.get('configCarinPlusPlanes');
+        if (!planes || !planes[idx]) return;
+        planes[idx].precio = parseInt(document.getElementById(`plan-precio-${idx}`).value) || 0;
+        planes[idx].descuento = parseInt(document.getElementById(`plan-desc-${idx}`).value) || 0;
+        planes[idx].etiqueta = document.getElementById(`plan-etiq-${idx}`).value.trim();
+        db.save();
+        this.showToast(`??? Plan ${planes[idx].meses} meses guardado`);
+        this.viewAdmin(document.getElementById('main-content'), 'planes_carin');
+    changeUserRole(userId, newRole) {
+        db.changeUserRole(userId, newRole);
+        this.showToast('??? Rango actualizado');
+        this.viewAdmin(document.getElementById('main-content'), 'usuarios');
+    sendChat() {
+        const input = document.getElementById('chat-input');
+        if (input && input.value.trim() !== '') {
+            db.sendTeamMessage(input.value.trim());
+            input.value = '';
+            this.viewAdmin(document.getElementById('main-content'), 'chat');
+    viewTicketDetailModal(id) {
+        const t = db.get('tickets').find(x => x.id === id);
+        const users = db.get('profiles');
+        if (!t) return;
+        const cli = users.find(u => u.userId === t.userId);
+        const modal = `
+        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+            <div style="background:var(--color-bg); width:600px; max-width:90%; border-radius:var(--radius-md); box-shadow:var(--shadow-md); overflow:hidden; display:flex; flex-direction:column; max-height:80vh;">
+                <div style="padding:1.5rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center; background:var(--color-bg-alt);">
+                    <div><h3 style="margin:0">${t.asunto}</h3><div style="font-size:12px; color:var(--color-text-muted);">Cliente: ${cli?cli.nombre:'N/A'}</div></div>
+                    <button onclick="document.getElementById('admin-ticket-modal-container').innerHTML=''" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                </div>
+                <div style="padding:1rem; border-bottom:1px solid var(--color-border); display:flex; gap:1rem;">
+                    <select onchange="db.changeTicketState('${t.id}', this.value); App.viewAdmin(document.getElementById('main-content'), 'tickets');" style="padding:5px; border-radius:4px; font-size:12px;">
+                        <option value="Abierto" ${t.estado==='Abierto'?'selected':''}>???? Abierto</option>
+                        <option value="En curso" ${t.estado==='En curso'?'selected':''}>???? En curso</option>
+                        <option value="Cerrado" ${t.estado==='Cerrado'?'selected':''}>???? Cerrado</option>
+                    </select>
+                </div>
+                <div style="flex:1; padding:1.5rem; overflow-y:auto; background:var(--color-bg-alt); display:flex; flex-direction:column; gap:1rem;">
+                    ${t.mensajes.map(m => `
+                        <div style="max-width:80%; ${m.esEquipo ? 'align-self:flex-end; background:var(--color-primary); color:white;' : 'align-self:flex-start; background:white; border:1px solid var(--color-border);'} padding:1rem; border-radius:var(--radius-sm);">
+                            <div style="font-size:13px;">${m.texto}</div>
+                            <div style="font-size:9px; margin-top:5px; opacity:0.8;">${new Date(m.fecha).toLocaleString()}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="padding:1rem; border-top:1px solid var(--color-border); display:flex; gap:1rem; background:white;">
+                    <input type="text" id="admin-reply-input" placeholder="Responder al cliente..." style="flex:1; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                    <button class="btn btn-dark" onclick="App.sendTicketReplyFromAdmin('${t.id}')">Enviar</button>
+                </div>
+            </div>
+        </div>`;
+        document.getElementById('admin-ticket-modal-container').innerHTML = modal;
+    sendTicketReplyFromAdmin(ticketId) {
+        const input = document.getElementById('admin-reply-input');
+        if (input && input.value.trim() !== '') {
+            db.addTicketReply(ticketId, input.value.trim(), true);
+            this.showToast('??? Respuesta enviada');
+            this.viewTicketDetailModal(ticketId); // refresh modal
+            // Also refresh kanban behind it
+            this.viewAdmin(document.getElementById('main-content'), 'tickets');
+    saveNewProduct() {
+        const nombre = document.getElementById('np-nombre').value.trim();
+        const precio = parseInt(document.getElementById('np-precio').value);
+        if (!nombre || !precio) { this.showToast('?????? Completa nombre y precio'); return; }
+        const data = {
+            nombre, precio,
+            precioAntes: parseInt(document.getElementById('np-precioAntes').value) || 0,
+            cat: document.getElementById('np-cat').value,
+            emoji: document.getElementById('np-emoji').value || '????',
+            imagen: document.getElementById('np-imagen') ? document.getElementById('np-imagen').value.trim() : '',
+            descCorta: document.getElementById('np-descCorta').value,
+            descLarga: document.getElementById('np-descLarga').value,
+            metodoPago: document.getElementById('np-metodo').value,
+            talles: document.getElementById('np-talles').value.split(',').map(s=>s.trim()).filter(Boolean),
+            region: document.getElementById('np-region') ? document.getElementById('np-region').value : 'global',
+            stock: 'Disponible', cantidad: 99, whatsapp: '', msgWhatsapp: '', archivo: '', tipoArchivo: '', tags: [], visitas: 0, compras: 0, carinPlusDescuento: 0
+        db.addProduct(data);
+        this.showToast('??? Producto publicado correctamente');
+        window.location.hash = '/admin/productos';
+    saveAdminCurso() {
+        const titulo = document.getElementById('nc-titulo').value.trim();
+        const profeId = document.getElementById('nc-profeId').value;
+        const maxAlumnos = parseInt(document.getElementById('nc-maxAlumnos').value) || 10;
+        if (!titulo || !profeId) {
+            this.showToast('?????? Completa t??tulo y profesor');
+            return;
+        // Obtener schedule
+        const scheduleRows = document.querySelectorAll('.schedule-row');
+        const schedule = [];
+        scheduleRows.forEach(row => {
+            schedule.push({
+                dia: row.querySelector('.s-dia').value,
+                horaInicio: row.querySelector('.s-hi').value,
+                horaFin: row.querySelector('.s-hf').value,
+                frecuencia: row.querySelector('.s-frec').value
+        const data = {
+            titulo,
+            profeId,
+            maxAlumnos,
+            precio: parseInt(document.getElementById('nc-precio').value) || 0,
+            precioInterno: parseInt(document.getElementById('nc-precioInterno').value) || 0,
+            subtitulo: document.getElementById('nc-subtitulo').value.trim(),
+            horarios: document.getElementById('nc-horarios').value.trim(),
+            schedule,
+            descripcion: document.getElementById('nc-descripcion').value.trim(),
+            descripcionLarga: document.getElementById('nc-descripcionLarga').value.trim(),
+            requisitos: document.getElementById('nc-requisitos').value.split('\n').map(x=>x.trim()).filter(Boolean),
+            incluye: document.getElementById('nc-incluye').value.split('\n').map(x=>x.trim()).filter(Boolean),
+            banner: document.getElementById('nc-banner').value.trim(),
+            oferta: document.getElementById('nc-oferta').checked,
+            destacado: document.getElementById('nc-destacado').checked,
+            alumnos: []
+        db.addCurso(data);
+        this.showToast('??? Curso guardado correctamente');
+        window.location.hash = '/admin/cursos';
+    addScheduleRow() {
+        const c = document.getElementById('nc-schedule-container');
+        if(!c) return;
+        const div = document.createElement('div');
+        div.className = 'schedule-row';
+        div.style.display = 'flex';
+        div.style.gap = '0.5rem';
+        div.innerHTML = `
+            <select class="s-dia" style="padding:6px; border-radius:var(--radius-sm); border:1px solid var(--color-border); flex:1;">
+                <option>Lunes</option><option>Martes</option><option>Mi??rcoles</option><option>Jueves</option><option>Viernes</option><option>S??bado</option><option>Domingo</option>
+            </select>
+            <input class="s-hi" type="time" style="padding:6px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+            <input class="s-hf" type="time" style="padding:6px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+            <select class="s-frec" style="padding:6px; border-radius:var(--radius-sm); border:1px solid var(--color-border); flex:1;">
+                <option>1 vez por semana</option><option>2 veces por semana</option><option>3 veces por semana</option><option>Todos los d??as</option>
+            </select>
+            <button class="btn btn-default" style="color:#ef4444; padding:6px 10px;" onclick="this.parentElement.remove()">X</button>
+        c.appendChild(div);
+    addProfesorAdmin() {
+        const emailInput = document.getElementById('np-user').value.trim().toLowerCase();
+        const especialidad = document.getElementById('np-especialidad').value;
+        if (!emailInput) return this.showToast('?????? Ingresa un correo electr??nico');
+        let user = db.get('profiles').find(u => u.email.toLowerCase() === emailInput);
+        if (!user) {
+            user = {
+                userId: 'user_' + Date.now().toString(36),
+                nombre: emailInput.split('@')[0],
+                email: emailInput,
+                telefono: '',
+                rango: 'profesor'
+            db.data.profiles.push(user);
+            db.save();
+        } else if (user.rango !== 'admin' && user.rango !== 'owner') {
+            user.rango = 'profesor';
+            db.save();
+        if (db.get('profesores').some(p => p.userId === user.userId)) {
+            return this.showToast('?????? Este usuario ya es profesor');
+        db.addProfesor({ userId: user.userId, nombre: user.nombre, correo: user.email, telefono: user.telefono, especialidad });
+        this.showToast('??? Profesor creado exitosamente');
+        this.viewAdmin(document.getElementById('main-content'), 'profesores');
+    deleteProfesorAdmin(id) {
+        if (confirm('??Eliminar a este profesor?')) {
+            db.deleteProfesor(id);
+            this.showToast('??? Profesor eliminado');
+            this.viewAdmin(document.getElementById('main-content'), 'profesores');
+    viewAdminEnrollment(cursoId) {
+        const c = db.get('cursos').find(x => x.id === cursoId);
+        const main = document.getElementById('admin-main-area');
+        if (!c || !main) return;
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const fechaActual = new Date();
+        const mesActual = meses[fechaActual.getMonth()];
+        const a??oActual = fechaActual.getFullYear();
+        const selectedMes = this._adminCursoMes || mesActual;
+        const selectedA??o = this._adminCursoA??o || a??oActual;
+        const stats = db.getPagoStats(c.id, selectedMes, selectedA??o);
+        const pendingThisCourse = db.get('inscripciones').filter(i => i.cursoId === c.id && (i.estadoPago === 'En Proceso' || i.estadoPago === 'Solicitado'));
+        main.innerHTML = `
+            ${pendingThisCourse.length > 0 ? `
+                <div style="background:var(--color-bg-alt); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem; border-left:5px solid var(--color-primary);">
+                    <h3 style="margin-top:0; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; color:var(--color-text); font-size:1.1rem;">
+                        ???? Notificaciones Pendientes del Curso
+                    </h3>
+                    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                        ${pendingThisCourse.map(insc => {
+                            const u = db.get('profiles').find(p => p.userId === insc.userId);
+                            const isSol = insc.estadoPago === 'Solicitado';
+                            return `
+                                <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:0.75rem 1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border); box-shadow:0 1px 2px rgba(0,0,0,0.05); border-left:3px solid ${isSol?'#db2777':'#ca8a04'};">
+                                    <div>
+                                        <span style="font-weight:700;">${u ? u.nombre : insc.userId}</span> 
+                                        ${isSol ? `solicit?? una <b>reserva</b> para` : `espera confirmaci??n de pago para`} <b>${insc.mes} ${insc.a??o}</b>
+                                    </div>
+                                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                                        ${(!isSol && insc.comprobante) ? `<button class="btn btn-default" style="font-size:10px; padding:5px 10px;" onclick="App.viewImageModal('${insc.comprobante}')">???? Ver Comprobante</button>` : ''}
+                                        ${isSol ? `
+                                            <button class="btn btn-dark" style="font-size:10px; padding:5px 12px; background:#2563eb; border-color:#2563eb;" onclick="App.changePagoEstado('${c.id}', '${insc.userId}', '${insc.mes}', ${insc.a??o}, 'Reservado'); App.viewAdminEnrollment('${c.id}');">Aceptar Reserva</button>
+                                            <button class="btn btn-dark" style="font-size:10px; padding:5px 12px; background:#16a34a; border-color:#16a34a;" onclick="App.changePagoEstado('${c.id}', '${insc.userId}', '${insc.mes}', ${insc.a??o}, 'Pagado'); App.viewAdminEnrollment('${c.id}');">??? Confirmar Pago</button>
+                                    </div>
+                                </div>
+                        }).join('')}
+                    </div>
+                </div>
+            <div style="margin-bottom:2rem; display:flex; justify-content:space-between; align-items:center;">
+                <button class="btn btn-default" onclick="window.location.hash='/admin/cursos'">??? Volver a Cursos</button>
+                <div style="background:var(--color-bg); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--color-border); display:flex; gap:1rem; align-items:center;">
+                    <span style="font-weight:700; font-size:13px;">Ver mes:</span>
+                    <select id="admin-mes-select" style="padding:6px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onchange="App.setAdminCursoMes('${c.id}', this.value, document.getElementById('admin-a??o-select').value)">
+                        ${meses.map(m => `<option value="${m}" ${m === selectedMes ? 'selected' : ''}>${m}${m === mesActual && selectedA??o == a??oActual ? ' (Actual)' : ''}</option>`).join('')}
+                    </select>
+                    <select id="admin-a??o-select" style="padding:6px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onchange="App.setAdminCursoMes('${c.id}', document.getElementById('admin-mes-select').value, this.value)">
+                        ${[2024, 2025, 2026, 2027].map(a => `<option value="${a}" ${a == selectedA??o ? 'selected' : ''}>${a}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+            <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:1.5rem; border-radius:var(--radius-md); margin-bottom:2rem;">
+                <h3 style="margin-bottom:1rem; color:var(--color-primary); display:flex; justify-content:space-between; align-items:center;">
+                    <span>Dashboard Financiero (${selectedMes} ${selectedA??o})</span>
+                    <button class="btn btn-default" style="font-size:12px; padding:4px 8px; border:none; background:#f3f4f6;" onclick="document.getElementById('admin-edit-prices').style.display='block'">?????? Editar Precios</button>
+                </h3>
+                <div id="admin-edit-prices" style="display:none; background:white; padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border); margin-bottom:1.5rem;">
+                    <div style="font-size:12px; font-weight:700; margin-bottom:0.5rem; text-transform:uppercase;">Configurar Precios del Curso</div>
+                    <div style="display:flex; gap:1rem; align-items:flex-end;">
+                        <div style="flex:1;">
+                            <label style="font-size:11px; font-weight:600; color:var(--color-text-muted);">Precio Mensual Visible (P??blico)</label>
+                            <input type="number" id="edit-precio-visible" value="${c.precio||0}" style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--color-border);">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:11px; font-weight:600; color:var(--color-text-muted);">Precio Interno (Admin)</label>
+                            <input type="number" id="edit-precio-interno" value="${c.precioInterno||0}" style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--color-border);">
+                        </div>
+                        <button class="btn btn-dark" style="padding:6px 15px;" onclick="App.saveAdminCoursePrices('${c.id}')">Guardar</button>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+                    <div style="background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                        <div style="font-size:12px; color:var(--color-text-muted); font-weight:700; text-transform:uppercase;">Ingreso Esperado</div>
+                        <div style="font-size:1.5rem; font-weight:800; color:#15803d;">$${stats ? stats.montoEsperado.toLocaleString() : 0}</div>
+                        <div style="font-size:10px; color:var(--color-text-muted); margin-top:4px;">Basado en Precio Interno: $${c.precioInterno||0}</div>
+                    </div>
+                    <div style="background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                        <div style="font-size:12px; color:var(--color-text-muted); font-weight:700; text-transform:uppercase;">Monto Pendiente</div>
+                        <div style="font-size:1.5rem; font-weight:800; color:#b91c1c;">$${stats ? stats.montoPendiente.toLocaleString() : 0}</div>
+                    </div>
+                    <div style="background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                        <div style="font-size:12px; color:var(--color-text-muted); font-weight:700; text-transform:uppercase;">Alumnos al d??a</div>
+                        <div style="font-size:1.5rem; font-weight:800;">${stats ? stats.pagados : 0} / ${c.alumnos.length}</div>
+                    </div>
+                    <div style="background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                        <div style="font-size:12px; color:var(--color-text-muted); font-weight:700; text-transform:uppercase;">Alumnos deudores</div>
+                        <div style="font-size:1.5rem; font-weight:800; color:#b91c1c;">${stats ? stats.sinPagar : 0}</div>
+                        <div style="font-size:10px; color:var(--color-text-muted); margin-top:4px;">En proceso: ${stats ? stats.enProceso : 0}</div>
+                    </div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 2fr;gap:2rem;">
+                <div style="background:var(--color-bg);border:1px solid var(--color-border);padding:1.5rem;border-radius:var(--radius-md);">
+                    <h3>Inscribir Alumno Manual</h3>
+                    <div style="margin-top:1.5rem;">
+                        <input type="email" id="new-alumno-email" placeholder="Email del usuario registrado" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border); margin-bottom:1rem;">
+                        <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+                            <select id="new-alumno-mes" style="flex:1; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                                ${meses.map(m => `<option value="${m}" ${m === selectedMes ? 'selected' : ''}>${m}</option>`).join('')}
+                            </select>
+                            <select id="new-alumno-a??o" style="width:80px; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                                ${[2024, 2025, 2026, 2027].map(a => `<option value="${a}" ${a == selectedA??o ? 'selected' : ''}>${a}</option>`).join('')}
+                            </select>
+                            <select id="new-alumno-estado" style="flex:1; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                                <option value="Sin Pagar">PAGO PENDIENTE</option>
+                                <option value="Reservado" selected>RESERVADO</option>
+                                <option value="Pagado">PAGADO</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-dark" style="width:100%;" onclick="App.adminAddStudent('${c.id}')">Inscribir Alumno</button>
+                    </div>
+                </div>
+                <div style="background:var(--color-bg);border:1px solid var(--color-border);padding:1.5rem;border-radius:var(--radius-md);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                        <h3 style="margin:0;">Alumnos Inscriptos (${c.alumnos.length}/${c.maxAlumnos})</h3>
+                        <select id="admin-filtro-pago" style="padding:6px; border-radius:var(--radius-sm); font-size:12px;" onchange="App.filterAdminEnrollment(this.value)">
+                            <option value="todos">Todos</option>
+                            <option value="pagados">Solo Pagados</option>
+                            <option value="deudores">Solo Deudores (En Proceso/Sin Pagar)</option>
+                        </select>
+                    </div>
+                    <div style="margin-top:1.5rem;">
+                        <table style="width:100%;border-collapse:collapse;" id="admin-enrollment-table">
+                            <thead><tr style="text-align:left;border-bottom:1.5px solid var(--color-border);font-size:12px;color:var(--color-text-muted);text-transform:uppercase;"><th style="padding:0.75rem;">Alumno</th><th style="padding:0.75rem;">Estado Pago</th><th style="padding:0.75rem;text-align:right;">Acciones</th></tr></thead>
+                            <tbody>
+                                    const isCurrentOrFuture = (selectedA??o > a??oActual) || (selectedA??o == a??oActual && meses.indexOf(selectedMes) >= meses.indexOf(mesActual));
+                                    const inscripcionesMes = db.get('inscripciones').filter(i => i.cursoId === c.id && i.mes === selectedMes && i.a??o == selectedA??o);
+                                    let lista = inscripcionesMes.map(insc => ({ uid: insc.userId, estado: insc.estadoPago, insc: insc }));
+                                    if (isCurrentOrFuture) {
+                                        c.alumnos.forEach(uid => {
+                                            if (!lista.find(l => l.uid === uid)) lista.push({ uid: uid, estado: 'No Anotado', insc: null });
+                                    if (lista.length === 0) return '<tr><td colspan="3" style="text-align:center; padding:1rem; color:var(--color-text-muted);">No hay alumnos registrados en este periodo.</td></tr>';
+                                    return lista.map(item => {
+                                        const uid = item.uid;
+                                        const u = db.get('profiles').find(p => p.userId === uid);
+                                        const insc = item.insc || { estadoPago: 'No Anotado' };
+                                        const isDeudor = insc.estadoPago !== 'Pagado';
+                                        let bgSt = '#f3f4f6', fgSt = '#6b7280';
+                                        if (insc.estadoPago === 'Pagado') { bgSt = '#dcfce7'; fgSt = '#15803d'; }
+                                        else if (insc.estadoPago === 'En Proceso') { bgSt = '#fef9c3'; fgSt = '#a16207'; }
+                                        else if (insc.estadoPago === 'Reservado') { bgSt = '#e0f2fe'; fgSt = '#0369a1'; }
+                                        else if (insc.estadoPago === 'Sin Pagar') { bgSt = '#fee2e2'; fgSt = '#b91c1c'; }
+                                        return `<tr style="border-bottom:1px solid var(--color-border);" class="enrollment-row" data-estado="${isDeudor ? 'deudor' : 'pagado'}">
+                                            <td style="padding:0.75rem;">
+                                                <div style="font-weight:600;">${u?u.nombre:'N/A'}</div>
+                                                <div style="font-size:11px;color:var(--color-text-muted);">${u?u.email:uid}</div>
+                                            </td>
+                                            <td style="padding:0.75rem;">
+                                                ${insc.estadoPago === 'No Anotado' ? `
+                                                    ${(selectedMes !== mesActual || selectedA??o != a??oActual) ? `
+                                                        <button class="btn btn-dark" style="font-size:10px; padding:4px 8px; background:#6366f1;" onclick="App.reserveSlot('${c.id}', '${uid}', '${selectedMes}', ${selectedA??o})">Reservar Slot</button>
+                                                    ` : '<span style="color:var(--color-text-muted); font-size:10px;">-</span>'}
+                                                    <select onchange="App.changePagoEstado('${c.id}', '${uid}', '${selectedMes}', ${selectedA??o}, this.value); App.viewAdminEnrollment('${c.id}');" style="padding:4px 8px; font-size:11px; font-weight:700; border-radius:4px; background:${bgSt}; color:${fgSt}; border:1px solid ${fgSt}40;">
+                                                        <option value="Sin Pagar" ${insc.estadoPago==='Sin Pagar'?'selected':''}>SIN PAGAR</option>
+                                                        <option value="Reservado" ${insc.estadoPago==='Reservado'?'selected':''}>RESERVADO</option>
+                                                        <option value="En Proceso" ${insc.estadoPago==='En Proceso'?'selected':''}>EN PROCESO</option>
+                                                        <option value="Pagado" ${insc.estadoPago==='Pagado'?'selected':''}>PAGADO</option>
+                                                    </select>
+                                                ${insc.comprobante ? `<button onclick="App.viewImageModal('${insc.comprobante}')" style="display:block; margin-top:4px; font-size:10px; color:var(--color-primary); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">???? Ver Comprobante</button>` : ''}
+                                            </td>
+                                            <td style="padding:0.75rem;text-align:right; display:flex; gap:0.25rem; justify-content:flex-end; align-items:center;">
+                                                ${insc.estadoPago !== 'No Anotado' ? `
+                                                    <button class="btn btn-default" style="font-size:9px; color:#f97316; padding:4px 6px;" onclick="App.removeInscription('${c.id}', '${uid}', '${selectedMes}', ${selectedA??o})">Baja Mes</button>
+                                                <button class="btn btn-default" style="font-size:9px;color:#ef4444; padding:4px 6px;" onclick="App.removeStudentFromCourse('${c.id}', '${uid}')">Quitar</button>
+                                            </td>
+                                        </tr>`;
+                                    }).join('');
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>`;
+    setAdminCursoMes(cursoId, mes, a??o) {
+        this._adminCursoMes = mes;
+        this._adminCursoA??o = parseInt(a??o);
+        this.viewAdminEnrollment(cursoId);
+    saveAdminCoursePrices(cursoId) {
+        const pv = document.getElementById('edit-precio-visible').value;
+        const pi = document.getElementById('edit-precio-interno').value;
+        if (db.updateCoursePrices(cursoId, pv, pi)) {
+            this.showToast('??? Precios actualizados');
+            this.viewAdminEnrollment(cursoId);
+    filterAdminEnrollment(val) {
+        const rows = document.querySelectorAll('.enrollment-row');
+        rows.forEach(r => {
+            if (val === 'todos') r.style.display = '';
+            else if (val === 'pagados' && r.getAttribute('data-estado') === 'pagado') r.style.display = '';
+            else if (val === 'deudores' && r.getAttribute('data-estado') === 'deudor') r.style.display = '';
+            else r.style.display = 'none';
+    adminAddStudent(cursoId) {
+        const email = document.getElementById('new-alumno-email').value;
+        const mes = document.getElementById('new-alumno-mes').value;
+        const a??o = parseInt(document.getElementById('new-alumno-a??o').value);
+        const estado = document.getElementById('new-alumno-estado').value;
+        const user = db.get('profiles').find(p => p.email === email);
+        if (user) {
+            if (db.enrollStudent(cursoId, user.userId, mes, a??o)) {
+                db.updatePagoEstado(cursoId, user.userId, mes, a??o, estado);
+                this.showToast('??? Alumno inscrito correctamente con estado: ' + estado);
+                this.viewAdminEnrollment(cursoId);
+            } else {
+                this.showToast('?????? El alumno ya est?? en el curso');
+        } else {
+            this.showToast('??? Usuario no encontrado. Debe registrarse primero.');
+    viewProfessorPanel(main) {
+        const user = db.currentUser;
+        if (!user) return this.navigate('/login');
+        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const fechaActual = new Date();
+        const mesActual = meses[fechaActual.getMonth()];
+        const a??oActual = fechaActual.getFullYear();
+        let profe = db.get('profesores').find(p => p.userId === user.userId);
+        // Si es Admin, permitirle entrar aunque no sea profesor (ver?? sus cursos si se asign??, o todos si queremos)
+        if (!profe && (user.rango === 'admin' || user.rango === 'owner')) {
+            profe = { userId: user.userId, nombre: user.nombre, id: 'admin-view' };
+        if (!profe) return this.navigate('/');
+        // Si es el "admin-view", mostramos todos los cursos para que pueda testear/ver
+        const misCursos = (profe.id === 'admin-view') ? db.get('cursos') : db.get('cursos').filter(c => c.profeId === profe.id);
+        const selectedMes = this._profesorMes || mesActual;
+        const selectedA??o = this._profesorA??o || a??oActual;
+        main.innerHTML = `
+            <div class="container" style="margin-top:3rem; margin-bottom:5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+                    <div>
+                        <h1>Panel del Profesor</h1>
+                        <p style="color:var(--color-text-muted)">Bienvenida, ${profe.nombre}</p>
+                    </div>
+                    <div style="background:var(--color-bg); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--color-border); display:flex; gap:1rem; align-items:center;">
+                        <span style="font-weight:700; font-size:13px;">Ver mes:</span>
+                        <select id="profe-mes-select" style="padding:6px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onchange="App.setProfesorMes(this.value, document.getElementById('profe-a??o-select').value)">
+                            ${meses.map(m => `<option value="${m}" ${m === selectedMes ? 'selected' : ''}>${m}${m === mesActual && selectedA??o == a??oActual ? ' (Actual)' : ''}</option>`).join('')}
+                        </select>
+                        <select id="profe-a??o-select" style="padding:6px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onchange="App.setProfesorMes(document.getElementById('profe-mes-select').value, this.value)">
+                            ${[2024, 2025, 2026, 2027].map(a => `<option value="${a}" ${a == selectedA??o ? 'selected' : ''}>${a}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+                <div style="margin-top:2rem;display:grid;gap:2rem;">
+                    ${misCursos.length === 0 ? '<p style="color:var(--color-text-muted)">No tienes cursos asignados.</p>' : misCursos.map(c => `
+                        <div style="background:var(--color-bg);border:1.5px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;">
+                            <div style="padding:1.5rem;background:var(--color-bg-alt);border-bottom:1px solid var(--color-border);display:flex;justify-content:space-between;align-items:center;">
+                                <div>
+                                    <h3 style="margin:0">${c.titulo}</h3>
+                                    <div style="font-size:12px; color:var(--color-text-muted); margin-top:4px;">${c.horarios}</div>
+                                </div>
+                                <span style="background:#dcfce7; color:#15803d; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700;">${c.alumnos.length} / ${c.maxAlumnos} Alumnos</span>
+                            </div>
+                            <div style="padding:1.5rem;">
+                                    const isCurrentOrFuture = (selectedA??o > a??oActual) || (selectedA??o == a??oActual && meses.indexOf(selectedMes) >= meses.indexOf(mesActual));
+                                    const inscripcionesMes = db.get('inscripciones').filter(i => i.cursoId === c.id && i.mes === selectedMes && i.a??o == selectedA??o);
+                                    let lista = inscripcionesMes.map(insc => ({ uid: insc.userId, estado: insc.estadoPago, insc: insc }));
+                                    if (isCurrentOrFuture) {
+                                        c.alumnos.forEach(uid => {
+                                            if (!lista.find(l => l.uid === uid)) lista.push({ uid: uid, estado: 'No Anotado', insc: null });
+                                    if (lista.length === 0) return '<p style="color:var(--color-text-muted); font-size:13px; text-align:center;">No hay alumnos registrados en este periodo.</p>';
+                                    return `
+                                    <table style="width:100%;border-collapse:collapse;">
+                                        <thead><tr style="text-align:left;border-bottom:1.5px solid var(--color-border);font-size:12px;color:var(--color-text-muted);text-transform:uppercase;"><th style="padding:0.75rem;">Alumno</th><th style="padding:0.75rem;">Estado Pago (${selectedMes})</th><th style="padding:0.75rem;text-align:center;">Comprobante</th><th style="padding:0.75rem;text-align:right;">Acciones</th></tr></thead>
+                                        <tbody>
+                                            ${lista.map(item => {
+                                                const uid = item.uid;
+                                                const alumno = db.get('profiles').find(p => p.userId === uid);
+                                                const insc = item.insc || { estadoPago: 'No Anotado', comprobante: '' };
+                                                let bgSt = '#f3f4f6', fgSt = '#6b7280';
+                                                if (insc.estadoPago === 'Pagado') { bgSt = '#dcfce7'; fgSt = '#15803d'; }
+                                                else if (insc.estadoPago === 'En Proceso') { bgSt = '#fef9c3'; fgSt = '#a16207'; }
+                                                else if (insc.estadoPago === 'Reservado') { bgSt = '#e0f2fe'; fgSt = '#0369a1'; }
+                                                else if (insc.estadoPago === 'Sin Pagar') { bgSt = '#fee2e2'; fgSt = '#b91c1c'; }
+                                            return `<tr style="border-bottom:1px solid var(--color-border);">
+                                                <td style="padding:0.75rem;">
+                                                    <div style="font-weight:600;">${alumno?alumno.nombre:'N/A'}</div>
+                                                    <div style="font-size:11px;color:var(--color-text-muted);">${alumno?alumno.email:uid}</div>
+                                                </td>
+                                                <td style="padding:0.75rem;">
+                                                    ${insc.estadoPago === 'No Anotado' ? `
+                                                        ${(selectedMes !== mesActual || selectedA??o != a??oActual) ? `
+                                                            <button class="btn btn-dark" style="font-size:10px; padding:4px 8px; background:#6366f1;" onclick="App.reserveSlot('${c.id}', '${uid}', '${selectedMes}', ${selectedA??o})">Reservar Slot</button>
+                                                        ` : '<span style="color:var(--color-text-muted); font-size:10px;">-</span>'}
+                                                        <select onchange="App.changePagoEstado('${c.id}', '${uid}', '${selectedMes}', ${selectedA??o}, this.value); App.viewProfessorPanel(document.getElementById('main-content'));" style="padding:4px 8px; font-size:11px; font-weight:700; border-radius:4px; background:${bgSt}; color:${fgSt}; border:1px solid ${fgSt}40;">
+                                                            <option value="Sin Pagar" ${insc.estadoPago==='Sin Pagar'?'selected':''}>SIN PAGAR</option>
+                                                            <option value="Reservado" ${insc.estadoPago==='Reservado'?'selected':''}>RESERVADO</option>
+                                                            <option value="En Proceso" ${insc.estadoPago==='En Proceso'?'selected':''}>EN PROCESO</option>
+                                                            <option value="Pagado" ${insc.estadoPago==='Pagado'?'selected':''}>PAGADO</option>
+                                                        </select>
+                                                </td>
+                                                <td style="padding:0.75rem;text-align:center;">
+                                                    ${insc.comprobante ? `
+                                                        <button onclick="App.viewImageModal('${insc.comprobante}')" style="display:inline-block; margin-bottom:4px; font-size:11px; font-weight:700; color:var(--color-primary); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;">Ver Img</button>
+                                                        <label style="display:block; font-size:9px; cursor:pointer; color:var(--color-text-muted);">
+                                                            Cambiar <input type="file" accept="image/*" style="display:none;" onchange="App.uploadComprobante(event, '${c.id}', '${uid}', '${selectedMes}', ${selectedA??o})">
+                                                        </label>
+                                                    ` : insc.estadoPago !== 'No Anotado' ? `
+                                                        <label class="btn btn-default" style="font-size:10px; padding:4px 8px; margin:0; cursor:pointer;">
+                                                            Subir <input type="file" accept="image/*" style="display:none;" onchange="App.uploadComprobante(event, '${c.id}', '${uid}', '${selectedMes}', ${selectedA??o})">
+                                                        </label>
+                                                </td>
+                                                <td style="padding:0.75rem;text-align:right; display:flex; gap:0.25rem; justify-content:flex-end; align-items:center;">
+                                                    ${insc.estadoPago !== 'No Anotado' ? `
+                                                        <button class="btn btn-default" style="font-size:9px; color:#f97316; padding:4px 6px;" onclick="App.removeInscription('${c.id}', '${uid}', '${selectedMes}', ${selectedA??o})">Baja Mes</button>
+                                                    <button class="btn btn-default" style="font-size:9px; color:#ef4444; padding:4px 6px;" onclick="App.removeStudentFromCourse('${c.id}', '${uid}')">Eliminar</button>
+                                                </td>
+                                            </tr>`;
+                                            }).join('')}
+                                        </tbody>
+                                    </table>`;
+                            </div>
+                            <!-- Inscribir Manual (Profesor) -->
+                            <div style="padding:1rem 1.5rem; background:#f8fafc; border-top:1px solid var(--color-border);">
+                                <div style="font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.75rem; text-transform:uppercase;">Inscribir Alumno Manualmente</div>
+                                <div style="display:flex; gap:0.5rem; align-items:center;">
+                                    <input type="email" id="prof-add-email-${c.id}" placeholder="Email del alumno" style="flex:2; padding:8px; font-size:12px; border:1px solid var(--color-border); border-radius:4px;">
+                                    <select id="prof-add-mes-${c.id}" style="flex:1; padding:8px; font-size:12px; border:1px solid var(--color-border); border-radius:4px;">
+                                        ${meses.map(m => `<option value="${m}" ${m === selectedMes ? 'selected' : ''}>${m}</option>`).join('')}
+                                    </select>
+                                    <select id="prof-add-estado-${c.id}" style="flex:1; padding:8px; font-size:12px; border:1px solid var(--color-border); border-radius:4px;">
+                                        <option value="Reservado">RESERVADO</option>
+                                        <option value="Pagado">PAGADO</option>
+                                    </select>
+                                    <button class="btn btn-dark" style="font-size:11px; padding:8px 15px;" onclick="App.profesorAddStudent('${c.id}')">Inscribir</button>
+                                </div>
+                            </div>
+                        </div>`).join('')}
+                </div>
+            </div>`;
+    setProfesorMes(mes, a??o) {
+        this._profesorMes = mes;
+        this._profesorA??o = parseInt(a??o);
+        this.viewProfessorPanel(document.getElementById('main-content'));
+    reserveSlot(cursoId, userId, mes, a??o) {
+        if (db.enrollStudent(cursoId, userId, mes, a??o)) {
+            const insc = db.get('inscripciones').find(i => i.cursoId === cursoId && i.userId === userId && i.mes === mes && i.a??o == a??o);
+            if (insc) {
+                insc.estadoPago = 'Reservado';
+                db.save();
+                this.showToast('???? Cupo reservado para ' + mes);
+                if (window.location.hash.includes('admin')) this.viewAdminEnrollment(cursoId);
+                else this.viewProfessorPanel(document.getElementById('main-content'));
+    requestReservation(cursoId, userId, mes, a??o) {
+        const c = db.get('cursos').find(x => x.id === cursoId);
+        const u = db.get('profiles').find(x => x.userId === userId);
+        if (!c || !u) return;
+        const profe = db.get('profesores').find(p => p.id === c.profeId);
+        if (db.enrollStudent(cursoId, userId, mes, a??o)) {
+            const insc = db.get('inscripciones').find(i => i.cursoId === cursoId && i.userId === userId && i.mes === mes && i.a??o == a??o);
+            if (insc) {
+                insc.estadoPago = 'Solicitado';
+                db.save();
+                this.showToast('???? Solicitud enviada correctamente');
+                // WhatsApp
+                if (profe && profe.telefono) {
+                    const msg = encodeURIComponent(`Hola ${profe.nombre}! Me gustaria solicitar una reserva para "${c.titulo}" en el mes "${mes}" mi correo de usuario es: ${u.email}`);
+                    window.open(`https://wa.me/${profe.telefono.replace(/\D/g,'')}?text=${msg}`, '_blank');
+                this.viewProfile(document.getElementById('main-content'));
+    changePagoEstado(cursoId, userId, mes, a??o, estado) {
+        db.updatePagoEstado(cursoId, userId, mes, a??o, estado);
+        this.showToast('??? Estado de pago actualizado');
+        // Do not re-render immediately if not needed, but here we probably want to update the select color
+        this.viewProfessorPanel(document.getElementById('main-content'));
+    uploadComprobante(event, cursoId, userId, mes, a??o) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            db.updatePagoEstado(cursoId, userId, mes, a??o, 'En Proceso', e.target.result);
+            App.showToast('??? Comprobante subido, estado cambiado a En Proceso');
+            App.viewProfessorPanel(document.getElementById('main-content'));
+        reader.readAsDataURL(file);
+    removeStudentFromCourse(cursoId, userId) {
+        if (confirm('??Seguro que deseas eliminar a este alumno del curso de forma permanente?')) {
+            if (db.removeAlumno(cursoId, userId)) {
+                this.showToast('??? Alumno eliminado');
+                const hash = window.location.hash;
+                if (hash === '#/panel-profesor') this.viewProfessorPanel(document.getElementById('main-content'));
+                else this.viewAdminEnrollment(cursoId);
+    removeInscription(cursoId, userId, mes, a??o) {
+        if (confirm(`??Eliminar la reserva/inscripci??n de este alumno para ${mes} ${a??o}?`)) {
+            if (db.removeInscription(cursoId, userId, mes, a??o)) {
+                this.showToast('??? Inscripci??n del mes eliminada');
+                const hash = window.location.hash;
+                if (hash.includes('panel-profesor')) this.viewProfessorPanel(document.getElementById('main-content'));
+                else this.viewAdminEnrollment(cursoId);
+    profesorAddStudent(cursoId) {
+        const email = document.getElementById(`prof-add-email-${cursoId}`).value.trim();
+        const mes = document.getElementById(`prof-add-mes-${cursoId}`).value;
+        const estado = document.getElementById(`prof-add-estado-${cursoId}`).value;
+        const a??o = this._profesorA??o || new Date().getFullYear();
+        const user = db.get('profiles').find(p => p.email === email);
+        if (user) {
+            if (db.enrollStudent(cursoId, user.userId, mes, a??o)) {
+                db.updatePagoEstado(cursoId, user.userId, mes, a??o, estado);
+                this.showToast('??? Alumno inscrito correctamente');
+                this.viewProfessorPanel(document.getElementById('main-content'));
+            } else {
+                this.showToast('?????? El alumno ya est?? en el curso');
+        } else {
+            this.showToast('??? Usuario no encontrado');
+    handleScroll() {
+        if (this.bg) {
+            this.bg.canvas.style.opacity = (1 - (window.scrollY / 700)).toString();
+    /* UI Components */
+    toggleCart() {
+        const overlay = document.getElementById('cart-overlay');
+        overlay.classList.toggle('active');
+        if (overlay.classList.contains('active')) {
+            this.renderCart();
+    addToCart(id) {
+        const p = db.get('productos').find(prod => prod.id === id);
+        if (p) {
+            db.addToCart(p);
+            this.showToast(`Agregado: ${p.nombre}`);
+            this.renderLayout(); // Update badge
+    removeFromCart(index) {
+        db.removeFromCart(index);
+        this.renderCart();
+        this.renderLayout();
+    renderCart() {
+        const list = document.getElementById('cart-items');
+        const totalEl = document.getElementById('cart-total');
+        if (!list) return;
+        const configCarin = db.get('configCarinPlus') || { descuentoGlobal: 0 };
+        const configRebajas = db.get('configRebajas') || { activa: false, porcentaje: 0 };
+        const globalSaleDesc = configRebajas.activa ? configRebajas.porcentaje : 0;
+        const isCarinPlus = db.currentUser && db.currentUser.rango === 'carin_plus';
+        const activeCoupon = this._activeCoupon || null;
+        if (db.cart.length === 0) {
+            list.innerHTML = '<p style="text-align:center;color:var(--color-text-muted);margin-top:2rem;">Tu carrito est?? vac??o.</p>';
+            totalEl.innerText = '$0';
+            const couponArea = document.getElementById('cart-coupon-area');
+            if (couponArea) couponArea.style.display = 'none';
+            return;
+        list.innerHTML = db.cart.map((item, index) => {
+            const globalDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
+            const extraDesc = item.carinPlusDescuento || 0;
+            const totalCarinDesc = (isCarinPlus ? globalDesc + extraDesc : 0) + globalSaleDesc;
+            const price = totalCarinDesc > 0 ? Math.round(item.precio * (1 - totalCarinDesc / 100)) : item.precio;
+            return `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid var(--color-border);">
+                <div>
+                    <div style="font-weight:600;">${item.nombre}</div>
+                    <div style="font-size:0.8rem; color:var(--color-primary); font-weight:700;">$${price.toLocaleString()}</div>
+                    ${totalCarinDesc > 0 ? `<div style="font-size:0.7rem; color:var(--color-text-muted);">-${totalCarinDesc}% ${isCarinPlus ? 'Carin+' : ''} ${globalSaleDesc > 0 ? '+ Rebaja' : ''}</div>` : ''}
+                </div>
+                <button onclick="App.removeFromCart(${index})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.8rem;">Quitar</button>
+            </div>`;
+        }).join('');
+        // Subtotal
+        let subtotal = db.cart.reduce((acc, item) => {
+            const globalDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
+            const extraDesc = item.carinPlusDescuento || 0;
+            const totalCarinDesc = (isCarinPlus ? globalDesc + extraDesc : 0) + globalSaleDesc;
+            const price = totalCarinDesc > 0 ? Math.round(item.precio * (1 - totalCarinDesc / 100)) : item.precio;
+            return acc + price;
+        // Apply coupon
+        let couponDiscount = 0;
+        let couponLabel = '';
+        if (activeCoupon) {
+            couponDiscount = Math.round(subtotal * (activeCoupon.porcentaje / 100));
+            couponLabel = `<div style="margin-bottom:0.75rem; padding:0.5rem 0.75rem; background:#dcfce7; border-radius:var(--radius-sm); font-size:12px; color:#15803d; font-weight:700; display:flex; justify-content:space-between;">
+                <span>???? Cup??n ${activeCoupon.codigo} (-${activeCoupon.porcentaje}%)</span>
+                <span>-$${couponDiscount.toLocaleString()}</span>
+            </div>`;
+        const total = subtotal - couponDiscount;
+        // Coupon area
+        const couponArea = document.getElementById('cart-coupon-area');
+        if (couponArea) {
+            couponArea.style.display = 'block';
+            couponArea.innerHTML = `
+                ${couponLabel}
+                ${!activeCoupon ? `
+                <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+                    <input type="text" id="cupon-input" placeholder="C??digo de descuento" style="flex:1; padding:8px; border:1px solid var(--color-border); border-radius:var(--radius-sm); font-size:12px; text-transform:uppercase;">
+                    <button class="btn btn-default" style="font-size:12px; padding:6px 10px;" onclick="App.aplicarCupon()">Aplicar</button>
+                </div>` : `
+                <div style="text-align:right; margin-bottom:0.5rem;">
+                    <button style="background:none; border:none; color:#ef4444; font-size:11px; cursor:pointer;" onclick="App.quitarCupon()">??? Quitar cup??n</button>
+                </div>`}
+        totalEl.innerText = '$' + total.toLocaleString();
+    aplicarCupon() {
+        const input = document.getElementById('cupon-input');
+        if (!input) return;
+        const codigo = input.value.trim().toUpperCase();
+        const cupones = db.get('cupones') || [];
+        const c = cupones.find(x => x.codigo === codigo && x.activo);
+        if (c) {
+            this._activeCoupon = c;
+            c.usos = (c.usos || 0) + 1;
+            db.save();
+            this.showToast(`??? Cup??n ${c.codigo} aplicado (-${c.porcentaje}%)`);
+            this.renderCart();
+        } else {
+            this.showToast('??? Cup??n inv??lido o vencido');
+    quitarCupon() {
+        this._activeCoupon = null;
+        this.renderCart();
+    showToast(msg) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 500);
+    /* UI Toggles & Settings */
+    _toggleRegionDropdown() {
+        const dd = document.getElementById('region-dropdown');
+        if(dd) dd.style.display = dd.style.display === 'none' || dd.style.display === '' ? 'block' : 'none';
+    setLanguage(lang) {
+        this._currentLanguage = lang;
+        this.renderLayout(); // En una app real cargar??a traducciones
+    setRegion(regionId) {
+        this._currentRegion = regionId;
+        this.renderLayout();
+    setUSD(isUSD) {
+        this._showUSD = isUSD;
+        this.renderLayout();
+window.App = App;
+document.addEventListener('DOMContentLoaded', () => App.init());

@@ -167,6 +167,32 @@ input:focus, textarea:focus, select:focus {
     width: 100%;
 }
 
+/* Shop Layout Desktop */
+.shop-main-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 3rem;
+    align-items: start;
+    margin-top: 2rem;
+}
+
+.shop-main-layout .product-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+}
+
+.shop-controls-mobile {
+    display: none;
+}
+
+.shop-sidebar {
+    position: sticky;
+    top: 100px;
+    padding: 1.5rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
 /* Kanban System */
 .kanban-board {
     display: grid;
@@ -1456,7 +1482,7 @@ footer {
 
     .container {
         padding: 0 1rem;
-        overflow-x: hidden;
+        overflow: visible;
     }
 
     /* Navegaci\u00F3n */
@@ -1532,18 +1558,51 @@ footer {
         color: var(--color-text);
     }
 
-    /* Bot\u00F3n Preferencias de Tienda */
-    #mobile-shop-prefs-btn {
-        display: block !important;
-        width: 100%;
-        padding: 12px;
-        background: var(--color-bg-alt);
-        border: 1.5px solid var(--color-border);
-        border-radius: 12px;
-        margin-bottom: 1rem;
-        font-weight: 700;
-        text-align: center;
+    /* Botón Filtros Móvil */
+    .shop-controls-mobile {
+        display: flex !important;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+        align-items: center;
+    }
+    
+    .btn-filter-mobile {
+        background: var(--color-primary) !important;
+        color: white !important;
+        border: none !important;
+        padding: 12px 18px !important;
+        border-radius: 12px !important;
+        font-weight: 800 !important;
+        font-size: 13px !important;
+        box-shadow: 0 4px 12px var(--color-primary-light);
         cursor: pointer;
+    }
+
+    #mobile-shop-prefs-btn {
+        display: none !important;
+    }
+
+    /* Reducción de escala en Celular */
+    .product-card {
+        padding: 0.4rem !important;
+        border-radius: 10px !important;
+    }
+    .product-info {
+        padding: 0.7rem !important;
+    }
+    .product-image, .product-emoji {
+        height: 85px !important; /* Más pequeño para ahorrar espacio */
+    }
+    .product-info h3 {
+        font-size: 13px !important;
+        margin-bottom: 4px !important;
+    }
+    .product-info p {
+        display: none !important; /* Escondemos descripción para que quepan más */
+    }
+    .product-info .btn-cart {
+        padding: 8px !important;
+        font-size: 11px !important;
     }
 
     .shop-categories {
@@ -1560,18 +1619,19 @@ footer {
         display: flex;
         flex-direction: column;
         gap: 1rem;
+        margin-top: 1rem;
     }
 
-    .shop-sidebar-mobile {
-        display: none; /* Escondido por defecto en móvil */
+    .shop-sidebar {
+        display: none; /* Escondido por defecto en m\u00F3vil */
+        position: static;
+        padding: 1.25rem;
+        width: 100%;
         background: var(--color-bg-alt);
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid var(--color-border);
     }
 
-    .shop-sidebar-mobile.active {
-        display: block !important; /* Se muestra al tocar Preferencias */
+    .shop-sidebar.active {
+        display: block !important;
         margin-bottom: 1.5rem;
     }
 
@@ -1593,9 +1653,40 @@ footer {
     }
 
     /* Productos destacados más compactos */
-    .product-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 0.5rem !important;
+    .product-grid.featured-scroll {
+        display: flex !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory;
+        gap: 0.8rem !important;
+        padding: 0.5rem 1rem !important;
+        grid-template-columns: none !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+    .product-grid.featured-scroll::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    .product-grid.featured-scroll .product-card {
+        flex: 0 0 44% !important; /* Revertido a un tamaño más balanceado */
+        scroll-snap-align: start;
+        min-width: 44% !important;
+    }
+    .product-grid.featured-scroll .product-image, 
+    .product-grid.featured-scroll .product-emoji {
+        height: 120px !important; /* Recuperado un poco de altura por el 10% extra */
+    }
+    
+    /* Eliminar Ver Detalles y centrar Carrito en Celular */
+    .btn-details {
+        display: none !important;
+    }
+    .btn-cart {
+        flex: 1 !important;
+        width: 100% !important;
+        justify-content: center;
+    }
+    .product-info div[style*="display:flex"] {
+        justify-content: center !important;
     }
 
     .product-card {
