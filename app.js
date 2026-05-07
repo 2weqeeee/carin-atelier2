@@ -1508,6 +1508,8 @@ const App = {
         `;
 
         this.renderMobileDrawer(user, isCarinPlus, navLinkStyle);
+        this.renderFooter();
+        this.renderCart();
     },
 
     renderMobileDrawer(user, isCarinPlus, navLinkStyle) {
@@ -1564,14 +1566,6 @@ const App = {
             drawer.classList.toggle('active');
             overlay.classList.toggle('active');
         }
-    },
-
-
-
-        this.renderFooter();
-
-        this.renderCart();
-
     },
 
 
