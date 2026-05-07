@@ -209,8 +209,14 @@ input:focus, textarea:focus, select:focus {
 }
 
 @media (max-width: 768px) {
-    .shop-hero { padding: 2rem 0; }
-    .shop-hero h1 { font-size: 2rem !important; }
+    .shop-hero { 
+        padding: 4rem 0; 
+        border-bottom: none;
+        mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    }
+    .shop-hero h1 { font-size: 2.2rem !important; }
+    .shop-hero-waves { opacity: 0.3; transform: scale(1.5); }
 }
 
 .shop-main-layout {
@@ -227,6 +233,64 @@ input:focus, textarea:focus, select:focus {
 
 .shop-controls-mobile {
     display: none;
+}
+
+/* Responsive Grid Patterns */
+.responsive-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+}
+
+.profile-header-card {
+    background: linear-gradient(135deg, var(--color-bg), var(--color-bg-alt));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.account-main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+}
+
+.classroom-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .responsive-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    .profile-header-card {
+        flex-direction: column;
+        padding: 2rem;
+        text-align: center;
+    }
+    .profile-header-card button {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+    .account-main-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    .classroom-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
 }
 
 .shop-sidebar {

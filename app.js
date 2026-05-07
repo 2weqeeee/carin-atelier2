@@ -2605,8 +2605,7 @@ const App = {
 
 
             <!-- Main product grid -->
-
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:start;">
+            <div class="responsive-detail-grid">
 
                 <!-- Image -->
 
@@ -3238,8 +3237,7 @@ respuesta: null,
 
 
             <div class="container" style="margin-top:3rem; margin-bottom:5rem;">
-
-                <div style="display:grid; grid-template-columns:2fr 1fr; gap:4rem; align-items:start;">
+                <div class="responsive-detail-grid">
 
                     
 
@@ -3798,12 +3796,11 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         main.innerHTML = `
 
             <div class="container" style="margin-top: 4rem; margin-bottom: 5rem;">
-
-                <div style="background:linear-gradient(135deg, var(--color-bg), var(--color-bg-alt)); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:3rem; display:flex; align-items:center; gap:2rem; margin-bottom:3rem; box-shadow:var(--shadow-sm); position:relative; overflow:hidden;">
+                <div class="profile-header-card">
 
                     <div style="position:absolute; top:0; right:0; width:300px; height:300px; background:radial-gradient(circle, var(--color-primary-light) 0%, transparent 70%); opacity:0.1; transform:translate(30%, -30%); border-radius:50%;"></div>
 
-                    <div style="width:100px; height:100px; border-radius:50%; background:var(--color-primary); color:white; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:800; box-shadow:0 10px 25px rgba(236,72,153,0.3); z-index:1;">
+                    <div style="width:100px; height:100px; border-radius:50%; background:var(--color-primary); color:white; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:800; box-shadow:0 10px 25px rgba(236,72,153,0.3); z-index:1; flex-shrink:0;">
 
                         ${user.nombre.charAt(0).toUpperCase()}
 
@@ -3831,13 +3828,15 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-                <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 3rem;">
+                <div class="account-main-grid">
 
                     <div>
                         <!-- Tabs -->
-                        <div style="display:flex; gap:2.5rem; margin-bottom:2rem; border-bottom:1px solid var(--color-border); padding-bottom:0.5rem; position:relative;">
-                            <div style="cursor:pointer; padding:10px 0; font-weight:700; font-size:1.1rem; color:${this._accountTab === 'compras' ? 'var(--color-primary)' : 'var(--color-text-muted)'}; border-bottom:3px solid ${this._accountTab === 'compras' ? 'var(--color-primary)' : 'transparent'}; transition:all 0.3s;" onclick="App.setAccountTab('compras')">Mis Compras</div>
-                            <div style="cursor:pointer; padding:10px 0; font-weight:700; font-size:1.1rem; color:${this._accountTab === 'cursos' ? 'var(--color-primary)' : 'var(--color-text-muted)'}; border-bottom:3px solid ${this._accountTab === 'cursos' ? 'var(--color-primary)' : 'transparent'}; transition:all 0.3s;" onclick="App.setAccountTab('cursos')">Mis Cursos</div>
+                        <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:2rem; border-bottom:1px solid var(--color-border);">
+                            <div style="display:flex; gap:2.5rem; padding-bottom:0.5rem; min-width:max-content;">
+                                <div style="cursor:pointer; padding:10px 0; font-weight:700; font-size:1.1rem; color:${this._accountTab === 'compras' ? 'var(--color-primary)' : 'var(--color-text-muted)'}; border-bottom:3px solid ${this._accountTab === 'compras' ? 'var(--color-primary)' : 'transparent'}; transition:all 0.3s;" onclick="App.setAccountTab('compras')">Mis Compras</div>
+                                <div style="cursor:pointer; padding:10px 0; font-weight:700; font-size:1.1rem; color:${this._accountTab === 'cursos' ? 'var(--color-primary)' : 'var(--color-text-muted)'}; border-bottom:3px solid ${this._accountTab === 'cursos' ? 'var(--color-primary)' : 'transparent'}; transition:all 0.3s;" onclick="App.setAccountTab('cursos')">Mis Cursos</div>
+                            </div>
                         </div>
 
                         ${this._accountTab === 'cursos' ? `
@@ -3868,7 +3867,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                                     return `
                                     <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-sm); padding:1rem; margin-bottom:1rem;">
                                         <div style="display:flex; align-items:center; gap:1rem; border-bottom:1px solid var(--color-border-alt); padding-bottom:1rem;">
-                                            <div style="width:50px; height:50px; border-radius:8px; background:url('${c.banner}') center/cover;"></div>
+                                            <div style="width:50px; height:50px; border-radius:8px; background:url('${c.banner}') center/cover; flex-shrink:0;"></div>
                                             <div style="flex:1;">
                                                 <h3 style="margin:0; font-size:1.05rem;">${c.titulo}</h3>
                                                 <div style="font-size:11px; color:var(--color-text-muted);">Cuota mensual: ${formatPrice(c.precio)}</div>
