@@ -1470,24 +1470,68 @@ footer {
 
     /* Productos m\u00E1s compactos y ajustados */
     .product-grid {
-        grid-template-columns: repeat(2, 1fr) !important; /* Forzamos 2 columnas siempre en m\u00F3vil */
-        gap: 0.6rem;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.5rem !important;
+        padding: 0.25rem !important;
     }
 
     .product-card {
-        border-radius: 10px;
+        border-radius: 12px;
+        width: 100% !important;
     }
 
     .product-image, .product-emoji {
-        height: 130px;
-        font-size: 2rem;
+        height: 100px !important; /* M\u00E1s compacto para que quepan 2 perfectos */
+        font-size: 1.8rem;
+    }
+
+    .product-info {
+        padding: 0.5rem !important;
     }
 
     .product-name {
-        font-size: 0.9rem;
-        height: 2.4rem; /* Altura fija para que no se desalineen */
-        overflow: hidden;
+        font-size: 0.8rem !important;
+        height: 2.2rem;
     }
+
+    /* Banner Carin+ Estilo PC adaptable a M\u00F3vil */
+    .mobile-cp-banner {
+        background: linear-gradient(135deg, #db2777 0%, #9333ea 100%);
+        color: white !important;
+        padding: 1.2rem;
+        border-radius: 16px;
+        margin: 1rem 0;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: 0 8px 20px rgba(219, 39, 119, 0.4);
+        border: 1px solid rgba(255,255,255,0.2);
+        text-align: center;
+        line-height: 1.4;
+    }
+
+    /* Interruptor de Modo Oscuro mejorado */
+    .mode-toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--color-bg-alt);
+        padding: 14px 18px;
+        border-radius: 14px;
+        border: 1px solid var(--color-border);
+        margin-top: 1rem;
+        color: var(--color-text);
+        font-weight: 600;
+    }
+
+    /* Legibilidad del Men\u00FA */
+    #mobile-drawer {
+        color: var(--color-text) !important;
+    }
+
+    #mobile-drawer a, #mobile-drawer span, #mobile-drawer div {
+        color: var(--color-text);
+    }
+}
 
     /* Bot\u00F3n Preferencias de Tienda */
     #mobile-shop-prefs-btn {

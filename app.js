@@ -1386,6 +1386,7 @@ const App = {
     renderMobileDrawer(user, isCarinPlus, navLinkStyle, currentRegionObj, showUSD, regiones) {
         let drawer = document.getElementById('mobile-drawer');
         let overlay = document.getElementById('mobile-drawer-overlay');
+        const isDark = document.documentElement.dataset.theme === 'dark';
 
         if (!drawer) {
             drawer = document.createElement('div');
@@ -1397,65 +1398,76 @@ const App = {
             document.body.appendChild(overlay);
         }
 
+        const cpBanner = isCarinPlus ? 
+            `<div class="mobile-cp-banner">\u2728 \u00A1Beneficios Carin+ Activos! \uD83D\uDE80<br><span style="font-size:11px; font-weight:400; opacity:0.9;">Disfrutas de descuentos y contenido exclusivo</span></div>` :
+            `<div class="mobile-cp-banner" style="background: var(--color-bg-alt); color: var(--color-text) !important; border: 1.5px dashed #db2777; box-shadow:none;">\uD83D\uDC8E \u00A1\u00DAnete a Carin+!<br><span style="font-size:11px; font-weight:400; color:var(--color-text-muted);">Desbloquea cursos gratis y env\u00EDos prioritarios</span></div>`;
+
         drawer.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--color-border);">
-                <div class="logo" style="font-size:1.2rem;">Carin Atelier</div>
-                <button onclick="App.toggleMobileMenu()" style="background:none; border:none; font-size:24px; cursor:pointer;">&times;</button>
+                <div class="logo" style="font-size:1.2rem; color:var(--color-text);">Carin Atelier</div>
+                <button onclick="App.toggleMobileMenu()" style="background:none; border:none; font-size:28px; cursor:pointer; color:var(--color-text);">&times;</button>
             </div>
             
-            <nav style="display:flex; flex-direction:column; gap:1.2rem;">
+            <nav style="display:flex; flex-direction:column; gap:1rem;">
                 <!-- Perfil y Cuenta -->
                 ${user ? `
-                    <div style="display:flex; align-items:center; gap:12px; background:var(--color-bg-alt); padding:1rem; border-radius:12px; margin-bottom:0.5rem;">
-                        <img src="${user.foto || 'https://www.gravatar.com/avatar/0?d=mp'}" style="width:45px; height:45px; border-radius:50%; border:2px solid var(--color-primary);">
-                        <div>
-                            <div style="font-weight:800; font-size:15px; color:var(--color-text);">${user.nombre}</div>
-                            <div style="font-size:11px; color:var(--color-primary); font-weight:700; text-transform:uppercase;">${user.rango}</div>
+                    <div style="background:var(--color-bg-alt); padding:1.2rem; border-radius:16px; border:1px solid var(--color-border); margin-bottom:0.5rem;">
+                        <div style="display:flex; align-items:center; gap:15px; margin-bottom:1rem;">
+                            <img src="${user.foto || 'https://www.gravatar.com/avatar/0?d=mp'}" style="width:50px; height:50px; border-radius:50%; border:2px solid var(--color-primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <div>
+                                <div style="font-weight:800; font-size:16px; color:var(--color-text);">${user.nombre}</div>
+                                <div style="font-size:11px; color:var(--color-primary); font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">${user.rango}</div>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <a href="#/mi-cuenta" onclick="App.toggleMobileMenu()" class="btn btn-sm" style="background:var(--color-bg); border:1px solid var(--color-border); font-size:11px; padding:8px;">\uD83D\uDCDD Mi Cuenta</a>
+                            ${db.hasAnyRole(user.userId, ['admin', 'tecnico']) ? `<a href="#/admin" onclick="App.toggleMobileMenu()" class="btn btn-sm btn-primary" style="font-size:11px; padding:8px;">\uD83D\uDEE0\uFE0F Admin</a>` : ''}
                         </div>
                     </div>
-                    <a href="#/mi-cuenta" onclick="App.toggleMobileMenu()" style="text-decoration:none; color:var(--color-text); font-weight:600; display:flex; align-items:center; gap:10px;">\uD83D\uDCDD Mi Cuenta</a>
-                    ${db.hasAnyRole(user.userId, ['admin', 'tecnico']) ? `<a href="#/admin" onclick="App.toggleMobileMenu()" style="text-decoration:none; color:var(--color-primary); font-weight:800; display:flex; align-items:center; gap:10px;">\uD83D\uDEE0\uFE0F Panel Admin</a>` : ''}
                 ` : `
-                    <a href="#/login" onclick="App.toggleMobileMenu()" class="btn btn-dark" style="width:100%;">Ingresar / Registrarse</a>
+                    <a href="#/login" onclick="App.toggleMobileMenu()" class="btn btn-dark" style="width:100%; padding:12px; border-radius:12px;">\uD83D\uDD11 Ingresar / Registrarse</a>
                 `}
 
+                ${cpBanner}
+
+                <!-- Navegaci\u00F3n -->
+                <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.5rem;">
+                    <a href="#/" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/')} text-decoration:none; padding:10px 14px; border-radius:10px; display:flex; align-items:center; gap:12px;">\uD83C\uDFE0 Inicio</a>
+                    <a href="#/tienda" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/tienda')} text-decoration:none; padding:10px 14px; border-radius:10px; display:flex; align-items:center; gap:12px;">\uD83D\uDECD\uFE0F Tienda</a>
+                    <a href="#/cursos" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/cursos')} text-decoration:none; padding:10px 14px; border-radius:10px; display:flex; align-items:center; gap:12px;">\uD83C\uDF93 Cursos</a>
+                    <a href="#/carin-plus" onclick="App.toggleMobileMenu()" class="header-carin-btn" style="margin:8px 0; text-align:center; padding:12px; border-radius:12px;"><span class="cp-text">Carin+ Premium</span> \u2728</a>
+                </div>
+
                 <hr style="border:0; border-top:1px solid var(--color-border); margin:0.5rem 0;">
 
-                <!-- Navegaci\u00F3n Principal -->
-                <a href="#/" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/')} text-decoration:none; font-size:1.1rem;">\uD83C\uDFE0 Inicio</a>
-                <a href="#/tienda" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/tienda')} text-decoration:none; font-size:1.1rem;">\uD83D\uDECD\uFE0F Tienda</a>
-                <a href="#/cursos" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/cursos')} text-decoration:none; font-size:1.1rem;">\uD83C\uDF93 Cursos</a>
-                <a href="#/carin-plus" onclick="App.toggleMobileMenu()" class="header-carin-btn" style="margin:0; text-align:center;"><span class="cp-text">Carin+</span> \u2728</a>
-
-                <hr style="border:0; border-top:1px solid var(--color-border); margin:0.5rem 0;">
-
-                <!-- Ajustes de Preferencias -->
-                <div style="font-size:12px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:0.5rem;">Preferencias</div>
+                <!-- Preferencias -->
+                <div style="font-size:11px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.2rem;">Configuraci\u00F3n</div>
                 
-                <div style="display:flex; flex-direction:column; gap:1rem;">
-                    <!-- Selector de Regi\u00F3n -->
-                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                        <span style="font-size:13px; font-weight:600;">Regi\u00F3n:</span>
-                        <select onchange="App.setRegion(this.value); App.toggleMobileMenu();" style="width:100%; padding:8px; border-radius:8px; background:var(--color-bg-alt); border:1px solid var(--color-border);">
+                <div style="display:flex; flex-direction:column; gap:0.8rem;">
+                    <div style="display:flex; flex-direction:column; gap:0.4rem;">
+                        <span style="font-size:12px; font-weight:600; color:var(--color-text-muted);">Regi\u00F3n de env\u00EDo:</span>
+                        <select onchange="App.setRegion(this.value); App.toggleMobileMenu();" style="width:100%; padding:10px; border-radius:10px; background:var(--color-bg-alt); border:1px solid var(--color-border); color:var(--color-text); font-size:13px; font-weight:600;">
                             ${regiones.map(r => `<option value="${r.id}" ${r.id === currentRegionObj.id ? 'selected' : ''}>${r.emoji} ${r.nombre}</option>`).join('')}
                         </select>
                     </div>
 
-                    <!-- Selector de Moneda -->
-                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
-                        <span style="font-size:13px; font-weight:600;">Moneda:</span>
-                        <div style="display:flex; gap:10px;">
-                            <button onclick="App.setUSD(false); App.toggleMobileMenu();" style="flex:1; padding:8px; border-radius:8px; border:1.5px solid ${!showUSD ? 'var(--color-primary)' : 'var(--color-border)'}; background:${!showUSD ? 'var(--color-primary-light)' : 'transparent'}; font-weight:${!showUSD ? '800' : '500'};">ARS</button>
-                            <button onclick="App.setUSD(true); App.toggleMobileMenu();" style="flex:1; padding:8px; border-radius:8px; border:1.5px solid ${showUSD ? 'var(--color-primary)' : 'var(--color-border)'}; background:${showUSD ? 'var(--color-primary-light)' : 'transparent'}; font-weight:${showUSD ? '800' : '500'};">USD</button>
+                    <div style="display:flex; flex-direction:column; gap:0.4rem;">
+                        <span style="font-size:12px; font-weight:600; color:var(--color-text-muted);">Moneda:</span>
+                        <div style="display:flex; gap:8px;">
+                            <button onclick="App.setUSD(false); App.toggleMobileMenu();" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid ${!showUSD ? 'var(--color-primary)' : 'var(--color-border)'}; background:${!showUSD ? 'var(--color-primary-light)' : 'var(--color-bg)'}; color:var(--color-text); font-weight:${!showUSD ? '800' : '500'}; font-size:12px;">ARS</button>
+                            <button onclick="App.setUSD(true); App.toggleMobileMenu();" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid ${showUSD ? 'var(--color-primary)' : 'var(--color-border)'}; background:${showUSD ? 'var(--color-primary-light)' : 'var(--color-bg)'}; color:var(--color-text); font-weight:${showUSD ? '800' : '500'}; font-size:12px;">USD</button>
                         </div>
                     </div>
 
-                    <button onclick="App.toggleTheme(); App.toggleMobileMenu();" style="text-align:left; background:none; border:none; padding:10px 0; font-weight:600; cursor:pointer;">\uD83D\uDDA5\uFE0F Cambiar Tema (Claro/Oscuro)</button>
+                    <div class="mode-toggle-row" onclick="App.toggleTheme(); App.toggleMobileMenu();" style="cursor:pointer;">
+                        <span style="font-size:13px;">Modo oscuro: <span class="${isDark ? 'mode-status-active' : 'mode-status-inactive'}">${isDark ? 'Activado' : 'Desactivado'}</span></span>
+                        <span>${isDark ? '\uD83C\uDF19' : '\u2600\uFE0F'}</span>
+                    </div>
                 </div>
 
                 ${user ? `
                     <hr style="border:0; border-top:1px solid var(--color-border); margin:0.5rem 0;">
-                    <button onclick="App.handleLogout(); App.toggleMobileMenu();" style="text-align:left; background:none; border:none; color:#ef4444; font-weight:700; cursor:pointer; padding:10px 0;">\uD83D\uDEAA Cerrar Sesi\u00F3n</button>
+                    <button onclick="App.handleLogout(); App.toggleMobileMenu();" style="text-align:left; background:none; border:none; color:#ef4444; font-weight:800; cursor:pointer; padding:10px 14px; font-size:14px; display:flex; align-items:center; gap:10px;">\uD83D\uDEAA Cerrar Sesi\u00F3n</button>
                 ` : ''}
             </nav>
         `;
