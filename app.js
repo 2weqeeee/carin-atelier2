@@ -6044,13 +6044,19 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                 </div>
 
                 <div class="admin-sidebar-category">${translateText('Tienda')}</div>
-                <span class="admin-sidebar-desc">Gesti\u00F3n de productos, categor\u00EDas y ofertas premium.</span>
+                <span class="admin-sidebar-desc">Gesti\u00F3n de productos, categor\u00EDas y descuentos.</span>
                 <div class="admin-subnav">
                     ${sidebarLink('#/admin/productos','productos','\uD83D\uDCE6','Productos')}
                     ${sidebarLink('#/admin/categorias','categorias','\uD83D\uDCC1','Categor\u00EDas')}
                     ${sidebarLink('#/admin/descuentos','descuentos','\uD83C\uDFF7\uFE0F','Descuentos')}
-                    ${sidebarLink('#/admin/carin_plus','carin_plus','\u2728','Carin+ Ofertas')}
                     ${sidebarLink('#/admin/config_carrito','config_carrito','\uD83D\uDED2','Config. Carrito')}
+                </div>
+
+                <div class="admin-sidebar-category" style="color:#db2777;">\u2728 ${translateText('Carin+ Hub')}</div>
+                <span class="admin-sidebar-desc">Centro de control para el programa premium.</span>
+                <div class="admin-subnav">
+                    ${sidebarLink('#/admin/carin_plus_hub','carin_plus_hub','\uD83D\uDDA5\uFE0F','Panel Carin+')}
+                    ${sidebarLink('#/admin/carin_plus','carin_plus','\uD83C\uDFF7\uFE0F','Carin+ Ofertas')}
                     ${sidebarLink('#/admin/carin_plus_pagina','carin_plus_pagina','\uD83D\uDCC4','Carin+ P\u00E1gina')}
                     ${sidebarLink('#/admin/planes_carin','planes_carin','\uD83D\uDC8E','Planes Carin+')}
                 </div>
@@ -6071,8 +6077,8 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                     ${sidebarLink('#/admin/tickets','tickets','\uD83D\uDCCB','Tickets Kanban')}
                 </div>
 
-                <div class="admin-sidebar-category">${translateText('Avanzado')}</div>
-                <span class="admin-sidebar-desc">Control de usuarios y configuraciones cr\u00EDticas.</span>
+                <div class="admin-sidebar-category">${translateText('Usuarios')}</div>
+                <span class="admin-sidebar-desc">Control de la comunidad y perfiles.</span>
                 <div class="admin-subnav">
                     ${sidebarLink('#/admin/usuarios','usuarios','\uD83D\uDC65','Gesti\u00F3n Usuarios')}
                 </div>
@@ -6817,6 +6823,43 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                 </div>`;
 
+        }
+
+        else if (section === 'carin_plus_hub') {
+            content = secHeader('\u2728 Panel Carin+ Hub', 'Gesti\u00F3n centralizada del programa premium') + `
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:2rem; margin-bottom:3rem;">
+                    
+                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/carin_plus'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; display:flex; flex-direction:column; gap:1.25rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
+                        <div style="position:absolute; top:-10px; right:-10px; font-size:4rem; opacity:0.05; transform:rotate(15deg);">\uD83C\uDFF7\uFE0F</div>
+                        <div style="width:50px; height:50px; border-radius:12px; background:#fce7f3; color:#db2777; display:flex; align-items:center; justify-content:center; font-size:24px;">\uD83C\uDFF7\uFE0F</div>
+                        <div>
+                            <h3 style="margin:0 0 0.5rem 0;">Configurar Ofertas</h3>
+                            <p style="font-size:13px; color:var(--color-text-muted); margin:0;">Define descuentos globales, excepciones por producto y gestiona suscripciones temporales.</p>
+                        </div>
+                        <button class="btn btn-dark" style="margin-top:auto; background:#db2777; border:none; width:100%;">Gestionar Ofertas</button>
+                    </div>
+
+                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/carin_plus_pagina'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; display:flex; flex-direction:column; gap:1.25rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
+                        <div style="position:absolute; top:-10px; right:-10px; font-size:4rem; opacity:0.05; transform:rotate(15deg);">\uD83D\uDCC4</div>
+                        <div style="width:50px; height:50px; border-radius:12px; background:#e0e7ff; color:#4338ca; display:flex; align-items:center; justify-content:center; font-size:24px;">\uD83D\uDCC4</div>
+                        <div>
+                            <h3 style="margin:0 0 0.5rem 0;">Personalizar P\u00E1gina</h3>
+                            <p style="font-size:13px; color:var(--color-text-muted); margin:0;">Cambia los textos, beneficios y el enlace de suscripci\u00F3n de la landing page de Carin+.</p>
+                        </div>
+                        <button class="btn btn-dark" style="margin-top:auto; background:#4338ca; border:none; width:100%;">Editar P\u00E1gina</button>
+                    </div>
+
+                    <div class="admin-card-interactive" onclick="window.location.hash='#/admin/planes_carin'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; display:flex; flex-direction:column; gap:1.25rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
+                        <div style="position:absolute; top:-10px; right:-10px; font-size:4rem; opacity:0.05; transform:rotate(15deg);">\uD83D\uDC8E</div>
+                        <div style="width:50px; height:50px; border-radius:12px; background:#fef3c7; color:#b45309; display:flex; align-items:center; justify-content:center; font-size:24px;">\uD83D\uDC8E</div>
+                        <div>
+                            <h3 style="margin:0 0 0.5rem 0;">Gesti\u00F3n de Planes</h3>
+                            <p style="font-size:13px; color:var(--color-text-muted); margin:0;">Administra los precios y duraciones de los planes (1, 3, 6 o 12 meses) para tus clientes.</p>
+                        </div>
+                        <button class="btn btn-dark" style="margin-top:auto; background:#b45309; border:none; width:100%;">Configurar Planes</button>
+                    </div>
+
+                </div>`;
         }
 
         else if (section === 'carin_plus') {
