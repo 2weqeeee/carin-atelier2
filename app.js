@@ -3558,52 +3558,49 @@ respuesta: null,
                     <button onclick="document.getElementById('reservation-modal').style.display='none'" class="btn btn-default" style="margin-top:20px; width:100%;">Cancelar</button>
                 </div>`;
         } else if (step === 2) {
+            const countries = {
+                'Argentina': ['C\u00F3rdoba', 'Buenos Aires', 'Santa Fe', 'Mendoza', 'Entre R\u00EDos', 'Tucum\u00E1n', 'Salta', 'Misiones'],
+                'Uruguay': ['Montevideo', 'Canelones', 'Maldonado', 'Salto'],
+                'Chile': ['Santiago', 'Valpara\u00EDso', 'Concepci\u00F3n', 'Antofagasta'],
+                'Paraguay': ['Asunci\u00F3n', 'Ciudad del Este', 'Encarnaci\u00F3n']
+            };
+            
             content = `
-                <div class="modal-content" style="max-width:550px; padding:2.5rem; border:1px solid var(--color-border); box-shadow:var(--shadow-lg);">
+                <div class="modal-content" style="max-width:550px; padding:2.5rem; border:1px solid var(--color-border); box-shadow:var(--shadow-lg); background:var(--color-bg);">
                     <h2 style="margin-bottom:0.5rem; display:flex; align-items:center; gap:0.75rem;">\uD83D\uDCCD Tu Ubicaci\u00F3n</h2>
-                    <p style="color:var(--color-text-muted); margin-bottom:2rem; font-size:14px;">Para este curso presencial, verificamos tu zona de residencia.</p>
+                    <p style="color:var(--color-text-muted); margin-bottom:2.5rem; font-size:14px;">Para este curso presencial, necesitamos verificar tu zona de residencia.</p>
                     
-                    <div style="display:grid; gap:1.25rem; margin-bottom:2rem;">
+                    <div style="display:grid; gap:1.5rem; margin-bottom:2rem;">
                         <!-- Pa\u00EDs -->
-                        <div>
-                            <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.5rem; text-transform:uppercase;">Pa\u00EDs</label>
-                            <input type="text" id="res-country" list="countries-list" placeholder="Selecciona o escribe..." style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--color-border); background:var(--color-bg-alt); font-size:14px;">
-                            <datalist id="countries-list">
-                                <option value="Argentina">
-                                <option value="Uruguay">
-                                <option value="Chile">
-                                <option value="Paraguay">
-                                <option value="Bolivia">
-                                <option value="Brasil">
-                            </datalist>
+                        <div class="form-group-premium">
+                            <label style="display:block; font-size:11px; font-weight:800; color:var(--color-primary); margin-bottom:0.6rem; text-transform:uppercase; letter-spacing:1px;">Selecciona tu Pa\u00EDs</label>
+                            <select id="res-country" onchange="App._updateProvinceList(this.value)" style="width:100%; padding:14px; border-radius:12px; border:2px solid var(--color-border); background:var(--color-bg-alt); color:var(--color-text); font-size:15px; cursor:pointer; outline:none; transition:border-color 0.2s;">
+                                <option value="" disabled selected>Elige un pa\u00EDs...</option>
+                                ${Object.keys(countries).map(c => `<option value="${c}">${c}</option>`).join('')}
+                            </select>
                         </div>
 
                         <!-- Provincia -->
-                        <div>
-                            <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.5rem; text-transform:uppercase;">Provincia / Estado</label>
-                            <input type="text" id="res-province" list="provinces-list" placeholder="Selecciona o escribe..." style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--color-border); background:var(--color-bg-alt); font-size:14px;">
-                            <datalist id="provinces-list">
-                                <option value="C\u00F3rdoba">
-                                <option value="Buenos Aires">
-                                <option value="Santa Fe">
-                                <option value="Mendoza">
-                                <option value="Entre R\u00EDos">
-                                <option value="Tucum\u00E1n">
-                            </datalist>
+                        <div class="form-group-premium">
+                            <label style="display:block; font-size:11px; font-weight:800; color:var(--color-primary); margin-bottom:0.6rem; text-transform:uppercase; letter-spacing:1px;">Provincia / Estado</label>
+                            <select id="res-province" style="width:100%; padding:14px; border-radius:12px; border:2px solid var(--color-border); background:var(--color-bg-alt); color:var(--color-text); font-size:15px; cursor:pointer; outline:none; transition:border-color 0.2s;">
+                                <option value="" disabled selected>Primero elige un pa\u00EDs...</option>
+                            </select>
                         </div>
 
                         <!-- Direcci\u00F3n -->
-                        <div>
-                            <label style="display:block; font-size:12px; font-weight:700; color:var(--color-text-muted); margin-bottom:0.5rem; text-transform:uppercase;">Direcci\u00F3n Exacta</label>
-                            <input type="text" id="res-address" placeholder="Ej: Av. Duarte Quir\u00F3s 1200" style="width:100%; padding:12px; border-radius:10px; border:1.5px solid var(--color-border); background:var(--color-bg-alt); font-size:14px;">
+                        <div class="form-group-premium">
+                            <label style="display:block; font-size:11px; font-weight:800; color:var(--color-primary); margin-bottom:0.6rem; text-transform:uppercase; letter-spacing:1px;">Direcci\u00F3n Exacta</label>
+                            <input type="text" id="res-address" placeholder="Ej: Av. Duarte Quir\u00F3s 1200" style="width:100%; padding:14px; border-radius:12px; border:2px solid var(--color-border); background:var(--color-bg-alt); color:var(--color-text); font-size:15px; outline:none; transition:border-color 0.2s;">
                         </div>
                     </div>
 
-                    <div style="display:flex; gap:12px; margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--color-border);">
-                        <button onclick="App._renderReservationStep(1)" class="btn btn-default" style="flex:1; padding:12px;">Atr\u00E1s</button>
-                        <button onclick="App._verifyLocation()" class="btn btn-dark" style="flex:2; padding:12px; font-weight:800;">Verificar Ubicaci\u00F3n \u276F</button>
+                    <div style="display:flex; gap:12px; margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--color-border);">
+                        <button onclick="App._renderReservationStep(1)" class="btn btn-default" style="flex:1; padding:14px; font-weight:700;">Atr\u00E1s</button>
+                        <button onclick="App._verifyLocation()" class="btn btn-dark" style="flex:2; padding:14px; font-weight:900; background:var(--color-primary); border-color:var(--color-primary);">Continuar \u276F</button>
                     </div>
                 </div>`;
+        } else if (step === 3) {
         } else if (step === 3) {
             const loc = course.ubicacion || 'Av. Col\u00F3n 1500, C\u00F3rdoba (Sede Central)';
             content = `
@@ -3623,6 +3620,22 @@ respuesta: null,
 
         modal.innerHTML = content;
         modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    },
+
+    _updateProvinceList(country) {
+        const provinceSelect = document.getElementById('res-province');
+        if (!provinceSelect) return;
+        
+        const countries = {
+            'Argentina': ['C\u00F3rdoba', 'Buenos Aires', 'Santa Fe', 'Mendoza', 'Entre R\u00EDos', 'Tucum\u00E1n', 'Salta', 'Misiones'],
+            'Uruguay': ['Montevideo', 'Canelones', 'Maldonado', 'Salto'],
+            'Chile': ['Santiago', 'Valpara\u00EDso', 'Concepci\u00F3n', 'Antofagasta'],
+            'Paraguay': ['Asunci\u00F3n', 'Ciudad del Este', 'Encarnaci\u00F3n']
+        };
+        
+        const provinces = countries[country] || [];
+        provinceSelect.innerHTML = `<option value="" disabled selected>Selecciona una provincia...</option>` + 
+                                  provinces.map(p => `<option value="${p}">${p}</option>`).join('');
     },
 
     _verifyLocation() {
