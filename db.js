@@ -290,63 +290,81 @@ const ROLE_PRIORITY = ['owner', 'admin', 'tecnico', 'profesor', 'carin_plus', 'u
 
 class DB {
     constructor() {
-        this.firebaseConfig = {
-          apiKey: "AIzaSyAfvU49lc_4rGmC987r7f9aMna44ubRzRc",
-          authDomain: "carin-atelier.firebaseapp.com",
-          projectId: "carin-atelier",
-          storageBucket: "carin-atelier.firebasestorage.app",
-          messagingSenderId: "1075805080977",
-          appId: "1:1075805080977:web:1062371af55b4f00cc9e30",
-          measurementId: "G-LM1QWWFCQP"
-        };
+        this.supabaseUrl = "https://fdcugljuketyxkmluhgn.supabase.co";
+        this.supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkY3VnbGp1a2V0eXhrbWx1aGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMTkxNjIsImV4cCI6MjA5MzY5NTE2Mn0.fu39hHKcyUF8hL5Zz6CEab3p_PzLBv1dbkL5PaHoAZ4";
         
-        firebase.initializeApp(this.firebaseConfig);
-        this.db = firebase.firestore();
-        this.storage = firebase.storage();
+        this.supabase = supabase.createClient(this.supabaseUrl, this.supabaseKey);
         
         this.load();
         if (!this.data.profiles) this.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
         
-        this.syncWithFirebase();
+        this.syncWithSupabase();
     }
 
-    syncWithFirebase() {
-        // Listen for changes in Firestore
-        this.db.collection('system').doc('main_data').onSnapshot((doc) => {
-            if (doc.exists) {
-                const cloudData = doc.data();
-                // Merge cloud data with local data (cloud wins for shared state)
-                this.data = { ...this.data, ...cloudData };
-                
-                // If App exists and is initialized, re-render
-                if (window.App && typeof window.App.renderLayout === 'function') {
-                    window.App.renderLayout();
-                }
-            } else {
-                // First time setup: Push local data to cloud
-                this.saveToCloud();
+    async syncWithSupabase() {
+        // 1. Initial Load from Supabase
+        const { data, error } = await this.supabase
+            .from('system_data')
+            .select('content')
+            .eq('id', 'main')
+            .single();
+
+        if (data && data.content && Object.keys(data.content).length > 0) {
+            this.data = { ...this.data, ...data.content };
+            if (window.App && typeof window.App.renderLayout === 'function') {
+                window.App.renderLayout();
             }
-        }, (error) => {
-            console.error("Firebase Sync Error:", error);
-        });
+        } else {
+            // First time: Save local default data to Supabase
+            this.saveToCloud();
+        }
+
+        // 2. Listen for Realtime Changes (Optional but recommended)
+        this.supabase
+            .channel('db-changes')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_data' }, (payload) => {
+                if (payload.new && payload.new.id === 'main') {
+                    this.data = { ...this.data, ...payload.new.content };
+                    if (window.App && typeof window.App.renderLayout === 'function') {
+                        window.App.renderLayout();
+                    }
+                }
+            })
+            .subscribe();
     }
 
     async saveToCloud() {
         try {
-            await this.db.collection('system').doc('main_data').set(this.data);
+            await this.supabase
+                .from('system_data')
+                .upsert({ id: 'main', content: this.data });
         } catch (e) {
-            console.error("Error saving to cloud:", e);
+            console.error("Supabase Save Error:", e);
         }
     }
 
     async uploadImage(file, path = 'images') {
         if (!file) return null;
-        const storageRef = this.storage.ref();
-        const fileRef = storageRef.child(`${path}/${Date.now()}_${file.name}`);
         
-        const snapshot = await fileRef.put(file);
-        const url = await snapshot.ref.getDownloadURL();
-        return url;
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { data, error } = await this.supabase.storage
+            .from('images')
+            .upload(filePath, file);
+
+        if (error) {
+            console.error("Upload Error:", error);
+            return null;
+        }
+
+        // Get Public URL
+        const { data: publicUrlData } = this.supabase.storage
+            .from('images')
+            .getPublicUrl(filePath);
+
+        return publicUrlData.publicUrl;
     }
 
     load() {
