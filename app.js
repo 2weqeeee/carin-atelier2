@@ -2045,39 +2045,32 @@ const App = {
                     <button onclick="document.querySelector('.shop-sidebar').classList.toggle('active')" class="btn-filter-mobile">Filtros</button>
                 </div>
 
-                <div class="shop-main-layout">
-                    <aside class="shop-sidebar">
+                <div class="shop-main-layout" id="shop-main-layout">
+                    <aside class="shop-sidebar" id="shop-sidebar" onscroll="sessionStorage.setItem('shop_sidebar_scroll', this.scrollTop)">
                         ${this.renderShopSidebar()}
                     </aside>
-
-                    <div>
-
-                        <div id="shop-grid" class="product-grid">
-
-                            <!-- Products loaded via JS -->
-
-                        </div>
-
-                        <div id="shop-pagination" style="margin-top:3rem; display:flex; justify-content:center; gap:0.5rem;">
-
-                            <!-- Pagination buttons -->
-
-                        </div>
-
+                    <div class="shop-content">
+                        <div id="shop-grid" class="product-grid"></div>
+                        <div id="shop-pagination" style="margin-top:3rem; display:flex; justify-content:center; gap:0.5rem;"></div>
                     </div>
-
                 </div>
+            </div>`;
 
-            </div>
-
-        `;
-
-        
-
-        // Initial render
-
-        this.applyShopFilters();
-
+        const existingSidebar = document.getElementById('shop-sidebar');
+        if (existingSidebar) {
+            const shopScroll = existingSidebar.scrollTop;
+            existingSidebar.innerHTML = this.renderShopSidebar();
+            existingSidebar.scrollTop = shopScroll;
+            this.applyShopFilters();
+        } else {
+            main.innerHTML = html;
+            this.applyShopFilters();
+            const savedScroll = sessionStorage.getItem('shop_sidebar_scroll');
+            if (savedScroll) {
+                const sb = document.getElementById('shop-sidebar');
+                if (sb) sb.scrollTop = parseInt(savedScroll);
+            }
+        }
     },
 
 
@@ -6007,7 +6000,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         const isAdmin = db.hasAnyRole(db.currentUser.userId, ['admin', 'owner']);
 
         const sidebar = `
-            <aside id="admin-sidebar" class="admin-sidebar">
+            <aside id="admin-sidebar" class="admin-sidebar" onscroll="sessionStorage.setItem('admin_sidebar_scroll', this.scrollTop)">
                 <button class="btn-close-sidebar" onclick="document.getElementById('admin-sidebar').classList.remove('active')" style="display:none; margin-bottom:1.5rem; align-items:center; gap:0.5rem; background:none; border:none; color:var(--color-primary); font-weight:800; cursor:pointer;">
                     ← Cerrar Menú
                 </button>
@@ -7388,13 +7381,6 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                 </div>`;
 
-            setTimeout(() => {
-
-                const w = document.getElementById('admin-chat-window');
-
-                if (w) w.scrollTop = w.scrollHeight;
-
-            }, 50);
 
         }
 
@@ -7804,17 +7790,53 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-        container.innerHTML = `
-            <div class="container" style="margin-top:2rem; margin-bottom:5rem;">
-                <div class="admin-layout">
-                    ${sidebar}
-                    <div id="admin-main-area" class="fade-in admin-main">${content}</div>
-                </div>
-                <button class="admin-sidebar-toggle-btn" onclick="document.getElementById('admin-sidebar').classList.toggle('active')">
-                    \u2630
-                </button>
-            </div>`;
+        const existingSidebar = document.getElementById('admin-sidebar');
+        const existingMain = document.getElementById('admin-main-area');
+        const chatWindow = document.getElementById('admin-chat-window');
+        
+        let chatAtBottom = false;
+        let chatScroll = null;
+        if (chatWindow) {
+            chatAtBottom = (chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight) < 50;
+            chatScroll = chatWindow.scrollTop;
+        }
 
+        if (existingSidebar && existingMain) {
+            existingSidebar.querySelectorAll('.admin-nav-btn').forEach(btn => {
+                const btnHref = btn.getAttribute('href');
+                const btnSec = btnHref ? btnHref.split('/').pop() : '';
+                btn.classList.toggle('active', btnSec === section);
+            });
+
+            existingMain.innerHTML = content;
+            
+            const newChatWindow = document.getElementById('admin-chat-window');
+            if (newChatWindow) {
+                if (chatAtBottom) newChatWindow.scrollTop = newChatWindow.scrollHeight;
+                else if (chatScroll !== null) newChatWindow.scrollTop = chatScroll;
+            }
+        } else {
+            container.innerHTML = `
+                <div class="container" style="margin-top:2rem; margin-bottom:5rem;">
+                    <div class="admin-layout">
+                        ${sidebar}
+                        <div id="admin-main-area" class="admin-main">${content}</div>
+                    </div>
+                    <button class="admin-sidebar-toggle-btn" onclick="document.getElementById('admin-sidebar').classList.toggle('active')">
+                        ☰
+                    </button>
+                </div>`;
+            
+            // Auto-scroll chat to bottom on first load
+            const newChatWindow = document.getElementById('admin-chat-window');
+            if (newChatWindow) newChatWindow.scrollTop = newChatWindow.scrollHeight;
+
+            const savedScroll = sessionStorage.getItem('admin_sidebar_scroll');
+            if (savedScroll) {
+                const sb = document.getElementById('admin-sidebar');
+                if (sb) sb.scrollTop = parseInt(savedScroll);
+            }
+        }
     },
 
 
@@ -11939,7 +11961,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         // Add system message
         t.mensajes.push({
             id: 'sys-' + Date.now(),
-            texto: `--- SE ASIGNÓ A ${techName.toUpperCase()} -----`,
+            texto: `👤 TICKET ASIGNADO A: ${techName.toUpperCase()}`,
             fecha: new Date().toISOString(),
             esSistema: true
         });
