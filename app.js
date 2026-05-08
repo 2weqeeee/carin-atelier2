@@ -1098,48 +1098,36 @@ const App = {
     _adminSelectedTicketId: null,
 
     init() {
-
         // Load saved theme
-
         const savedTheme = localStorage.getItem('carin-theme') || 'light';
-
         document.documentElement.dataset.theme = savedTheme;
-
         this._currentTheme = savedTheme;
-
         this._accountTab = 'cursos';
 
-
-
         this.bg = new ParticleBackground('bg-canvas');
-
         db.checkMonthTransition();
-
         this.renderLayout();
-
         this.handleRouting();
-
         window.addEventListener('hashchange', () => {
-
             this.handleRouting();
-
             this.renderLayout();
-
         });
-
         window.addEventListener('scroll', () => this.handleScroll());
-
         
-
         setInterval(() => {
-
             if (window.location.hash === '#/admin/chat' && db.currentUser && ['admin', 'tecnico'].includes(db.currentUser.rango)) {
-
                 this.viewAdmin(document.getElementById('main-content'), 'chat');
-
             }
-
         }, 3000);
+    },
+
+    renderSecHeader(title, subtitle, btn = '') {
+        return `
+            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--color-border);padding-bottom:1.5rem;margin-bottom:2rem;">
+                <div><h2 style="margin:0">${translateText(title)}</h2><p style="color:var(--color-text-muted);font-size:14px;margin-top:0.25rem;">${translateText(subtitle)}</p></div>
+                ${btn}
+            </div>`;
+    },
 
 
 
@@ -6087,11 +6075,6 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                 </div>
             </aside>`;
 
-        const secHeader = (title, subtitle, btn = '') => `
-            <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--color-border);padding-bottom:1.5rem;margin-bottom:2rem;">
-                <div><h2 style="margin:0">${translateText(title)}</h2><p style="color:var(--color-text-muted);font-size:14px;margin-top:0.25rem;">${translateText(subtitle)}</p></div>
-                ${btn}
-            </div>`;
 
         let content = '';
 
@@ -6101,7 +6084,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         if (section === 'dashboard') {
 
-            content = secHeader('Panel General', `${new Date().toLocaleDateString('es-AR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`) + `
+            content = this.renderSecHeader('Panel General', `${new Date().toLocaleDateString('es-AR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`) + `
 
                 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;margin-bottom:3rem;">
 
@@ -6258,7 +6241,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const an = db.get('anuncios')[0] || {};
 
-            content = secHeader('Gestión de Anuncios', 'Modifica el banner superior de la página') + `
+            content = this.renderSecHeader('Gestión de Anuncios', 'Modifica el banner superior de la página') + `
 
                 <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md); max-width:600px;">
 
@@ -6298,7 +6281,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const ci = db.get('configInicio');
 
-            content = secHeader('Página de Inicio', 'Personaliza textos y configura m?ximos de destacados') + `
+            content = this.renderSecHeader('Página de Inicio', 'Personaliza textos y configura m?ximos de destacados') + `
 
                 <div style="display:grid; gap:2rem; max-width:800px;">
 
@@ -6420,7 +6403,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                 // Nuevo Producto Inline
 
-                content = secHeader('   Nuevo Producto', 'Agrega un producto al inventario', `<a href="#/admin/productos" class="btn btn-default">Cancelar</a>`) + `
+                content = this.renderSecHeader('   Nuevo Producto', 'Agrega un producto al inventario', `<a href="#/admin/productos" class="btn btn-default">Cancelar</a>`) + `
 
                 <div style="background:var(--color-bg);border:1px solid var(--color-border);padding:2rem;border-radius:var(--radius-md);">
 
@@ -6534,7 +6517,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             } else {
 
-                content = secHeader('\uD83D\uDCE6 Productos de la Tienda', `${productos.length} productos`, `<a href="#/admin/productos?add_new=true" class="btn btn-dark">\u2795 Nuevo Producto</a>`) + `
+                content = this.renderSecHeader('\uD83D\uDCE6 Productos de la Tienda', `${productos.length} productos`, `<a href="#/admin/productos?add_new=true" class="btn btn-dark">\u2795 Nuevo Producto</a>`) + `
 
                 <div style="margin-bottom:1rem;"><input type="text" id="admin-search-prod" placeholder="\uD83D\uDD0D Buscar producto..." style="width:100%; max-width:400px; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);" onkeyup="App.filterAdminTable('admin-search-prod', 'prod-table')"></div>
 
@@ -6606,7 +6589,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             
 
-            content = secHeader('\uD83D\uDCC1 Gesti\u00F3n de Categor\u00EDas', 'Agrupa tus productos en la tienda') + `
+            content = this.renderSecHeader('\uD83D\uDCC1 Gesti\u00F3n de Categor\u00EDas', 'Agrupa tus productos en la tienda') + `
 
                 <div style="display:grid; gap:2rem; max-width:800px;">
 
@@ -6688,7 +6671,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             
 
-            content = secHeader('\uD83C\uDFF7\uFE0F Descuentos y Cupones', 'Gesti\u00F3n general de ofertas de la tienda') + `
+            content = this.renderSecHeader('\uD83C\uDFF7\uFE0F Descuentos y Cupones', 'Gesti\u00F3n general de ofertas de la tienda') + `
 
                 <div style="display:grid; gap:2rem; max-width:900px; margin-bottom:3rem;">
 
@@ -6829,7 +6812,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         }
 
         else if (section === 'carin_plus_hub') {
-            content = secHeader('\u2728 Panel Carin+ Hub', 'Gesti\u00F3n centralizada del programa premium') + `
+            content = this.renderSecHeader('\u2728 Panel Carin+ Hub', 'Gesti\u00F3n centralizada del programa premium') + `
                 <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom:2.5rem;">
                     
                     <div class="admin-card-interactive" onclick="window.location.hash='#/admin/carin_plus'" style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.25rem; display:flex; align-items:center; gap:1rem; transition:all 0.3s; cursor:pointer; position:relative; overflow:hidden;">
@@ -6936,7 +6919,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-            content = secHeader('\u2728 Carin+ Ofertas Premium', 'Configuraci\u00F3n global y excepciones') + `
+            content = this.renderSecHeader('\u2728 Carin+ Ofertas Premium', 'Configuraci\u00F3n global y excepciones') + `
 
                 <div style="display:grid; gap:2rem; max-width:800px; margin-bottom:3rem;">
 
@@ -7066,7 +7049,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                 const profes = db.get('profesores');
 
-                content = secHeader('Crear Nuevo Curso', 'Añade un nuevo curso o taller al catálogo', `<a href="#/admin/cursos" class="btn btn-default">⬅️ Volver</a>`) + `
+                content = this.renderSecHeader('Crear Nuevo Curso', 'Añade un nuevo curso o taller al catálogo', `<a href="#/admin/cursos" class="btn btn-default">⬅️ Volver</a>`) + `
 
                 <div style="background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:2rem;">
 
@@ -7203,7 +7186,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             } else {
 
-                content = secHeader('\uD83C\uDF93 Gesti\u00F3n de Cursos', 'Administra inscripciones y crea talleres', `<a href="#/admin/cursos?add_new=true" class="btn btn-dark">\u2795 Crear Curso</a>`) + `
+                content = this.renderSecHeader('\uD83C\uDF93 Gesti\u00F3n de Cursos', 'Administra inscripciones y crea talleres', `<a href="#/admin/cursos?add_new=true" class="btn btn-dark">\u2795 Crear Curso</a>`) + `
 
                 <div style="display:grid;gap:1.5rem;">
 
@@ -7287,7 +7270,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const allUsers = db.get('profiles');
 
-            content = secHeader('   Profesores', 'Personal docente asignado a cursos') + `
+            content = this.renderSecHeader('   Profesores', 'Personal docente asignado a cursos') + `
 
                 <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem;">
 
@@ -7377,7 +7360,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const equipo = users.filter(u => db.hasAnyRole(u.userId, ['admin', 'tecnico']));
 
-            content = secHeader('🛠️ Equipo Técnico', 'Estado de actividad del personal de soporte') + `
+            content = this.renderSecHeader('🛠️ Equipo Técnico', 'Estado de actividad del personal de soporte') + `
 
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:1.5rem;">
 
@@ -7417,7 +7400,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const chatLog = db.get('chatEquipo');
 
-            content = secHeader('   Chat de Soporte Interno', 'Comunicación en vivo exclusiva para el equipo') + `
+            content = this.renderSecHeader('   Chat de Soporte Interno', 'Comunicación en vivo exclusiva para el equipo') + `
 
                 <div class="chat-container">
 
@@ -7471,7 +7454,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         else if (section === 'equipo') {
             const tecnicos = users.filter(u => u.roles && u.roles.includes('tecnico'));
-            content = secHeader('🛠️ Gestión del Equipo Técnico', 'Asignación de sectores y roles internos') + `
+            content = this.renderSecHeader('🛠️ Gestión del Equipo Técnico', 'Asignación de sectores y roles internos') + `
                 <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden;">
                     <table style="width:100%; border-collapse:collapse;">
                         <thead>
@@ -7520,7 +7503,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
             const pending = sanciones.filter(s => s.estado === 'Pendiente');
             const resolved = sanciones.filter(s => s.estado !== 'Pendiente');
 
-            content = secHeader('🚫 Solicitudes de Sanción', 'Aprobación de bloqueos por mal uso del soporte') + `
+            content = this.renderSecHeader('🚫 Solicitudes de Sanción', 'Aprobación de bloqueos por mal uso del soporte') + `
                 <div style="display:grid; gap:2rem;">
                     <div>
                         <h3 style="font-size:1rem; margin-bottom:1rem;">⚠️ Pendientes de Revisión</h3>
@@ -7594,7 +7577,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-            content = secHeader('👥 Gestión de Usuarios', `${allUsers.length} perfiles registrados`) + `
+            content = this.renderSecHeader('👥 Gestión de Usuarios', `${allUsers.length} perfiles registrados`) + `
 
                 <div style="margin-bottom:1.5rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
 
@@ -7704,7 +7687,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const regiones = db.get('regiones') || [];
 
-            content = secHeader('\ud83c\udf0e Gesti\u00f3n de Regiones', 'Define las regiones disponibles para filtrar productos', `<button class="btn btn-dark" onclick="App.createRegion()">+ Nueva Regi\u00f3n</button>`) + `
+            content = this.renderSecHeader('\ud83c\udf0e Gesti\u00f3n de Regiones', 'Define las regiones disponibles para filtrar productos', `<button class="btn btn-dark" onclick="App.createRegion()">+ Nueva Regi\u00f3n</button>`) + `
 
                 <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem;">
 
@@ -7756,7 +7739,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const cfg = db.get('configCarrito') || { tarifaServicio: 5 };
 
-            content = secHeader('\ud83d\uded2 Config. Carrito', 'Ajustes de la experiencia de compra') + `
+            content = this.renderSecHeader('\ud83d\uded2 Config. Carrito', 'Ajustes de la experiencia de compra') + `
 
                 <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; max-width:600px;">
 
@@ -7782,7 +7765,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const beneficios = cfg.beneficios || [];
 
-            content = secHeader('\ud83d\udc8e Carin+ P\u00e1Página', 'Edita el contenido de la landing page') + `
+            content = this.renderSecHeader('\ud83d\udc8e Carin+ P\u00e1Página', 'Edita el contenido de la landing page') + `
 
                 <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; max-width:700px; display:grid; gap:1.25rem;">
 
@@ -7820,7 +7803,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const planes = db.get('configCarinPlusPlanes') || [];
 
-            content = secHeader('💎 Planes de Suscripción', 'Configura los planes mensuales de Carin+') + `
+            content = this.renderSecHeader('💎 Planes de Suscripción', 'Configura los planes mensuales de Carin+') + `
 
                 <div style="display:grid; gap:1.5rem; max-width:700px;">
 
@@ -10036,7 +10019,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             if (!this._managedCourseId) {
 
-                content = secHeader('📚 Mis Cursos', 'Selecciona un curso para administrar alumnos y horarios') + `
+                content = this.renderSecHeader('📚 Mis Cursos', 'Selecciona un curso para administrar alumnos y horarios') + `
 
                     <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;">
 
@@ -10093,7 +10076,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                 content = `
                     <div style="margin-bottom:2rem;">
                         <button class="btn btn-default" style="font-size:12px; padding:6px 12px; margin-bottom:1rem;" onclick="App.manageCourse(null)">\u2B05\uFE0F Volver a la lista</button>
-                        ${secHeader(`\u2699\uFE0F Administrando: ${c.titulo}`, `Gestiona alumnos y horarios para el curso`)}
+                        ${this.renderSecHeader(`\u2699\uFE0F Administrando: ${c.titulo}`, `Gestiona alumnos y horarios para el curso`)}
                     </div>
 
                     <!-- ESTADISTICAS RAPIDAS -->
@@ -10369,7 +10352,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const myCourses = misCursos;
 
-            content = secHeader('🎓 Classroom Management', 'Sube apuntes y materiales para tus alumnos') + `
+            content = this.renderSecHeader('🎓 Classroom Management', 'Sube apuntes y materiales para tus alumnos') + `
 
                 <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem;">
 
@@ -10403,7 +10386,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             const bancos = ['Mercado Pago', 'Banco Nación', 'Banco Galicia', 'Santander Ro', 'BBVA', 'Ual?', 'Brubank', 'Personal Pay', 'Naranja X', 'Otro'];
 
-            content = secHeader('💰 Ajustes de Pago', 'Configura los datos donde los alumnos transferirán el dinero.') + `
+            content = this.renderSecHeader('💰 Ajustes de Pago', 'Configura los datos donde los alumnos transferirán el dinero.') + `
 
                 <div style="background:var(--color-bg); border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; max-width:600px;">
 
@@ -10447,7 +10430,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         else if (section === 'perfil') {
 
-            content = secHeader('👤 Mi Perfil', 'Administra tus datos personales y profesionales') + `
+            content = this.renderSecHeader('👤 Mi Perfil', 'Administra tus datos personales y profesionales') + `
 
                 <div style="background:var(--color-bg); border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding:2rem; max-width:800px;">
 
@@ -11771,7 +11754,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         else if (cat === 'Mis Tickets') filtered = tickets.filter(t => t.asignadoA === user.userId && t.estado !== 'Cerrado');
 
         const title = this._adminSelectedTicketId ? 'Gestionar Ticket' : `Tickets: ${cat}`;
-        const header = secHeader('📋 Soporte Técnico', title, this._adminSelectedTicketId ? `<button class="btn btn-default" onclick="App.selectAdminTicket(null)">← Volver al listado</button>` : '');
+        const header = this.renderSecHeader('📋 Soporte Técnico', title, this._adminSelectedTicketId ? `<button class="btn btn-default" onclick="App.selectAdminTicket(null)">← Volver al listado</button>` : '');
 
         return `
             <div style="display:grid; grid-template-columns: 240px 1fr; gap: 2rem;">

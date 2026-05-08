@@ -258,9 +258,20 @@ input:focus, textarea:focus, select:focus {
     padding: 1.5rem;
     position: sticky;
     top: 100px;
-    height: fit-content;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
     z-index: 100;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 10px;
 }
 
 .admin-sidebar-toggle-btn {
@@ -378,6 +389,19 @@ input:focus, textarea:focus, select:focus {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+}
+
+.shop-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.shop-sidebar::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 10px;
 }
 
 /* Kanban System */
