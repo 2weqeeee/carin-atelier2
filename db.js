@@ -4,6 +4,7 @@ const DEFAULT_DATA = {
     profiles: [
         { userId: 'admin1', email: 'admin@carin.com', nombre: 'Carin Admin', telefono: '+5493547000000', genero: 'Femenino', rango: 'admin', roles: ['admin'], fechaRegistro: new Date().toISOString(), estadoActividad: 'Activo' },
         { userId: 'tecnico1', email: 'soporte@carin.com', nombre: 'Lucas Tecnico', telefono: '+5493547222222', genero: 'Masculino', rango: 'tecnico', roles: ['tecnico'], fechaRegistro: new Date().toISOString(), estadoActividad: 'Ausente' },
+        { userId: 'tecnico2', email: 'ayuda@carin.com', nombre: 'Carla Soporte', telefono: '+5493547555555', genero: 'Femenino', rango: 'tecnico', roles: ['tecnico'], fechaRegistro: new Date().toISOString(), estadoActividad: 'Activo' },
         { userId: 'user1', email: 'cliente@gmail.com', nombre: 'Maria Lopez', telefono: '+5493547111111', genero: 'Femenino', rango: 'usuario', roles: ['usuario'], fechaRegistro: new Date().toISOString() },
         { userId: 'plus1', email: 'vip@gmail.com', nombre: 'Sofia Plus', telefono: '+5493547333333', genero: 'Femenino', rango: 'carin_plus', roles: ['carin_plus'], fechaRegistro: new Date().toISOString() },
         { userId: 'profe1', email: 'profe@carin.com', nombre: 'Ana Profe', telefono: '+5493547444444', genero: 'Femenino', rango: 'profesor', roles: ['profesor'], fechaRegistro: new Date().toISOString(), estadoActividad: 'Activo' }
@@ -16,7 +17,12 @@ const DEFAULT_DATA = {
         { id: 'p1', productId: '1', userId: 'user1', texto: ' \u00BFViene en talle XXL?', respuesta: ' \u00A1Hola! S\u00ED, este modelo incluye hasta el talle XXL.', fecha: new Date().toISOString() }
     ],
     compras: [],
-    reembolsos: [], // Store refund requestás
+    reembolsos: [], // Store refund requests
+    equipoSoporte: [
+        { userId: 'admin1', cargo: 'Directora Creativa' },
+        { userId: 'tecnico1', cargo: 'Soporte de IT' },
+        { userId: 'tecnico2', cargo: 'Atención al Cliente' }
+    ],
     categorias: [
         { id: 'moldes', nombre: 'Moldes Digitales', descripcion: 'Patrones listos para imprimir', color: '#b88fa0', activa: true },
         { id: 'clases', nombre: 'Clases Presenciales', descripcion: 'Cursos en Alta Gracia', color: '#8fb8a0', activa: true },
@@ -565,6 +571,8 @@ class DB {
         if (!this.data.configCarrito) this.data.configCarrito = DEFAULT_DATA.configCarrito;
         if (!this.data.configCarinPlusPagina) this.data.configCarinPlusPagina = DEFAULT_DATA.configCarinPlusPagina;
         if (!this.data.regiones) this.data.regiones = DEFAULT_DATA.regiones;
+        if (!this.data.sanciones) this.data.sanciones = [];
+        if (!this.data.equipoSoporte) this.data.equipoSoporte = [];
         if (!this.data.notificaciones) this.data.notificaciones = [];
         if (!this.data.reservaSolicitudes) this.data.reservaSolicitudes = [];
         if (!this.data.cursos) this.data.cursos = DEFAULT_DATA.cursos;
@@ -721,6 +729,99 @@ class DB {
     }
 
     get(collection) { return this.data[collection] || []; }
+
+    updateTicketPriority(ticketId, priority) {
+        const t = this.data.tickets.find(x => x.id === ticketId);
+        if (t) {
+            t.prioridad = priority;
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
+    updateTicketSector(ticketId, sector) {
+        const t = this.data.tickets.find(x => x.id === ticketId);
+        if (t) {
+            t.sector = sector;
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
+    deleteTicket(id) {
+        this.data.tickets = this.data.tickets.filter(t => t.id !== id);
+        this.save();
+    }
+
+    requestSanction(userId, ticketId, reason) {
+        if (!this.data.sanciones) this.data.sanciones = [];
+        this.data.sanciones.push({
+            id: 'S' + Date.now(),
+            userId,
+            ticketId,
+            motivo: reason,
+            solicitadoPor: this.currentUser.userId,
+            fecha: new Date().toISOString(),
+            estado: 'Pendiente'
+        });
+        this.save();
+    }
+
+    approveSanction(sanctionId) {
+        const s = this.data.sanciones.find(x => x.id === sanctionId);
+        if (s) {
+            s.estado = 'Aprobada';
+            const user = this.data.profiles.find(u => u.userId === s.userId);
+            if (user) {
+                user.sancionadoSoporte = true;
+            }
+            // Close related ticket if exists
+            const t = this.data.tickets.find(x => x.id === s.ticketId);
+            if (t) t.estado = 'Cerrado';
+            
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
+    rejectSanction(sanctionId) {
+        const s = this.data.sanciones.find(x => x.id === sanctionId);
+        if (s) {
+            s.estado = 'Rechazada';
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
+    updateTecnicoSector(userId, sector) {
+        if (!this.data.equipoSoporte) this.data.equipoSoporte = [];
+        let tech = this.data.equipoSoporte.find(x => x.userId === userId);
+        if (tech) {
+            tech.sector = sector;
+        } else {
+            this.data.equipoSoporte.push({ userId, sector });
+        }
+        this.save();
+    }
+
+    getTecnicoSector(userId) {
+        if (!this.data.equipoSoporte) return 'General';
+        const tech = this.data.equipoSoporte.find(x => x.userId === userId);
+        return tech ? tech.sector : 'General';
+    }
+
+    isUserSanctioned(userId) {
+        const user = this.data.profiles.find(u => u.userId === userId);
+        return user ? !!user.sancionadoSoporte : false;
+    }
+
+    saveCourseOrder(newOrder) {
+        // ... (existing logic)
+    }
 
     hasRole(userId, role) {
         const user = this.data.profiles.find(p => p.userId === userId);
@@ -1311,6 +1412,16 @@ class DB {
         if (!this.data.materialesClase) return;
         this.data.materialesClase = this.data.materialesClase.filter(m => m.id !== id);
         this.save();
+    }
+
+    updateTicket(id, data) {
+        const t = this.data.tickets.find(x => x.id === id);
+        if (t) {
+            Object.assign(t, data);
+            this.save();
+            return true;
+        }
+        return false;
     }
 }
 

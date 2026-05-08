@@ -1094,6 +1094,8 @@ class ParticleBackground {
 
 
 const App = {
+    _adminTicketCategory: 'Abiertos',
+    _adminSelectedTicketId: null,
 
     init() {
 
@@ -7464,82 +7466,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         }
 
         else if (section === 'tickets') {
-            const sortCriteria = document.getElementById('ticket-sort')?.value || 'fecha';
-            let allTickets = [...tickets];
-            
-            if (sortCriteria === 'fecha') {
-                allTickets.sort((a,b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
-            } else if (sortCriteria === 'prioridad') {
-                const prioMap = { 'Alta': 3, 'Media': 2, 'Baja': 1, undefined: 0 };
-                allTickets.sort((a,b) => prioMap[b.prioridad] - prioMap[a.prioridad]);
-            } else if (sortCriteria === 'categoria') {
-                allTickets.sort((a,b) => (a.categoria || '').localeCompare(b.categoria || ''));
-            }
-
-            const isAdmin = db.hasAnyRole(db.currentUser.userId, ['admin', 'owner']);
-
-            content = secHeader('📋 Gestión de Tickets', 'Listado centralizado de casos de soporte') + `
-                <div style="margin-bottom:1.5rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center; background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
-                    <div style="flex:1;">
-                        <input type="text" id="ticket-search" placeholder="🔍 Buscar ticket por asunto o usuario..." style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--color-border);" onkeyup="App.filterTicketTable()">
-                    </div>
-                    <select id="ticket-sort" style="padding:10px; border-radius:8px; border:1px solid var(--color-border); font-weight:700;" onchange="App.sortTicketTable(this.value)">
-                        <option value="fecha">Ordenar por: Fecha (Reciente)</option>
-                        <option value="prioridad">Ordenar por: Prioridad</option>
-                        <option value="categoria">Ordenar por: Categoría</option>
-                    </select>
-                </div>
-
-                <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden;">
-                    <table style="width:100%; border-collapse:collapse;" id="admin-ticket-table">
-                        <thead>
-                            <tr style="background:var(--color-bg-alt); text-align:left; font-size:11px; text-transform:uppercase; color:var(--color-text-muted); border-bottom:1px solid var(--color-border);">
-                                <th style="padding:1rem;">Caso / Fecha</th>
-                                <th style="padding:1rem;">Usuario</th>
-                                <th style="padding:1rem;">Prioridad</th>
-                                <th style="padding:1rem;">Sector / Cat.</th>
-                                <th style="padding:1rem;">Estado</th>
-                                <th style="padding:1rem; text-align:right;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${allTickets.map(t => {
-                                const u = users.find(x => x.userId === t.userId);
-                                const date = t.fecha ? new Date(t.fecha).toLocaleString() : 'N/A';
-                                return `
-                                <tr style="border-bottom:1px solid var(--color-border); font-size:13px;" class="ticket-row" data-prioridad="${t.prioridad}" data-categoria="${t.categoria}">
-                                    <td style="padding:1rem;">
-                                        <div style="font-weight:800; color:var(--color-primary);">${t.asunto}</div>
-                                        <div style="font-size:11px; color:var(--color-text-muted);">${date}</div>
-                                    </td>
-                                    <td style="padding:1rem;">
-                                        <div style="font-weight:600;">${u ? u.nombre : 'Usuario'}</div>
-                                        <div style="font-size:11px; opacity:0.7;">${u ? u.email : ''}</div>
-                                    </td>
-                                    <td style="padding:1rem;">
-                                        <span style="padding:2px 8px; border-radius:999px; font-size:10px; font-weight:900; background:${t.prioridad==='Alta'?'#fee2e2':t.prioridad==='Media'?'#fef9c3':'#dcfce7'}; color:${t.prioridad==='Alta'?'#b91c1c':t.prioridad==='Media'?'#854d0e':'#166534'}; border:1px solid currentColor;">
-                                            ${t.prioridad || 'Media'}
-                                        </span>
-                                    </td>
-                                    <td style="padding:1rem;">
-                                        <div style="font-weight:700;">${t.sector || 'General'}</div>
-                                        <div style="font-size:11px; opacity:0.7;">${t.categoria}</div>
-                                    </td>
-                                    <td style="padding:1rem;">
-                                        <span style="font-size:11px; font-weight:700;">${t.estado === 'Abierto' ? '🟢 Abierto' : t.estado === 'En curso' ? '🟡 En curso' : '⚪ Cerrado'}</span>
-                                    </td>
-                                    <td style="padding:1rem; text-align:right;">
-                                        <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
-                                            <button class="btn btn-dark" style="font-size:10px; padding:6px 12px;" onclick="App.viewTicketDetailModal('${t.id}')">GESTIONAR</button>
-                                            ${isAdmin ? `<button class="btn btn-default" style="font-size:10px; padding:6px 12px; color:#ef4444;" onclick="App.deleteTicketAdmin('${t.id}')">BORRAR</button>` : ''}
-                                        </div>
-                                    </td>
-                                </tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-                <div id="admin-ticket-modal-container"></div>`;
+            content = this.renderAdminTicketsMain(tickets, users);
         }
 
         else if (section === 'equipo') {
@@ -11831,6 +11758,264 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         `;
 
+    },
+
+    renderAdminTicketsMain(tickets, users) {
+        const cat = this._adminTicketCategory || 'Abiertos';
+        const user = db.currentUser;
+        
+        let filtered = [...tickets];
+        if (cat === 'Abiertos') filtered = tickets.filter(t => t.estado === 'Abierto');
+        else if (cat === 'En Proceso') filtered = tickets.filter(t => t.estado === 'En curso');
+        else if (cat === 'Cerrados') filtered = tickets.filter(t => t.estado === 'Cerrado');
+        else if (cat === 'Mis Tickets') filtered = tickets.filter(t => t.asignadoA === user.userId && t.estado !== 'Cerrado');
+
+        const title = this._adminSelectedTicketId ? 'Gestionar Ticket' : `Tickets: ${cat}`;
+        const header = secHeader('📋 Soporte Técnico', title, this._adminSelectedTicketId ? `<button class="btn btn-default" onclick="App.selectAdminTicket(null)">← Volver al listado</button>` : '');
+
+        return `
+            <div style="display:grid; grid-template-columns: 240px 1fr; gap: 2rem;">
+                <aside>
+                    ${this.renderSupportSidebar(tickets)}
+                </aside>
+                <div id="admin-tickets-content">
+                    ${this._adminSelectedTicketId ? this.renderAdminTicketDetail(this._adminSelectedTicketId) : this.renderAdminTicketsList(filtered, users)}
+                </div>
+            </div>
+        `;
+    },
+
+    renderSupportSidebar(tickets) {
+        const user = db.currentUser;
+        const counts = {
+            abiertos: tickets.filter(t => t.estado === 'Abierto').length,
+            en_proceso: tickets.filter(t => t.estado === 'En curso').length,
+            cerrados: tickets.filter(t => t.estado === 'Cerrado').length,
+            mis_tickets: tickets.filter(t => t.asignadoA === user.userId && t.estado !== 'Cerrado').length
+        };
+
+        const currentCat = this._adminTicketCategory || 'Abiertos';
+        const isAct = (c) => currentCat === c ? 'active' : '';
+
+        return `
+            <div class="support-sidebar">
+                <div class="support-sidebar-item ${isAct('Abiertos')}" onclick="App.setAdminTicketCategory('Abiertos')">
+                    <span>🟢 Abiertos</span>
+                    <span class="count">${counts.abiertos}</span>
+                </div>
+                <div class="support-sidebar-item ${isAct('En Proceso')}" onclick="App.setAdminTicketCategory('En Proceso')">
+                    <span>🟡 En Proceso</span>
+                    <span class="count">${counts.en_proceso}</span>
+                </div>
+                <div class="support-sidebar-item ${isAct('Cerrados')}" onclick="App.setAdminTicketCategory('Cerrados')">
+                    <span>⚪ Cerrados</span>
+                    <span class="count">${counts.cerrados}</span>
+                </div>
+                <div class="support-sidebar-item ${isAct('Mis Tickets')}" onclick="App.setAdminTicketCategory('Mis Tickets')">
+                    <span>👤 Mis Tickets</span>
+                    ${counts.mis_tickets > 0 ? `<span class="count red-badge">${counts.mis_tickets}</span>` : `<span class="count">${counts.mis_tickets}</span>`}
+                </div>
+            </div>
+        `;
+    },
+
+    renderAdminTicketsList(tickets, users) {
+        return `
+            <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden;">
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:var(--color-bg-alt); text-align:left; font-size:11px; text-transform:uppercase; color:var(--color-text-muted); border-bottom:1px solid var(--color-border);">
+                            <th style="padding:1rem;">Ticket / Fecha</th>
+                            <th style="padding:1rem;">Usuario</th>
+                            <th style="padding:1rem;">Prioridad</th>
+                            <th style="padding:1rem;">Asignado A</th>
+                            <th style="padding:1rem; text-align:right;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tickets.map(t => {
+                            const u = users.find(x => x.userId === t.userId);
+                            const tech = users.find(x => x.userId === t.asignadoA);
+                            return `
+                            <tr style="border-bottom:1px solid var(--color-border); font-size:13px;">
+                                <td style="padding:1rem;">
+                                    <div style="font-weight:800; color:var(--color-primary);">${t.asunto}</div>
+                                    <div style="font-size:11px; color:var(--color-text-muted);">${new Date(t.fecha || t.id.substring(1)).toLocaleString()}</div>
+                                </td>
+                                <td style="padding:1rem;">
+                                    <div style="font-weight:600;">${u ? u.nombre : 'Usuario'}</div>
+                                    <div style="font-size:11px; opacity:0.7;">${u ? u.email : ''}</div>
+                                </td>
+                                <td style="padding:1rem;">
+                                    <span style="padding:2px 8px; border-radius:999px; font-size:10px; font-weight:900; background:${t.prioridad==='Alta'?'#fee2e2':t.prioridad==='Media'?'#fef9c3':'#dcfce7'}; color:${t.prioridad==='Alta'?'#b91c1c':t.prioridad==='Media'?'#854d0e':'#166534'}; border:1px solid currentColor;">
+                                        ${t.prioridad || 'Media'}
+                                    </span>
+                                </td>
+                                <td style="padding:1rem;">
+                                    <div style="font-size:12px; font-weight:600;">${tech ? tech.nombre : '<span style="opacity:0.5;">Sin asignar</span>'}</div>
+                                </td>
+                                <td style="padding:1rem; text-align:right;">
+                                    <button class="btn btn-dark" style="font-size:11px; padding:6px 12px;" onclick="App.selectAdminTicket('${t.id}')">GESTIONAR</button>
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                        ${tickets.length === 0 ? '<tr><td colspan="5" style="padding:3rem; text-align:center; color:var(--color-text-muted);">No hay tickets en esta categoría</td></tr>' : ''}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    },
+
+    renderAdminTicketDetail(id) {
+        const t = db.get('tickets').find(x => x.id === id);
+        if (!t) return 'Error: Ticket no encontrado';
+
+        const users = db.get('profiles');
+        const user = users.find(x => x.userId === t.userId);
+        const equipo = db.get('equipoSoporte') || [];
+        const techList = equipo.map(e => {
+            const p = users.find(u => u.userId === e.userId);
+            return { userId: e.userId, nombre: p ? p.nombre : e.userId, cargo: e.cargo };
+        });
+
+        return `
+            <div class="admin-ticket-detail-layout">
+                <div class="ticket-chat-area">
+                    <div style="padding:1rem; border-bottom:1px solid var(--color-border); background:var(--color-bg-alt); display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:10px; font-weight:800; color:var(--color-text-muted);">TICKET #${t.id}</div>
+                            <h3 style="margin:0;">${t.asunto}</h3>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:11px; font-weight:700;">Usuario: ${user ? user.nombre : 'Desconocido'}</div>
+                            <div style="font-size:10px; color:var(--color-text-muted);">${user ? user.email : ''}</div>
+                        </div>
+                    </div>
+                    
+                    <div id="admin-chat-window" style="flex:1; padding:1.5rem; overflow-y:auto; display:flex; flex-direction:column; gap:1rem; background:var(--color-bg-alt);">
+                        ${t.mensajes.map(m => {
+                            if (m.esSistema) return `<div class="system-notification">${m.texto}</div>`;
+                            return `
+                                <div class="chat-message ${m.esEquipo ? 'me' : 'others'}">
+                                    <div style="font-size:13px;">${m.texto}</div>
+                                    <div style="font-size:9px; margin-top:4px; opacity:0.6; text-align:right;">${new Date(m.fecha).toLocaleTimeString()}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <div style="padding:1.5rem; border-top:1px solid var(--color-border); display:flex; gap:1rem; background:var(--color-bg);">
+                        <input type="text" id="admin-reply-input" placeholder="${t.asignadoA ? 'Escribe tu respuesta...' : 'Debes asignar el ticket antes de responder'}" style="flex:1; border-radius:999px; padding:10px 20px;" onkeypress="if(event.key==='Enter') App.sendAdminTicketReply('${t.id}')" ${!t.asignadoA ? 'disabled' : ''}>
+                        <button class="btn btn-dark" style="border-radius:999px;" onclick="App.sendAdminTicketReply('${t.id}')" ${!t.asignadoA ? 'disabled' : ''}>Enviar</button>
+                    </div>
+                </div>
+
+                <div class="ticket-actions-panel">
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:0.75rem;">👤 Asignar Responsable</label>
+                        <select onchange="App.assignTicketAdmin('${t.id}', this.value)" style="width:100%; padding:10px; border-radius:8px; font-weight:700;">
+                            <option value="">No asignado</option>
+                            ${techList.map(e => `<option value="${e.userId}" ${t.asignadoA === e.userId ? 'selected' : ''}>${e.nombre} (${e.cargo})</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:0.75rem;">⚡ Prioridad</label>
+                        <select onchange="App.updateTicketPriorityAdmin('${t.id}', this.value)" style="width:100%; padding:10px; border-radius:8px; font-weight:700; color:${t.prioridad==='Alta'?'#ef4444':'inherit'}">
+                            <option value="Baja" ${t.prioridad==='Baja'?'selected':''}>Baja</option>
+                            <option value="Media" ${t.prioridad==='Media'?'selected':''}>Media</option>
+                            <option value="Alta" ${t.prioridad==='Alta'?'selected':''}>Alta</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:0.75rem;">🔄 Estado del Ticket</label>
+                        <select onchange="App.updateTicketStatusAdmin('${t.id}', this.value)" style="width:100%; padding:10px; border-radius:8px; font-weight:700;">
+                            <option value="Abierto" ${t.estado==='Abierto'?'selected':''}>Abierto</option>
+                            <option value="En curso" ${t.estado==='En curso'?'selected':''}>En Proceso</option>
+                            <option value="Cerrado" ${t.estado==='Cerrado'?'selected':''}>Cerrado</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-top:auto; padding-top:2rem;">
+                        <button class="btn btn-danger" style="width:100%; padding:14px; font-weight:800;" onclick="App.updateTicketStatusAdmin('${t.id}', 'Cerrado')">Finalizar Ticket</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    setAdminTicketCategory(cat) {
+        this._adminTicketCategory = cat;
+        this._adminSelectedTicketId = null;
+        this.viewAdmin(document.getElementById('main-content'), 'tickets');
+    },
+
+    selectAdminTicket(id) {
+        this._adminSelectedTicketId = id;
+        this.viewAdmin(document.getElementById('main-content'), 'tickets');
+        if (id) {
+            setTimeout(() => {
+                const w = document.getElementById('admin-chat-window');
+                if (w) w.scrollTop = w.scrollHeight;
+            }, 50);
+        }
+    },
+
+    assignTicketAdmin(ticketId, userId) {
+        const t = db.get('tickets').find(x => x.id === ticketId);
+        if (!t) return;
+
+        const users = db.get('profiles');
+        const tech = users.find(u => u.userId === userId);
+        const techName = tech ? tech.nombre : userId;
+
+        t.asignadoA = userId;
+        if (userId) {
+            t.mensajes.push({
+                id: 'sys-' + Date.now(),
+                texto: `--- SE ASIGNÓ A ${techName.toUpperCase()} -----`,
+                fecha: new Date().toISOString(),
+                esSistema: true
+            });
+            if (t.estado === 'Abierto') t.estado = 'En curso';
+        }
+        db.save();
+        this.selectAdminTicket(ticketId);
+        this.showToast('Ticket asignado');
+    },
+
+    updateTicketPriorityAdmin(ticketId, priority) {
+        db.updateTicket(ticketId, { prioridad: priority });
+        this.selectAdminTicket(ticketId);
+        this.showToast('Prioridad actualizada');
+    },
+
+    updateTicketStatusAdmin(ticketId, status) {
+        db.updateTicket(ticketId, { estado: status });
+        this.selectAdminTicket(ticketId);
+        this.showToast('Estado actualizado');
+    },
+
+    sendAdminTicketReply(ticketId) {
+        const input = document.getElementById('admin-reply-input');
+        if (!input || input.value.trim() === '') return;
+
+        const t = db.get('tickets').find(x => x.id === ticketId);
+        if (!t.asignadoA) {
+            this.showToast('⚠️ Debes asignar el ticket antes de responder');
+            return;
+        }
+
+        t.mensajes.push({
+            id: 'm' + Date.now(),
+            texto: input.value.trim(),
+            fecha: new Date().toISOString(),
+            esEquipo: true
+        });
+        db.save();
+        this.selectAdminTicket(ticketId);
+        input.value = '';
     }
 
 };
