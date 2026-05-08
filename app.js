@@ -2711,12 +2711,15 @@ const App = {
                                     </button>`;
                             } else if (status === 'Pendiente') {
                                 return `
-                                    <div style="background:#fff7ed; border:1px solid #ffedd5; padding:12px; border-radius:var(--radius-sm); text-align:center;">
-                                        <div style="color:#9a3412; font-weight:700; font-size:13px;">💳 Pago en proceso</div>
-                                        <div style="color:#c2410c; font-size:11px;">Si ya pagaste, espera unos minutos.</div>
+                                    <div style="background:#fff7ed; border:1px solid #ffedd5; padding:1.5rem; border-radius:var(--radius-md); text-align:center; margin-bottom:1rem; box-shadow:var(--shadow-sm);">
+                                        <div style="color:#9a3412; font-weight:800; font-size:15px; margin-bottom:0.5rem;">💳 Pago en Proceso</div>
+                                        <div style="color:#c2410c; font-size:12px; margin-bottom:1rem;">Si ya realizaste el pago, haz clic en el botón de abajo para activarlo ahora.</div>
+                                        <button onclick="App.verifyPaymentStatus('${compra.id}')" class="btn btn-dark" style="width:100%; background:#f59e0b; border:none; margin-bottom:0.5rem; font-weight:800;">
+                                            🔄 Actualizar y Activar ahora
+                                        </button>
                                     </div>
                                     <button onclick="App.addToCart('${p.id}'); App.showToast('🛒 Agregado al carrito')" class="btn btn-default" style="width:100%; padding:14px; font-size:1rem; font-weight:700;">
-                                         🛒 Comprar de nuevo
+                                         🛒 Intentar con otro medio de pago
                                     </button>`;
                             } else {
                                 return `
@@ -4580,11 +4583,9 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                 <div class="container" style="margin-top:5rem; text-align:center; padding-bottom:5rem;">
 
-                    <div style="font-size:5rem; margin-bottom:1.5rem;">  ?</div>
-
-                    <h2>Tu carrito est vacío</h2>
-
-                    <p style="color:var(--color-text-muted); margin:1rem 0 2rem;">Explornuestra tienda y encontrlo que as.</p>
+                    <div style="font-size:5rem; margin-bottom:1.5rem;">🛒</div>
+                    <h2>Tu carrito está vacío</h2>
+                    <p style="color:var(--color-text-muted); margin:1rem 0 2rem;">Explora nuestra tienda y encuentra lo que amas.</p>
 
                     <a href="#/tienda" class="btn btn-dark">Ir a la Tienda</a>
 
@@ -4698,15 +4699,14 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                     <div style="background:var(--color-bg); border:1.5px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; margin-bottom:2rem;">
 
-                        <div style="font-weight:700; font-size:14px; margin-bottom:1rem;"> ? Cdigo de Descuento</div>
+                        <div style="font-weight:700; font-size:14px; margin-bottom:1rem;">🎟️ Código de Descuento</div>
 
                         ${activeCoupon ? `
 
                             <div style="display:flex; justify-content:space-between; align-items:center; background:#dcfce7; padding:0.75rem 1rem; border-radius:var(--radius-sm);">
 
-                                <span style="color:#15803d; font-weight:700; font-size:13px;">  ${activeCoupon.codigo} (-${activeCoupon.porcentaje}%)</span>
-
-                                <button onclick="App.quitarCupon(); App.viewCartPage(document.getElementById('main-content'))" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:12px;">  Quitar</button>
+                                <span style="color:#15803d; font-weight:700; font-size:13px;"> ✅ ${activeCoupon.codigo} (-${activeCoupon.porcentaje}%)</span>
+                                <button onclick="App.quitarCupon(); App.viewCartPage(document.getElementById('main-content'))" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:12px;">🗑️ Quitar</button>
 
                             </div>
 
@@ -4732,7 +4732,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                     <div>
 
-                        <h3 style="margin-bottom:1rem;">  Tambión te puede interesar</h3>
+                        <h3 style="margin-bottom:1.5rem;">✨ También te puede interesar</h3>
 
                         <div class="recommendations-strip">
 
@@ -4833,38 +4833,59 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
                         ${!isCarinPlus && carinSavings > 0 ? `
-
-                        <div class="carin-plus-upsell">
-
-                            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
-
-                                <span class="badge-premium" style="font-size:10px; padding:2px 8px;">CARIN+</span>
-
-                                <span style="font-weight:700; font-size:13px; color:#be185d;"> Ahorrarías ${formatPrice(carinSavings)}!</span>
-
+                        <div class="carin-plus-upsell" style="background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); border: 1px solid #fbcfe8; border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: -10px; right: -10px; font-size: 3rem; opacity: 0.1; pointer-events: none;">✨</div>
+                            <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+                                <span class="badge-premium" style="font-size:10px; padding:4px 10px; background:#db2777; color:white; border-radius:6px; font-weight:900;">MÁS AHORRO</span>
+                                <span style="font-weight:900; font-size:14px; color:#be185d; letter-spacing:-0.2px;"> ¡Ahorrarías ${formatPrice(carinSavings)}!</span>
                             </div>
-
-                            <p style="font-size:12px; color:#9d174d; margin:0 0 0.75rem;">Con Carin+ pagar ?as solo <b>${formatPrice(carinTotal)}</b> en vez de ${formatPrice(total)}.</p>
-
-                            <a href="#/carin-plus" class="btn btn-dark" style="width:100%; text-align:center; background:#db2777; border-color:#db2777; font-size:13px; display:block;">
-
-                                Quiero Carin+
-
+                            <p style="font-size:12.5px; color:#9d174d; margin:0 0 1rem; line-height:1.5;">Con <strong>Carin+</strong> pagarías solo <span style="font-size:16px; font-weight:900;">${formatPrice(carinTotal)}</span> por este carrito.</p>
+                            <a href="#/carin-plus" class="btn btn-dark" style="width:100%; text-align:center; background:#db2777; border:none; font-size:13px; font-weight:800; display:block; border-radius:10px; padding:10px; color:white; text-decoration:none; box-shadow: 0 4px 12px rgba(219, 39, 119, 0.2);">
+                                Activar Carin+ ahora
                             </a>
-
                         </div>` : ''}
 
 
 
-                        <button class="btn btn-dark" style="width:100%; padding:14px; font-size:1rem; margin-top:1.5rem;" onclick="App.checkout()">
-
-                          🛍️ Confirmar Compra
-
+                        <button class="btn btn-dark" style="width:100%; padding:14px; font-size:1rem; margin-top:1.5rem; font-weight:800; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" onclick="App.checkout()">
+                            🛍️ Confirmar y Pagar
                         </button>
 
-                        <a href="#/tienda" style="display:block; text-align:center; font-size:13px; color:var(--color-text-muted); margin-top:1rem; text-decoration:none;">  Seguir comprando</a>
-
+                        <a href="#/tienda" style="display:block; text-align:center; font-size:13px; color:var(--color-text-muted); margin-top:1.5rem; text-decoration:none; font-weight:600;">← Seguir comprando</a>
                     </div>
+                </div>
+            </div>
+
+            <!-- Footer de Confianza y Soporte -->
+            <div style="margin-top:6rem; padding-top:4rem; border-top:1px solid var(--color-border); display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:3rem; padding-bottom:3rem;">
+                <div>
+                    <div style="font-size:2rem; margin-bottom:1rem;">📩</div>
+                    <h4 style="margin-bottom:0.75rem; font-weight:800; font-size:1.1rem;">Soporte Técnico</h4>
+                    <p style="font-size:14px; color:var(--color-text-muted); line-height:1.7; margin-bottom:1.5rem;">
+                        ¿Tienes dudas sobre los moldes o el proceso de pago? Nuestro equipo está listo para ayudarte de forma personalizada.
+                    </p>
+                    <a href="https://wa.me/5493547000000" target="_blank" class="btn btn-default" style="display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; width:100%; border-radius:12px; padding:12px;">
+                        <span>💬 Hablar por WhatsApp</span>
+                    </a>
+                </div>
+                
+                <div>
+                    <div style="font-size:2rem; margin-bottom:1rem;">⚡</div>
+                    <h4 style="margin-bottom:0.75rem; font-weight:800; font-size:1.1rem;">Entrega Inmediata</h4>
+                    <p style="font-size:14px; color:var(--color-text-muted); line-height:1.7;">
+                        Al ser productos digitales, una vez confirmado el pago, tendrás acceso <strong>instantáneo</strong> a los archivos. Sin esperas ni costos de envío.
+                    </p>
+                </div>
+
+                <div>
+                    <div style="font-size:2rem; margin-bottom:1rem;">🔒</div>
+                    <h4 style="margin-bottom:0.75rem; font-weight:800; font-size:1.1rem;">Pago 100% Seguro</h4>
+                    <p style="font-size:14px; color:var(--color-text-muted); line-height:1.7;">
+                        Utilizamos la tecnología de <strong>Mercado Pago</strong> para proteger tus datos. Puedes pagar con tarjeta, débito o dinero en cuenta con total tranquilidad.
+                    </p>
+                </div>
+            </div>
+        </div>
 
                 </div>
 
