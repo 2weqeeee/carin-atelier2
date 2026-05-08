@@ -6080,7 +6080,8 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                 <div class="admin-subnav">
                     ${sidebarLink('#/admin/equipo','equipo','🛠️','Equipo Técnico')}
                     ${sidebarLink('#/admin/chat','chat','💬','Chat Soporte')}
-                    ${sidebarLink('#/admin/tickets','tickets','📋','Tickets Kanban')}
+                    ${sidebarLink('#/admin/tickets','tickets','📋','Gestionar Tickets')}
+                    ${isAdmin ? sidebarLink('#/admin/sanciones','sanciones','🚫','Sanciones') : ''}
                 </div>
             </aside>`;
 
@@ -7463,85 +7464,173 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         }
 
         else if (section === 'tickets') {
-
-            const abiertos = tickets.filter(t => t.estado === 'Abierto');
-
-            const enCurso = tickets.filter(t => t.estado === 'En curso');
-
-            const cerrados = tickets.filter(t => t.estado === 'Cerrado');
-
+            const sortCriteria = document.getElementById('ticket-sort')?.value || 'fecha';
+            let allTickets = [...tickets];
             
+            if (sortCriteria === 'fecha') {
+                allTickets.sort((a,b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
+            } else if (sortCriteria === 'prioridad') {
+                const prioMap = { 'Alta': 3, 'Media': 2, 'Baja': 1, undefined: 0 };
+                allTickets.sort((a,b) => prioMap[b.prioridad] - prioMap[a.prioridad]);
+            } else if (sortCriteria === 'categoria') {
+                allTickets.sort((a,b) => (a.categoria || '').localeCompare(b.categoria || ''));
+            }
 
-            const renderKanbanCard = (t) => {
+            const isAdmin = db.hasAnyRole(db.currentUser.userId, ['admin', 'owner']);
 
-                const cli = users.find(u => u.userId === t.userId);
-
-                const asig = users.find(u => u.userId === t.asignadoA);
-
-                return `
-
-                <div class="kanban-card" onclick="App.viewTicketDetailModal('${t.id}')" style="border-top: 3px solid ${t.categoria === 'Reembolso' ? '#db2777' : t.categoria === 'Problema Técnico' ? '#ef4444' : '#3b82f6'};">
-
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-
-                        <span style="font-size:9px; text-transform:uppercase; font-weight:800; color:var(--color-text-muted);">${t.categoria || 'Consulta'}</span>
-
-                        ${t.prioridad === 'Alta' ? '<span style="color:#ef4444; font-weight:900; font-size:10px;"> ? ALTA</span>' : ''}
-
+            content = secHeader('📋 Gestión de Tickets', 'Listado centralizado de casos de soporte') + `
+                <div style="margin-bottom:1.5rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center; background:var(--color-bg-alt); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+                    <div style="flex:1;">
+                        <input type="text" id="ticket-search" placeholder="🔍 Buscar ticket por asunto o usuario..." style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--color-border);" onkeyup="App.filterTicketTable()">
                     </div>
-
-                    <div style="font-weight:700; font-size:14px; margin-bottom:0.5rem;">${t.asunto}</div>
-
-                    <div style="font-size:11px; color:var(--color-text-muted); margin-bottom:0.5rem;">   ${cli ? cli.nombre : 'Usuario'}</div>
-
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
-
-                        <span style="font-size:10px; padding:2px 6px; border-radius:4px; background:var(--color-bg-alt); color:var(--color-text-muted); font-weight:600; border: 1px solid var(--color-border);">${t.mensajes.length} sgs</span>
-
-                        ${asig ? `<span title="Asignado a: ${asig.nombre}" style="font-size:12px; width:20px; height:20px; background:var(--color-primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center;">${asig.nombre[0]}</span>` : `<span style="font-size:10px; color:var(--color-text-muted);">Sin asignar</span>`}
-
-                    </div>
-
-                </div>`;
-
-            };
-
-
-
-            content = secHeader(' ? Kanban de Tickets', 'Arrastra y gestiona los casos de soporte') + `
-
-                <div class="kanban-board">
-
-                    <div class="kanban-column">
-
-                        <div class="kanban-header"><span> 🟢 Abiertos</span> <span>${abiertos.length}</span></div>
-
-                        ${abiertos.map(renderKanbanCard).join('')}
-
-                    </div>
-
-                    <div class="kanban-column">
-
-                        <div class="kanban-header"><span> ? En Curso</span> <span>${enCurso.length}</span></div>
-
-                        ${enCurso.map(renderKanbanCard).join('')}
-
-                    </div>
-
-                    <div class="kanban-column">
-
-                        <div class="kanban-header"><span> ? Cerrados</span> <span>${cerrados.length}</span></div>
-
-                        ${cerrados.map(renderKanbanCard).join('')}
-
-                    </div>
-
+                    <select id="ticket-sort" style="padding:10px; border-radius:8px; border:1px solid var(--color-border); font-weight:700;" onchange="App.sortTicketTable(this.value)">
+                        <option value="fecha">Ordenar por: Fecha (Reciente)</option>
+                        <option value="prioridad">Ordenar por: Prioridad</option>
+                        <option value="categoria">Ordenar por: Categoría</option>
+                    </select>
                 </div>
 
-                <!-- Modal Container for Ticket Detail -->
-
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden;">
+                    <table style="width:100%; border-collapse:collapse;" id="admin-ticket-table">
+                        <thead>
+                            <tr style="background:var(--color-bg-alt); text-align:left; font-size:11px; text-transform:uppercase; color:var(--color-text-muted); border-bottom:1px solid var(--color-border);">
+                                <th style="padding:1rem;">Caso / Fecha</th>
+                                <th style="padding:1rem;">Usuario</th>
+                                <th style="padding:1rem;">Prioridad</th>
+                                <th style="padding:1rem;">Sector / Cat.</th>
+                                <th style="padding:1rem;">Estado</th>
+                                <th style="padding:1rem; text-align:right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allTickets.map(t => {
+                                const u = users.find(x => x.userId === t.userId);
+                                const date = t.fecha ? new Date(t.fecha).toLocaleString() : 'N/A';
+                                return `
+                                <tr style="border-bottom:1px solid var(--color-border); font-size:13px;" class="ticket-row" data-prioridad="${t.prioridad}" data-categoria="${t.categoria}">
+                                    <td style="padding:1rem;">
+                                        <div style="font-weight:800; color:var(--color-primary);">${t.asunto}</div>
+                                        <div style="font-size:11px; color:var(--color-text-muted);">${date}</div>
+                                    </td>
+                                    <td style="padding:1rem;">
+                                        <div style="font-weight:600;">${u ? u.nombre : 'Usuario'}</div>
+                                        <div style="font-size:11px; opacity:0.7;">${u ? u.email : ''}</div>
+                                    </td>
+                                    <td style="padding:1rem;">
+                                        <span style="padding:2px 8px; border-radius:999px; font-size:10px; font-weight:900; background:${t.prioridad==='Alta'?'#fee2e2':t.prioridad==='Media'?'#fef9c3':'#dcfce7'}; color:${t.prioridad==='Alta'?'#b91c1c':t.prioridad==='Media'?'#854d0e':'#166534'}; border:1px solid currentColor;">
+                                            ${t.prioridad || 'Media'}
+                                        </span>
+                                    </td>
+                                    <td style="padding:1rem;">
+                                        <div style="font-weight:700;">${t.sector || 'General'}</div>
+                                        <div style="font-size:11px; opacity:0.7;">${t.categoria}</div>
+                                    </td>
+                                    <td style="padding:1rem;">
+                                        <span style="font-size:11px; font-weight:700;">${t.estado === 'Abierto' ? '🟢 Abierto' : t.estado === 'En curso' ? '🟡 En curso' : '⚪ Cerrado'}</span>
+                                    </td>
+                                    <td style="padding:1rem; text-align:right;">
+                                        <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                                            <button class="btn btn-dark" style="font-size:10px; padding:6px 12px;" onclick="App.viewTicketDetailModal('${t.id}')">GESTIONAR</button>
+                                            ${isAdmin ? `<button class="btn btn-default" style="font-size:10px; padding:6px 12px; color:#ef4444;" onclick="App.deleteTicketAdmin('${t.id}')">BORRAR</button>` : ''}
+                                        </div>
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
                 <div id="admin-ticket-modal-container"></div>`;
+        }
 
+        else if (section === 'equipo') {
+            const tecnicos = users.filter(u => u.roles && u.roles.includes('tecnico'));
+            content = secHeader('🛠️ Gestión del Equipo Técnico', 'Asignación de sectores y roles internos') + `
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:var(--color-bg-alt); text-align:left; font-size:11px; text-transform:uppercase; color:var(--color-text-muted); border-bottom:1px solid var(--color-border);">
+                                <th style="padding:1rem;">Técnico</th>
+                                <th style="padding:1rem;">Estado</th>
+                                <th style="padding:1rem;">Sector Asignado</th>
+                                <th style="padding:1rem; text-align:right;">Actualizar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tecnicos.map(t => {
+                                const sector = db.getTecnicoSector(t.userId);
+                                return `
+                                <tr style="border-bottom:1px solid var(--color-border);">
+                                    <td style="padding:1rem;">
+                                        <div style="font-weight:700;">${t.nombre}</div>
+                                        <div style="font-size:12px; opacity:0.7;">${t.email}</div>
+                                    </td>
+                                    <td style="padding:1rem;">
+                                        <span style="font-size:11px; padding:2px 8px; border-radius:999px; background:${t.estadoActividad==='Activo'?'#dcfce7':'#f3f4f6'}; color:${t.estadoActividad==='Activo'?'#166534':'#64748b'}; font-weight:700;">
+                                            ${t.estadoActividad || 'Inactivo'}
+                                        </span>
+                                    </td>
+                                    <td style="padding:1rem;">
+                                        <select id="tech-sector-${t.userId}" style="padding:8px; border-radius:8px; border:1.5px solid var(--color-border); font-size:13px; font-weight:600; width:100%; max-width:200px;">
+                                            <option value="General" ${sector==='General'?'selected':''}>Sector General</option>
+                                            <option value="Pagos" ${sector==='Pagos'?'selected':''}>Pagos y Facturación</option>
+                                            <option value="Tecnico" ${sector==='Tecnico'?'selected':''}>Problemas Técnicos</option>
+                                            <option value="Cursos" ${sector==='Cursos'?'selected':''}>Gestión de Cursos</option>
+                                            <option value="Premium" ${sector==='Premium'?'selected':''}>Carin+ VIP</option>
+                                        </select>
+                                    </td>
+                                    <td style="padding:1rem; text-align:right;">
+                                        <button class="btn btn-dark" style="font-size:11px; padding:8px 16px;" onclick="App.updateTechSector('${t.userId}')">GUARDAR</button>
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+
+        else if (section === 'sanciones') {
+            const sanciones = db.get('sanciones') || [];
+            const pending = sanciones.filter(s => s.estado === 'Pendiente');
+            const resolved = sanciones.filter(s => s.estado !== 'Pendiente');
+
+            content = secHeader('🚫 Solicitudes de Sanción', 'Aprobación de bloqueos por mal uso del soporte') + `
+                <div style="display:grid; gap:2rem;">
+                    <div>
+                        <h3 style="font-size:1rem; margin-bottom:1rem;">⚠️ Pendientes de Revisión</h3>
+                        ${pending.length === 0 ? '<p style="color:var(--color-text-muted); font-size:13px; padding:2rem; background:var(--color-bg-alt); border-radius:12px; text-align:center;">No hay solicitudes pendientes.</p>' : `
+                        <div style="display:grid; gap:1rem;">
+                            ${pending.map(s => {
+                                const u = users.find(x => x.userId === s.userId);
+                                const req = users.find(x => x.userId === s.solicitadoPor);
+                                return `
+                                <div style="background:var(--color-bg); border:1px solid #fecaca; border-radius:12px; padding:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <div style="font-weight:800; font-size:15px;">Sanción para: ${u ? u.nombre : s.userId}</div>
+                                        <div style="font-size:13px; color:#ef4444; margin-top:0.25rem;"><b>Motivo:</b> ${s.motivo}</div>
+                                        <div style="font-size:11px; opacity:0.7; margin-top:0.5rem;">Solicitado por: ${req ? req.nombre : 'Equipo'} • ${new Date(s.fecha).toLocaleDateString()}</div>
+                                    </div>
+                                    <div style="display:flex; gap:0.5rem;">
+                                        <button class="btn btn-dark" style="background:#16a34a; border:none; padding:8px 16px; font-size:12px;" onclick="App.resolveSanction('${s.id}', true)">APROBAR</button>
+                                        <button class="btn btn-default" style="padding:8px 16px; font-size:12px;" onclick="App.resolveSanction('${s.id}', false)">RECHAZAR</button>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>`}
+                    </div>
+
+                    <div>
+                        <h3 style="font-size:1rem; margin-bottom:1rem; opacity:0.6;">📋 Historial de Resoluciones</h3>
+                        <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:12px; padding:1rem;">
+                            ${resolved.map(s => {
+                                const u = users.find(x => x.userId === s.userId);
+                                return `<div style="font-size:12px; padding:8px 0; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between;">
+                                    <span><b>${u ? u.nombre : 'Usuario'}</b>: ${s.estado}</span>
+                                    <span style="opacity:0.6;">${new Date(s.fecha).toLocaleDateString()}</span>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>`;
         }
 
 
@@ -8524,34 +8613,33 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-                <!-- Status & Assignee -->
-
-                <div style="padding:0.75rem 1.5rem; border-bottom:1px solid var(--color-border); display:flex; gap:1.5rem; align-items:center;">
-
-                    <div style="display:flex; align-items:center; gap:8px;">
-
-                        <label style="font-size:11px; font-weight:800; color:var(--color-text-muted);">ESTADO:</label>
-
-                        <select onchange="db.changeTicketState('${t.id}', this.value); App.viewAdmin(document.getElementById('main-content'), 'tickets');" style="padding:4px 8px; border-radius:4px; font-size:12px; font-weight:700;">
-
-                            <option value="Abierto" ${t.estado==='Abierto'?'selected':''}> 🟢 Abierto</option>
-
-                            <option value="En curso" ${t.estado==='En curso'?'selected':''}> ? En curso</option>
-
-                            <option value="Cerrado" ${t.estado==='Cerrado'?'selected':''}> ? Cerrado</option>
-
+                <!-- Status, Priority & Sector -->
+                <div style="padding:1rem 1.5rem; border-bottom:1px solid var(--color-border); display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; background:var(--color-bg-alt);">
+                    <div>
+                        <label style="display:block; font-size:10px; font-weight:800; color:var(--color-text-muted); margin-bottom:0.4rem;">ESTADO</label>
+                        <select onchange="db.changeTicketState('${t.id}', this.value); App.viewAdmin(document.getElementById('main-content'), 'tickets');" style="width:100%; padding:8px; border-radius:8px; font-size:13px; font-weight:700; border:1px solid var(--color-border);">
+                            <option value="Abierto" ${t.estado==='Abierto'?'selected':''}>🟢 Abierto</option>
+                            <option value="En curso" ${t.estado==='En curso'?'selected':''}>🟡 En curso</option>
+                            <option value="Cerrado" ${t.estado==='Cerrado'?'selected':''}>⚪ Cerrado</option>
                         </select>
-
                     </div>
-
-                    <div style="display:flex; align-items:center; gap:8px;">
-
-                        <label style="font-size:11px; font-weight:800; color:var(--color-text-muted);">PRIORIDAD:</label>
-
-                        <span style="font-size:11px; font-weight:800; color:${t.prioridad==='Alta'?'#ef4444':'#3b82f6'};">${t.prioridad.toUpperCase()}</span>
-
+                    <div>
+                        <label style="display:block; font-size:10px; font-weight:800; color:var(--color-text-muted); margin-bottom:0.4rem;">PRIORIDAD</label>
+                        <select onchange="db.updateTicketPriority('${t.id}', this.value); App.viewTicketDetailModal('${t.id}');" style="width:100%; padding:8px; border-radius:8px; font-size:13px; font-weight:700; border:1px solid var(--color-border); color:${t.prioridad==='Alta'?'#ef4444':'inherit'}">
+                            <option value="Baja" ${t.prioridad==='Baja'?'selected':''}>Baja</option>
+                            <option value="Media" ${t.prioridad==='Media'?'selected':''}>Media</option>
+                            <option value="Alta" ${t.prioridad==='Alta'?'selected':''}>Alta 🔥</option>
+                        </select>
                     </div>
-
+                    <div>
+                        <label style="display:block; font-size:10px; font-weight:800; color:var(--color-text-muted); margin-bottom:0.4rem;">SECTOR ASIGNADO</label>
+                        <select onchange="db.updateTicketSector('${t.id}', this.value); App.viewTicketDetailModal('${t.id}');" style="width:100%; padding:8px; border-radius:8px; font-size:13px; font-weight:700; border:1px solid var(--color-border);">
+                            <option value="General" ${t.sector==='General'?'selected':''}>General</option>
+                            <option value="Pagos" ${t.sector==='Pagos'?'selected':''}>Pagos</option>
+                            <option value="Tecnico" ${t.sector==='Tecnico'?'selected':''}>Técnico</option>
+                            <option value="Cursos" ${t.sector==='Cursos'?'selected':''}>Cursos</option>
+                        </select>
+                    </div>
                 </div>
 
 
@@ -8605,13 +8693,10 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
                 <!-- Reply Area -->
-
-                <div style="padding:1rem 1.5rem; border-top:1px solid var(--color-border); display:flex; gap:1rem; background:var(--color-bg);">
-
-                    <input type="text" id="admin-reply-input" placeholder="Escribe una respuesta para el cliente..." style="flex:1; padding:12px; border-radius:var(--radius-sm); border:1.5px solid var(--color-border); font-size:14px;">
-
-                    <button class="btn btn-dark" style="padding:0 24px;" onclick="App.sendTicketReplyFromAdmin('${t.id}')">Responder</button>
-
+                <div style="padding:1rem 1.5rem; border-top:1px solid var(--color-border); display:flex; gap:1rem; background:var(--color-bg); align-items:center;">
+                    <button class="btn btn-default" style="color:#ef4444; border-color:#fecaca; font-size:18px; padding:10px;" title="Solicitar Sanción por Mal Uso" onclick="App.requestSanctionUI('${t.userId}', '${t.id}')">🚫</button>
+                    <input type="text" id="admin-reply-input" placeholder="Escribe una respuesta para el cliente..." style="flex:1; padding:12px; border-radius:var(--radius-sm); border:1.5px solid var(--color-border); font-size:14px;" onkeypress="if(event.key==='Enter') App.sendTicketReplyFromAdmin('${t.id}')">
+                    <button class="btn btn-dark" style="padding:12px 24px;" onclick="App.sendTicketReplyFromAdmin('${t.id}')">Responder</button>
                 </div>
 
             </div>
@@ -8689,6 +8774,53 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
     },
 
 
+
+    deleteTicketAdmin(id) {
+        if (confirm('⚠️ ¿Seguro que deseas ELIMINAR este ticket permanentemente?')) {
+            db.deleteTicket(id);
+            this.showToast('🗑️ Ticket eliminado');
+            this.viewAdmin(document.getElementById('main-content'), 'tickets');
+        }
+    },
+
+    updateTechSector(userId) {
+        const sector = document.getElementById(`tech-sector-${userId}`).value;
+        db.updateTecnicoSector(userId, sector);
+        this.showToast('✅ Sector actualizado para el técnico');
+    },
+
+    requestSanctionUI(userId, ticketId) {
+        const reason = prompt('Motivo de la solicitud de sanción (ej: Insultos, Spam, Mal uso):');
+        if (reason) {
+            db.requestSanction(userId, ticketId, reason);
+            this.showToast('🚀 Solicitud de sanción enviada a administración');
+        }
+    },
+
+    resolveSanction(id, approved) {
+        if (approved) {
+            if (db.approveSanction(id)) {
+                this.showToast('🚫 Usuario SANCIONADO. Ticket cerrado.');
+            }
+        } else {
+            db.rejectSanction(id);
+            this.showToast('✅ Solicitud de sanción rechazada');
+        }
+        this.viewAdmin(document.getElementById('main-content'), 'sanciones');
+    },
+
+    filterTicketTable() {
+        const query = document.getElementById('ticket-search').value.toLowerCase();
+        const rows = document.querySelectorAll('.ticket-row');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    },
+
+    sortTicketTable(criteria) {
+        this.viewAdmin(document.getElementById('main-content'), 'tickets'); // Full re-render for sorting logic in viewAdmin
+    },
 
     sendTicketReplyFromAdmin(ticketId) {
 
