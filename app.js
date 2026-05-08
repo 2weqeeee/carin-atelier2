@@ -1317,15 +1317,29 @@ const App = {
                     </nav>
                 </div>
 
-                <!-- Acciones a la Derecha -->
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <div class="desktop-only-flex" style="display: flex; gap: 0.5rem; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                    <div class="desktop-only-flex" style="display: flex; gap: 0.6rem; align-items: center;">
                         ${user ? `
-                        <div style="position:relative;">
+                        <div id="notifications-wrap" style="position:relative;">
                             <button onclick="App.toggleNotifications()" class="header-icon-btn">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                                 ${db.getNotifications(user.userId).filter(n => !n.leida).length > 0 ? `<span class="notif-badge">${db.getNotifications(user.userId).filter(n => !n.leida).length}</span>` : ''}
                             </button>
+                            <div id="notifications-dropdown" class="settings-dropdown" style="display:none; position:absolute; top:calc(100% + 10px); right:0; background:var(--color-bg); border:1px solid var(--color-border); border-radius:12px; min-width:300px; box-shadow:var(--shadow-lg); z-index:1000; padding:10px 0; max-height:400px; overflow-y:auto;">
+                                <div class="dropdown-header" style="padding:10px 16px; font-size:11px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase;">Notificaciones</div>
+                                <div id="notifications-list" style="padding: 0 8px;">
+                                    ${(() => {
+                                        const notifs = db.getNotifications(user.userId);
+                                        if (notifs.length === 0) return '<div style="padding:20px; text-align:center; font-size:12px; color:var(--color-text-muted);">No tienes notificaciones</div>';
+                                        return notifs.map(n => `
+                                            <div style="padding:12px; border-radius:10px; border-bottom:1px solid var(--color-border-subtle); background:${n.leida ? 'none' : 'var(--color-primary-light)'}; margin-bottom:4px;">
+                                                <div style="font-size:13px; font-weight:${n.leida ? '500' : '700'}; color:var(--color-text);">${n.texto}</div>
+                                                <div style="font-size:10px; color:var(--color-text-muted); margin-top:4px;">${new Date(n.fecha).toLocaleString()}</div>
+                                            </div>
+                                        `).join('');
+                                    })()}
+                                </div>
+                            </div>
                         </div>
                         ` : ''}
                         <button onclick="App.toggleTheme()" class="header-icon-btn">
@@ -1357,26 +1371,15 @@ const App = {
                                         `;
                                     }).join('')}
                                 </div>
-                                <div class="dropdown-header" style="padding:10px 16px; font-size:11px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; margin-top:4px; padding-top:12px; border-top:1px solid var(--color-border);">Moneda</div>
-                                <div style="padding: 0 8px; margin-bottom: 8px;">
-                                    <button onclick="App.setUSD(false)" class="dropdown-item ${!showUSD ? 'active' : ''}" style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-radius:10px; background:${!showUSD ? 'var(--color-primary-light)' : 'none'}; border:none; cursor:pointer; color:${!showUSD ? 'var(--color-primary)' : 'var(--color-text)'}; font-size:13px; font-weight:${!showUSD ? '700' : '500'}; transition: all 0.2s;" onmouseover="if(!this.classList.contains('active')) this.style.background='var(--color-bg-alt)'" onmouseout="if(!this.classList.contains('active')) this.style.background='none'">
-                                        <span>ARS (Pesos Argentinos)</span>
-                                        ${!showUSD ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-                                    </button>
-                                    <button onclick="App.setUSD(true)" class="dropdown-item ${showUSD ? 'active' : ''}" style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:10px 12px; border-radius:10px; background:${showUSD ? 'var(--color-primary-light)' : 'none'}; border:none; cursor:pointer; color:${showUSD ? 'var(--color-primary)' : 'var(--color-text)'}; font-size:13px; font-weight:${showUSD ? '700' : '500'}; transition: all 0.2s;" onmouseover="if(!this.classList.contains('active')) this.style.background='var(--color-bg-alt)'" onmouseout="if(!this.classList.contains('active')) this.style.background='none'">
-                                        <span>USD (D\u00F3lares)</span>
-                                        ${showUSD ? '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}
-                                    </button>
-                                </div>
                             </div>
                         </div>
-                        ${user ? this.renderUserBadge(user, config) : ''}
                     </div>
 
-                    <button onclick="App.toggleCart()" class="header-icon-btn" style="margin-left: 0.5rem; ${isCarinPlus ? 'background:#db2777; color:white;' : ''}">
+                    <button onclick="App.toggleCart()" class="header-icon-btn" style="position:relative; ${isCarinPlus ? 'background:#db2777; color:white;' : ''}">
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                        ${db.cart.length > 0 ? `<span class="cart-badge">${db.cart.length}</span>` : ''}
+                        ${db.cart.length > 0 ? `<span class="cart-badge" style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; font-size:9px; font-weight:800; min-width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid var(--color-bg);">${db.cart.length}</span>` : ''}
                     </button>
+                    ${user ? this.renderUserBadge(user, config) : ''}
                 </div>
             </header>
         `;
@@ -2497,7 +2500,10 @@ const App = {
 
                     <div style="display:flex; gap:8px; margin-top:auto;">
                         <button onclick="App.navigate('/producto/${p.id}')" class="btn btn-default btn-details" style="flex:1; font-size:12px;">Ver detalles</button>
-                        ${!alreadyOwned ? `<button onclick="App.addToCart('${p.id}')" class="btn btn-dark btn-cart" style="flex:1.5; font-size:12px;">🛒 Agregar</button>` : ''}
+                        ${!alreadyOwned ? 
+                            `<button onclick="App.addToCart('${p.id}')" class="btn btn-dark btn-cart" style="flex:1.5; font-size:12px;">🛒 Agregar</button>` : 
+                            `<button class="btn btn-default" style="flex:1.5; font-size:11px; background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; cursor:default; font-weight:700;">✅ Ya es tuyo</button>`
+                        }
                     </div>
 
                 </div>
@@ -4542,37 +4548,21 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
         const calcItemPrice = (item) => {
-
-            const baseDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
-
-            const extraDesc = item.carinPlusDescuento || 0;
-
-            // FIX: extra replaces base, doesn't stack
-
-            const carinDiscount = item.excluirCarinPlus ? 0 : (extraDesc > 0 ? extraDesc : baseDesc);
-
+            if (item.excluirCarinPlus) return globalSaleDesc > 0 ? Math.round(item.precio * (1 - globalSaleDesc / 100)) : item.precio;
+            
+            const carinDiscount = item.carinPlusDescuento || configCarin.descuentoGlobal || 0;
             const totalDesc = (isCarinPlus ? carinDiscount : 0) + globalSaleDesc;
-
+            
             return totalDesc > 0 ? Math.round(item.precio * (1 - totalDesc / 100)) : item.precio;
-
         };
 
-
-
         const calcCarinPlusPrice = (item) => {
-
-            const baseDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
-
-            const extraDesc = item.carinPlusDescuento || 0;
-
-            // FIX: extra replaces base
-
-            const carinDiscount = item.excluirCarinPlus ? 0 : (extraDesc > 0 ? extraDesc : baseDesc);
-
+            if (item.excluirCarinPlus) return globalSaleDesc > 0 ? Math.round(item.precio * (1 - globalSaleDesc / 100)) : item.precio;
+            
+            const carinDiscount = item.carinPlusDescuento || configCarin.descuentoGlobal || 0;
             const totalDesc = carinDiscount + globalSaleDesc;
-
+            
             return totalDesc > 0 ? Math.round(item.precio * (1 - totalDesc / 100)) : item.precio;
-
         };
 
 
@@ -4647,9 +4637,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                             const price = calcItemPrice(item);
 
-                            const globalDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
-
-                            const totalDisc = (isCarinPlus ? globalDesc + (item.carinPlusDescuento || 0) : 0) + globalSaleDesc;
+                            const totalDisc = (isCarinPlus ? (item.carinPlusDescuento || configCarin.descuentoGlobal || 0) : 0) + globalSaleDesc;
 
                             return `
 
@@ -4662,13 +4650,16 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                                 </div>
 
                                 <div style="flex:1;">
-
-                                    <div style="font-weight:700; font-size:15px;">${item.nombre}</div>
-
+                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                                        <div style="font-weight:700; font-size:15px;">${item.nombre}</div>
+                                        ${!item.excluirCarinPlus ? `
+                                            <span style="font-size:9px; font-weight:800; color:#db2777; background:rgba(219,39,119,0.1); border:1px solid rgba(219,39,119,0.3); padding:2px 6px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px;">
+                                                Carin+ ${item.carinPlusDescuento || configCarin.descuentoGlobal || 0}%
+                                            </span>
+                                        ` : ''}
+                                    </div>
                                     <div style="font-size:12px; color:var(--color-text-muted);">${item.cat}</div>
-
-                                    ${totalDisc > 0 ? `<div style="font-size:11px; color:#db2777;">-${totalDisc}% aplicado</div>` : ''}
-
+                                    ${totalDisc > 0 ? `<div style="font-size:11px; color:#db2777; font-weight:600; margin-top:4px;">✨ Descuento aplicado: -${totalDisc}%</div>` : ''}
                                 </div>
 
                                 <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:0.5rem;">
@@ -4833,13 +4824,13 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
                         ${!isCarinPlus && carinSavings > 0 ? `
-                        <div class="carin-plus-upsell" style="background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); border: 1px solid #fbcfe8; border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem; position: relative; overflow: hidden;">
+                        <div class="carin-plus-upsell" style="background: ${document.documentElement.dataset.theme === 'dark' ? 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)' : 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)'}; border: 1px solid ${document.documentElement.dataset.theme === 'dark' ? '#4338ca' : '#fbcfe8'}; border-radius: 16px; padding: 1.5rem; margin-top: 1.5rem; position: relative; overflow: hidden;">
                             <div style="position: absolute; top: -10px; right: -10px; font-size: 3rem; opacity: 0.1; pointer-events: none;">✨</div>
                             <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
                                 <span class="badge-premium" style="font-size:10px; padding:4px 10px; background:#db2777; color:white; border-radius:6px; font-weight:900;">MÁS AHORRO</span>
-                                <span style="font-weight:900; font-size:14px; color:#be185d; letter-spacing:-0.2px;"> ¡Ahorrarías ${formatPrice(carinSavings)}!</span>
+                                <span style="font-weight:900; font-size:14px; color:${document.documentElement.dataset.theme === 'dark' ? '#f472b6' : '#be185d'}; letter-spacing:-0.2px;"> ¡Ahorrarías ${formatPrice(carinSavings)}!</span>
                             </div>
-                            <p style="font-size:12.5px; color:#9d174d; margin:0 0 1rem; line-height:1.5;">Con <strong>Carin+</strong> pagarías solo <span style="font-size:16px; font-weight:900;">${formatPrice(carinTotal)}</span> por este carrito.</p>
+                            <p style="font-size:12.5px; color:${document.documentElement.dataset.theme === 'dark' ? '#e9d5ff' : '#9d174d'}; margin:0 0 1rem; line-height:1.5;">Con <strong>Carin+</strong> pagarías solo <span style="font-size:16px; font-weight:900;">${formatPrice(carinTotal)}</span> por este carrito.</p>
                             <a href="#/carin-plus" class="btn btn-dark" style="width:100%; text-align:center; background:#db2777; border:none; font-size:13px; font-weight:800; display:block; border-radius:10px; padding:10px; color:white; text-decoration:none; box-shadow: 0 4px 12px rgba(219, 39, 119, 0.2);">
                                 Activar Carin+ ahora
                             </a>
@@ -11567,14 +11558,36 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
     addToCart(id) {
         const p = db.get('productos').find(prod => prod.id === id);
-        if (p) {
-            db.addToCart(p);
-            this.showToast(`✅ Agregado: ${p.nombre}`);
-            this.renderLayout(); // Update badge
-            
-            // Redirigimos directamente a la página de carrito dedicada
+        if (!p) return;
+
+        // 1. Verificar si ya está en el carrito
+        const isInCart = db.cart.find(item => item.id === id);
+        if (isInCart && !p.permitirMultiples) {
+            this.showToast('ℹ️ Este producto ya está en tu carrito');
             this.navigate('/carrito');
+            return;
         }
+
+        // 2. Verificar si el usuario ya lo compró
+        if (db.currentUser) {
+            const yaComprado = db.get('compras').find(c => 
+                c.userId === db.currentUser.userId && 
+                (c.productId === id || c.productoId === id) && 
+                (c.estado === 'Pagado' || c.estado === 'Entregado')
+            );
+            
+            if (yaComprado && !p.permitirMultiples) {
+                this.showToast('✅ Ya posees este producto en tu inventario');
+                return;
+            }
+        }
+
+        db.addToCart(p);
+        this.showToast(`✅ Agregado: ${p.nombre}`);
+        this.renderLayout(); // Update badge
+        
+        // Redirigimos directamente a la página de carrito dedicada
+        this.navigate('/carrito');
     },
 
 
