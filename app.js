@@ -4875,77 +4875,119 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-    checkout() {
-
+    async checkout() {
         if (!db.currentUser) {
-
             this.showToast('   Debes iniciar sesión para comprar');
-
             return this.navigate('/login');
-
         }
 
-
+        if (db.cart.length === 0) return this.showToast('⚠️ El carrito está vacío');
 
         const configCarin = db.get('configCarinPlus') || { descuentoGlobal: 15 };
-
         const configRebajas = db.get('configRebajas') || { activa: false, porcentaje: 0 };
-
         const isCarinPlus = db.currentUser && db.hasRole(db.currentUser.userId, 'carin_plus');
-
         const globalSaleDesc = configRebajas.activa ? configRebajas.porcentaje : 0;
+        const activeCoupon = this._activeCoupon || null;
+        const configCarrito = db.get('configCarrito') || { tarifaServicio: 5 };
 
+        // 1. Determinar qué cuenta de Mercado Pago usar
+        // Si hay un solo producto con cuenta propia, usamos esa. Si hay varios, usamos la global.
+        const globalMP = db.get('configPagos') || { public: '', access: '' };
+        let mpAccess = globalMP.access;
+        
+        if (db.cart.length === 1 && db.cart[0].mp_access) {
+            mpAccess = db.cart[0].mp_access;
+        }
 
+        if (!mpAccess) {
+            return this.showToast('❌ Error: No hay una cuenta de Mercado Pago configurada.');
+        }
 
-        // Process all items in cart
+        this.showToast('🚀 Preparando pago seguro...');
 
-        db.cart.forEach(item => {
-
+        // 2. Preparar los items para Mercado Pago
+        const items = db.cart.map(item => {
             const baseDesc = item.excluirCarinPlus ? 0 : (configCarin.descuentoGlobal || 0);
-
             const extraDesc = item.carinPlusDescuento || 0;
-
             const carinDiscount = item.excluirCarinPlus ? 0 : (extraDesc > 0 ? extraDesc : baseDesc);
-
             const totalDesc = (isCarinPlus ? carinDiscount : 0) + globalSaleDesc;
+            let finalPrice = totalDesc > 0 ? Math.round(item.precio * (1 - totalDesc / 100)) : item.precio;
+            
+            // Aplicar cupón si existe (proporcionalmente)
+            if (activeCoupon) {
+                finalPrice = Math.round(finalPrice * (1 - activeCoupon.porcentaje / 100));
+            }
 
-            const finalPrice = totalDesc > 0 ? Math.round(item.precio * (1 - totalDesc / 100)) : item.precio;
-
-
-
-            db.get('compras').push({
-
-                id: 'COM' + Date.now() + Math.floor(Math.random()*1000),
-
-                userId: db.currentUser.userId,
-
-                productId: item.id,
-
-                nombreProducto: item.nombre,
-
-                precio: finalPrice,
-
-                fecha: new Date().toISOString(),
-
-                estado: 'Pagado'
-
-            });
-
+            return {
+                title: item.nombre,
+                quantity: 1,
+                unit_price: finalPrice,
+                currency_id: 'ARS'
+            };
         });
 
+        // Añadir tarifa de servicio como un item extra
+        const subtotal = items.reduce((acc, i) => acc + i.unit_price, 0);
+        const tarifaServicio = Math.round(subtotal * (configCarrito.tarifaServicio / 100));
+        if (tarifaServicio > 0) {
+            items.push({
+                title: 'Tarifa de Servicio / Gestión',
+                quantity: 1,
+                unit_price: tarifaServicio,
+                currency_id: 'ARS'
+            });
+        }
 
+        try {
+            // 3. Crear la preferencia en Mercado Pago (Vía API Directa)
+            const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${mpAccess}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    items: items,
+                    back_urls: {
+                        success: window.location.origin + window.location.pathname + '#/mi-cuenta?payment=success',
+                        failure: window.location.origin + window.location.pathname + '#/carrito?payment=error',
+                        pending: window.location.origin + window.location.pathname + '#/mi-cuenta?payment=pending'
+                    },
+                    auto_return: 'approved',
+                    external_reference: `USER_${db.currentUser.userId}_${Date.now()}`
+                })
+            });
 
-        this.showToast('   Compra confirmada! Gracias por elegir Carin Atelier.');
+            const preference = await response.json();
 
-        db.cart = [];
+            if (preference.init_point) {
+                // 4. Guardar registro pendiente en la base de datos
+                db.cart.forEach(item => {
+                    db.get('compras').push({
+                        id: 'COM' + Date.now() + Math.floor(Math.random()*1000),
+                        userId: db.currentUser.userId,
+                        productId: item.id,
+                        nombreProducto: item.nombre,
+                        precio: items.find(i => i.title === item.nombre).unit_price,
+                        fecha: new Date().toISOString(),
+                        estado: 'Pendiente', // Se actualizará automáticamente con el Webhook luego
+                        mp_preference_id: preference.id
+                    });
+                });
 
-        db.save();
-        db.addNotification(db.currentUser.userId, '\u00A1Gracias por tu compra! Ya pod\u00E9s verla en tu historial.', 'success');
+                db.cart = [];
+                db.save();
 
-        this.navigate('/mi-cuenta');
+                // 5. Redirigir al usuario al pago
+                window.location.href = preference.init_point;
+            } else {
+                throw new Error(preference.message || 'No se pudo crear la preferencia de pago');
+            }
 
-        this.renderLayout();
-
+        } catch (e) {
+            console.error('MP Error:', e);
+            this.showToast('❌ Error al conectar con Mercado Pago: ' + e.message);
+        }
     },
 
 
