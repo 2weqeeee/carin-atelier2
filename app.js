@@ -11566,19 +11566,15 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
     addToCart(id) {
-
         const p = db.get('productos').find(prod => prod.id === id);
-
         if (p) {
-
             db.addToCart(p);
-
-            this.showToast(`Agregado: ${p.nombre}`);
-
+            this.showToast(`✅ Agregado: ${p.nombre}`);
             this.renderLayout(); // Update badge
-
+            
+            // Redirigimos directamente a la página de carrito dedicada
+            this.navigate('/carrito');
         }
-
     },
 
 
