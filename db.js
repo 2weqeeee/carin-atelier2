@@ -371,7 +371,10 @@ class DB {
                     profile = {
                         userId: userId,
                         email: email,
-                        nombre: user.user_metadata.full_name || email.split('@')[0],
+                        nombre: '',
+                        apellido: '',
+                        fechaNacimiento: '',
+                        onboardingCompleted: false,
                         roles: isAdminEmail ? ['admin', 'alumno'] : ['alumno'],
                         rango: isAdminEmail ? 'admin' : 'alumno',
                         foto: user.user_metadata.avatar_url || '',

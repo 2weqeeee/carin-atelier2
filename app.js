@@ -1821,6 +1821,12 @@ const App = {
 
         
 
+        const user = db.currentUser;
+        if (user && user.onboardingCompleted === false && cleanPath !== '/completar-perfil' && cleanPath !== '/login') {
+            window.location.hash = '/completar-perfil';
+            return;
+        }
+
         if (isHome) this.viewHome(main);
 
         else if (cleanPath === '/tienda') this.viewShop(main);
@@ -1838,6 +1844,7 @@ const App = {
         else if (cleanPath === '/login') this.viewLogin(main);
 
         else if (cleanPath === '/mi-cuenta') this.viewAccount(main);
+        else if (cleanPath === '/completar-perfil') this.viewCompleteProfile(main);
 
         else if (cleanPath === '/soporte') this.viewSupport(main);
 
@@ -3691,9 +3698,8 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                     </div>
 
                     ${isRegister ? `
-                        <div style="margin-bottom: 1.5rem;">
-                            <label style="display: block; font-size: 14px; font-weight: 600; margin-bottom: 0.5rem;">Nombre Completo</label>
-                            <input type="text" id="reg-nombre" placeholder="Tu nombre" style="width: 100%; padding: 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--color-border);">
+                        <div style="margin-bottom: 1.5rem; color: var(--color-text-muted); font-size: 13px;">
+                            <p>Crearás tu cuenta con tu email y luego completaremos tus datos legales.</p>
                         </div>
                     ` : ''}
 
@@ -3742,22 +3748,93 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
     },
 
     async handleSignup() {
-        const nombre = document.getElementById('reg-nombre').value.trim();
         const email = document.getElementById('auth-email').value.trim();
         const pass = document.getElementById('auth-pass').value.trim();
         
-        if (!nombre || !email || !pass) return this.showToast('   Completa todos los campos');
-        if (pass.length < 6) return this.showToast('\u26A0\uFE0F La contrase\u00F1a debe tener al menos 6 caracteres');
+        if (!email || !pass) return this.showToast('   Completa todos los campos');
+        if (pass.length < 6) return this.showToast('\u26A0\uFE0F La contraseña debe tener al menos 6 caracteres');
 
         try {
-            this.showToast('\uD83D\uDCDD Creando cuenta...');
-            await db.signup(email, pass, nombre);
-            this.showToast('\u2705 \u00A1Cuenta creada con \u00E9xito!');
-            this.navigate('/');
+            this.showToast('\uD83D\uDDE3 Creando cuenta...');
+            await db.signup(email, pass, '');
+            this.showToast('   ¡Cuenta creada!');
+            this.navigate('/completar-perfil');
         } catch (e) {
             console.error(e);
-            this.showToast('\u274C Error al registrarse: ' + e.message);
+            this.showToast('\u274C Error al crear cuenta');
         }
+    },
+
+    viewCompleteProfile(main) {
+        const user = db.currentUser;
+        if (!user) return this.navigate('/login');
+
+        main.innerHTML = `
+            <div class="container" style="max-width: 500px; margin-top: 5rem; margin-bottom: 5rem;">
+                <div style="background: var(--color-bg); border: 2px solid var(--color-primary); padding: 3rem; border-radius: var(--radius-lg); box-shadow: 0 20px 40px rgba(0,0,0,0.1); position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:0; left:0; width:100%; height:6px; background:linear-gradient(to right, var(--color-primary), #ec4899);"></div>
+                    
+                    <h1 style="font-size: 1.8rem; margin-bottom: 1rem;">✨ ¡Hola! Solo un paso más</h1>
+                    <p style="color: var(--color-text-muted); margin-bottom: 2rem; font-size: 0.95rem;">Para cumplir con las normas legales de Argentina y poder emitir tus facturas correctamente, necesitamos tus datos reales.</p>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 0.5rem; text-transform:uppercase; color:var(--color-primary);">Nombre *</label>
+                            <input type="text" id="ob-nombre" placeholder="Ej: Maria" value="${user.nombre || ''}" style="width: 100%; padding: 12px; border-radius: 8px; border: 1.5px solid var(--color-border); font-weight:600;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 0.5rem; text-transform:uppercase; color:var(--color-primary);">Apellido *</label>
+                            <input type="text" id="ob-apellido" placeholder="Ej: Lopez" value="${user.apellido || ''}" style="width: 100%; padding: 12px; border-radius: 8px; border: 1.5px solid var(--color-border); font-weight:600;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 2rem;">
+                        <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 0.5rem; text-transform:uppercase; color:var(--color-primary);">Fecha de Nacimiento *</label>
+                        <input type="date" id="ob-fecha" value="${user.fechaNacimiento || ''}" style="width: 100%; padding: 12px; border-radius: 8px; border: 1.5px solid var(--color-border); font-family:inherit; font-weight:600;">
+                        <p style="font-size: 11px; color: var(--color-text-muted); margin-top: 0.5rem;">Debes ser mayor de 18 años para comprar en la tienda.</p>
+                    </div>
+
+                    <button onclick="App.handleCompleteProfile()" class="btn btn-dark" style="width: 100%; padding: 15px; font-size: 1.1rem; font-weight:800; border-radius:12px; background:linear-gradient(to right, #1e293b, #0f172a); border:none; color:white; cursor:pointer; box-shadow: 0 10px 15px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                        Finalizar y Empezar 🚀
+                    </button>
+                    
+                    <p style="text-align:center; font-size:11px; color:var(--color-text-muted); margin-top:1.5rem;">Tus datos están protegidos y solo se usarán para fines legales y de facturación.</p>
+                </div>
+            </div>
+        `;
+    },
+
+    handleCompleteProfile() {
+        const nombre = document.getElementById('ob-nombre').value.trim();
+        const apellido = document.getElementById('ob-apellido').value.trim();
+        const fecha = document.getElementById('ob-fecha').value;
+
+        if (!nombre || !apellido || !fecha) {
+            return this.showToast('⚠️ Por favor completa todos los campos obligatorios');
+        }
+
+        // Validar Edad (18 años)
+        const hoy = new Date();
+        const cumple = new Date(fecha);
+        let edad = hoy.getFullYear() - cumple.getFullYear();
+        const m = hoy.getMonth() - cumple.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < cumple.getDate())) {
+            edad--;
+        }
+
+        if (edad < 18) {
+            return this.showToast('🚫 Lo sentimos, debes ser mayor de 18 años para operar legalmente en la tienda.');
+        }
+
+        const user = db.currentUser;
+        user.nombre = nombre;
+        user.apellido = apellido;
+        user.fechaNacimiento = fecha;
+        user.onboardingCompleted = true;
+
+        db.save();
+        this.showToast('✅ ¡Perfil completado con éxito!');
+        this.navigate('/');
     },
 
     async loginWithGoogle() {
@@ -3850,7 +3927,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
                         <div style="display:flex; align-items:center; gap:1rem; margin-bottom:0.5rem;">
 
-                            <h1 style="margin:0; font-size:2.5rem; line-height:1;">${user.nombre}</h1>
+                            <h1 style="margin:0; font-size:2.5rem; line-height:1;">${user.nombre} ${user.apellido || ''}</h1>
 
                             ${db.isCarinPlusActive(user) ? `
                                 <div style="display:flex; flex-direction:column; gap:2px;">
@@ -4014,9 +4091,18 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                                                 <span style="padding:4px 10px; border-radius:999px; font-size:10px; font-weight:700; background:${c.estado.includes('Reembolso')?'var(--color-danger-bg)':'var(--color-success-bg)'}; color:${c.estado.includes('Reembolso')?'var(--color-danger-text)':'var(--color-success-text)'}; border:1px solid ${c.estado.includes('Reembolso')?'var(--color-danger-border)':'var(--color-success-border)'}; text-transform:uppercase;">${c.estado}</span>
                                             </td>
                                             <td style="padding:1rem 1.5rem; text-align:right;">
-                                                ${c.estado !== 'Reembolso Solicitado' ? `
-                                                    <button onclick="App.requestRefund('${c.id}')" class="btn btn-default" style="font-size:10px; padding:4px 8px; color:var(--color-danger-text); border-color:var(--color-danger-border);">Solicitar Reembolso</button>
-                                                ` : '<span style="font-size:10px; color:var(--color-text-muted);">En trámite</span>'}
+                                                <div style="display:flex; gap:0.5rem; justify-content:flex-end; align-items:center;">
+                                                    ${(() => {
+                                                        const prod = db.get('productos').find(p => p.id === c.productoId || p.nombre === c.nombreProducto);
+                                                        if (prod && prod.archivo && (c.estado === 'Entregado' || c.estado === 'Pagado')) {
+                                                            return `<a href="${prod.archivo}" target="_blank" class="btn btn-primary" style="font-size:10px; padding:6px 12px; background:#16a34a; border:none; text-decoration:none; display:flex; align-items:center; gap:5px;">\uD83D\uDCE5 Descargar</a>`;
+                                                        }
+                                                        return '';
+                                                    })()}
+                                                    ${c.estado !== 'Reembolso Solicitado' ? `
+                                                        <button onclick="App.requestRefund('${c.id}')" class="btn btn-default" style="font-size:10px; padding:4px 8px; color:var(--color-text-muted); border-color:var(--color-border);">Reembolso</button>
+                                                    ` : '<span style="font-size:10px; color:var(--color-text-muted);">En trámite</span>'}
+                                                </div>
                                             </td>
                                         </tr>
                                     `).join('')}
@@ -6018,6 +6104,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                     ${sidebarLink('#/admin/anuncios','anuncios','📢','Anuncios')}
                     ${sidebarLink('#/admin/inicio','inicio','📄','Página Inicio')}
                     ${sidebarLink('#/admin/regiones','regiones','🌍','Regiones')}
+                    ${sidebarLink('#/admin/ajustes_pagos','ajustes_pagos','💳','Config. Pagos')}
                 </div>
 
                 <div class="admin-sidebar-category" onclick="App.toggleAdminSidebarCategory(this)">${translateText('Tienda')}</div>
@@ -6445,7 +6532,6 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                         <input id="np-emoji" type="text" placeholder="  ?" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
 
                         <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Precio ($ARS) *</label>
-
                         <input id="np-precio" type="number" placeholder="0" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
 
                         <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Precio Anterior</label>
@@ -6453,8 +6539,31 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                         <input id="np-precioAntes" type="number" placeholder="0" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"></div>
 
                         <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Método de Pago</label>
-
                         <select id="np-metodo" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);"><option>Por la página</option><option>WhatsApp</option><option>Ambas</option></select></div>
+
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Archivo de Descarga (PDF/ZIP)</label>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input id="np-archivo" type="text" placeholder="URL del archivo o subir ->" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+                            <label class="btn btn-default" style="cursor:pointer; margin:0; padding:10px 15px;">
+                                   Subir <input type="file" style="display:none;" onchange="App.handleImageUpload(event, '', 'np-archivo')">
+                            </label>
+                        </div>
+                        </div>
+
+                        <div style="grid-column: span 2; margin-top:1rem; padding:1rem; background:var(--color-bg-alt); border-radius:8px; border:1px dashed var(--color-border);">
+                            <label style="display:block; font-size:12px; font-weight:700; color:var(--color-primary); margin-bottom:1rem;">⚙️ Cuenta de Mercado Pago (Opcional)</label>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:600; color:var(--color-text-muted); margin-bottom:4px;">Public Key Específica</label>
+                                    <input id="np-mp-public" type="text" placeholder="Usar cuenta global" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:6px; font-size:12px;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:600; color:var(--color-text-muted); margin-bottom:4px;">Access Token Específico</label>
+                                    <input id="np-mp-access" type="password" placeholder="Usar cuenta global" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:6px; font-size:12px;">
+                                </div>
+                            </div>
+                            <p style="font-size:10px; color:var(--color-text-muted); margin-top:0.5rem;">Deja estos campos vacíos para usar la cuenta configurada globalmente.</p>
+                        </div>
 
                         <div style="grid-column: span 2;">
 
@@ -6648,6 +6757,38 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             `;
 
+        }
+
+        else if (section === 'ajustes_pagos') {
+            const mp = db.get('configPagos') || { public: '', access: '' };
+            content = this.renderSecHeader('💳 Ajustes de Pagos', 'Credenciales globales de Mercado Pago') + `
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md); max-width:600px;">
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Public Key (Global)</label>
+                        <input type="text" id="cfg-mp-pub" value="${mp.public}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                    </div>
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Access Token (Global)</label>
+                        <input type="password" id="cfg-mp-acc" value="${mp.access}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                    </div>
+                    <button class="btn btn-dark" onclick="App.savePagosConfig()">Guardar Credenciales</button>
+                </div>`;
+        }
+
+        else if (section === 'ajustes_pagos') {
+            const mp = db.get('configPagos') || { public: '', access: '' };
+            content = this.renderSecHeader('💳 Ajustes de Pagos', 'Credenciales globales de Mercado Pago') + `
+                <div style="background:var(--color-bg); border:1px solid var(--color-border); padding:2rem; border-radius:var(--radius-md); max-width:600px;">
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Public Key (Global)</label>
+                        <input type="text" id="cfg-mp-pub" value="${mp.public}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                    </div>
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block; font-weight:700; font-size:13px; margin-bottom:0.5rem;">Access Token (Global)</label>
+                        <input type="password" id="cfg-mp-acc" value="${mp.access}" style="width:100%; padding:10px; border:1px solid var(--color-border); border-radius:var(--radius-sm);">
+                    </div>
+                    <button class="btn btn-dark" onclick="App.savePagosConfig()">Guardar Credenciales</button>
+                </div>`;
         }
 
         else if (section === 'descuentos') {
@@ -8351,6 +8492,16 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
+    savePagosConfig() {
+        const publicVal = document.getElementById('cfg-mp-pub').value;
+        const accessVal = document.getElementById('cfg-mp-acc').value;
+        db.data.configPagos = { public: publicVal, access: accessVal };
+        db.save();
+        this.showToast('✅ Credenciales de pagos guardadas');
+    },
+
+
+
     saveCarinPlusPagina() {
 
         const cfg = db.get('configCarinPlusPagina') || {};
@@ -8851,16 +9002,34 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
                         <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Método de Pago</label>
-
                         <select id="ep-metodo" style="width:100%;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
-
                             <option ${p.metodoPago==='Por la página'?'selected':''}>Por la página</option>
-
                             <option ${p.metodoPago==='WhatsApp'?'selected':''}>WhatsApp</option>
-
                             <option ${p.metodoPago==='Ambas'?'selected':''}>Ambas</option>
-
                         </select></div>
+
+                        <div><label style="display:block;font-size:13px;font-weight:700;margin-bottom:0.5rem;">Archivo de Descarga (PDF/ZIP)</label>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <input id="ep-archivo" type="text" value="${p.archivo || ''}" placeholder="URL del archivo o subir ->" style="flex:1;padding:10px;border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+                            <label class="btn btn-default" style="cursor:pointer; margin:0; padding:10px 15px;">
+                                   Subir <input type="file" style="display:none;" onchange="App.handleImageUpload(event, '', 'ep-archivo')">
+                            </label>
+                        </div>
+                        </div>
+
+                        <div style="grid-column: span 2; margin-top:1rem; padding:1rem; background:var(--color-bg-alt); border-radius:8px; border:1px dashed var(--color-border);">
+                            <label style="display:block; font-size:12px; font-weight:700; color:var(--color-primary); margin-bottom:1rem;">⚙️ Cuenta de Mercado Pago (Opcional)</label>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:600; color:var(--color-text-muted); margin-bottom:4px;">Public Key Específica</label>
+                                    <input id="ep-mp-public" type="text" value="${p.mp_public || ''}" placeholder="Usar cuenta global" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:6px; font-size:12px;">
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:11px; font-weight:600; color:var(--color-text-muted); margin-bottom:4px;">Access Token Específico</label>
+                                    <input id="ep-mp-access" type="password" value="${p.mp_access || ''}" placeholder="Usar cuenta global" style="width:100%; padding:8px; border:1px solid var(--color-border); border-radius:6px; font-size:12px;">
+                                </div>
+                            </div>
+                        </div>
 
 
 
@@ -9004,6 +9173,9 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         p.descLarga = document.getElementById('ep-descLarga').value;
 
         p.metodoPago = document.getElementById('ep-metodo').value;
+        p.archivo = document.getElementById('ep-archivo') ? document.getElementById('ep-archivo').value.trim() : (p.archivo || '');
+        p.mp_public = document.getElementById('ep-mp-public').value.trim();
+        p.mp_access = document.getElementById('ep-mp-access').value.trim();
         p.talles = document.getElementById('ep-talles').value.split(',').map(t => t.trim()).filter(Boolean);
 
         // Carin+ Special Offer
@@ -9083,7 +9255,10 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
             region: document.getElementById('np-region') ? document.getElementById('np-region').value : 'global',
 
-            stock: 'Disponible', cantidad: 99, whatsapp: '', sgWhatsapp: '', archivo: '', tipoArchivo: '', tags: [], visitas: 0, compras: 0, carinPlusDescuento: 0,
+            archivo: document.getElementById('np-archivo') ? document.getElementById('np-archivo').value.trim() : '',
+            mp_public: document.getElementById('np-mp-public') ? document.getElementById('np-mp-public').value.trim() : '',
+            mp_access: document.getElementById('np-mp-access') ? document.getElementById('np-mp-access').value.trim() : '',
+            tipoArchivo: '', tags: [], visitas: 0, compras: 0, carinPlusDescuento: 0,
 
             isCarinExtraOffer: document.getElementById('np-carinextra') ? document.getElementById('np-carinextra').checked : false
 
