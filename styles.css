@@ -722,6 +722,38 @@ nav a:hover, nav a.active {
     -webkit-text-fill-color: #db2777; /* Falla al gradiente para unificar el texto en Rosa-Magenta */
 }
 
+/* Header Profesor Button */
+.header-profe-btn {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: transparent !important;
+    border: 2px solid #84cc16; /* Verde Lima */
+    color: white !important;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-left: 0.5rem;
+}
+
+.header-profe-btn .profe-text {
+    background: linear-gradient(90deg, #a3e635 0%, #84cc16 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+.header-profe-btn:hover, .header-profe-btn.active {
+    border-color: white !important;
+    color: #84cc16 !important;
+}
+
+.header-profe-btn:hover .profe-text, .header-profe-btn.active .profe-text {
+    background: none;
+    -webkit-text-fill-color: #84cc16;
+}
+
 /* Hero Section */
 .hero {
     padding: 8rem 2rem;

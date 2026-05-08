@@ -1309,7 +1309,7 @@ const App = {
                             ${user ? `
                                 <li><a href="#/mi-cuenta" class="${this.isActive('/mi-cuenta')}" style="${navLinkStyle('/mi-cuenta')}">Mi Cuenta</a></li>
                                 ${db.hasAnyRole(user.userId, ['admin', 'tecnico']) ? `<li><a href="#/admin" class="${this.isActive('/admin')}" style="${navLinkStyle('/admin')}">Admin</a></li>` : ''}
-                                ${this.isProfessor(user) ? `<li><a href="#/panel-profesor" class="${this.isActive('/panel-profesor')}" style="${navLinkStyle('/panel-profesor')}">Profesor</a></li>` : ''}
+                                ${this.isProfessor(user) ? `<li><a href="#/panel-profesor" class="${this.isActive('/panel-profesor')} header-profe-btn"><span class="profe-text">Profesor</span></a></li>` : ''}
                             ` : `
                                 <li><a href="#/login" class="${this.isActive('/login')}" style="${navLinkStyle('/login')}">Ingresar</a></li>
                             `}
@@ -1437,6 +1437,11 @@ const App = {
                     <a href="#/tienda" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/tienda')} text-decoration:none; padding:10px 14px; border-radius:10px; display:flex; align-items:center; gap:12px;">\uD83D\uDECD\uFE0F Tienda</a>
                     <a href="#/cursos" onclick="App.toggleMobileMenu()" style="${navLinkStyle('/cursos')} text-decoration:none; padding:10px 14px; border-radius:10px; display:flex; align-items:center; gap:12px;">\uD83C\uDF93 Cursos</a>
                     <a href="#/carin-plus" onclick="App.toggleMobileMenu()" class="header-carin-btn" style="margin:8px 0; text-align:center; padding:12px; border-radius:12px;"><span class="cp-text">Carin+ Premium</span> \u2728</a>
+                    ${this.isProfessor(user) ? `
+                        <a href="#/panel-profesor" onclick="App.toggleMobileMenu()" class="header-profe-btn" style="margin:8px 0; text-align:center; padding:12px; border-radius:12px; display:block;">
+                            <span class="profe-text">Panel Profesor</span> 👨‍🏫
+                        </a>
+                    ` : ''}
                 </div>
 
                 <hr style="border:0; border-top:1px solid var(--color-border); margin:0.5rem 0;">
