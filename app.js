@@ -2395,8 +2395,7 @@ const App = {
 
         const userId = db.currentUser?.userId;
 
-        const ownedProductIds = userId ? db.get('compras').filter(c => c.userId === userId).map(c => c.productId) : [];
-
+        const ownedProductIds = userId ? db.get('compras').filter(c => c.userId === userId && (c.estado === 'Entregado' || c.estado === 'Pagado')).map(c => c.productId) : [];
         const alreadyOwned = ownedProductIds.includes(p.id);
 
 
@@ -2701,11 +2700,31 @@ const App = {
 
                     <div style="display:flex; flex-direction:column; gap:0.75rem;">
 
-                        <button onclick="App.addToCart('${p.id}'); App.showToast('  🛒 Agregado al carrito')" class="btn btn-dark" style="width:100%; padding:14px; font-size:1rem; font-weight:700;">
+                        ${(() => {
+                            const compra = db.currentUser ? db.get('compras').find(c => c.userId === db.currentUser.userId && c.productId === p.id) : null;
+                            const status = compra ? compra.estado : null;
 
-                             🛒 Agregar al carrito
-
-                        </button>
+                            if (status === 'Pagado' || status === 'Entregado') {
+                                return `
+                                    <button onclick="App.navigate('/mi-cuenta')" class="btn btn-dark" style="width:100%; padding:14px; font-size:1rem; font-weight:700; background:var(--color-success) !important;">
+                                         ✅ Producto Comprado (Ir a descargar)
+                                    </button>`;
+                            } else if (status === 'Pendiente') {
+                                return `
+                                    <div style="background:#fff7ed; border:1px solid #ffedd5; padding:12px; border-radius:var(--radius-sm); text-align:center;">
+                                        <div style="color:#9a3412; font-weight:700; font-size:13px;">💳 Pago en proceso</div>
+                                        <div style="color:#c2410c; font-size:11px;">Si ya pagaste, espera unos minutos.</div>
+                                    </div>
+                                    <button onclick="App.addToCart('${p.id}'); App.showToast('🛒 Agregado al carrito')" class="btn btn-default" style="width:100%; padding:14px; font-size:1rem; font-weight:700;">
+                                         🛒 Comprar de nuevo
+                                    </button>`;
+                            } else {
+                                return `
+                                    <button onclick="App.addToCart('${p.id}'); App.showToast('🛒 Agregado al carrito')" class="btn btn-dark" style="width:100%; padding:14px; font-size:1rem; font-weight:700;">
+                                         🛒 Agregar al carrito
+                                    </button>`;
+                            }
+                        })()}
 
                         <a href="${whatsappUrl}" target="_blank" class="btn btn-default" style="width:100%; padding:14px; font-size:1rem; text-align:center;">
                                Consultar por WhatsApp
@@ -3775,7 +3794,7 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                     <div style="position:absolute; top:0; left:0; width:100%; height:6px; background:linear-gradient(to right, var(--color-primary), #ec4899);"></div>
                     
                     <h1 style="font-size: 1.8rem; margin-bottom: 1rem;">✨ ¡Hola! Solo un paso más</h1>
-                    <p style="color: var(--color-text-muted); margin-bottom: 2rem; font-size: 0.95rem;">Para cumplir con las normas legales de Argentina y poder emitir tus facturas correctamente, necesitamos tus datos reales.</p>
+                    <p style="color: var(--color-text-muted); margin-bottom: 2rem; font-size: 0.95rem;">Necesitamos que completes con tus datos los siguientes campos para la creación de tu cuenta:</p>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                         <div>
