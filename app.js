@@ -1119,6 +1119,17 @@ const App = {
                 this.viewAdmin(document.getElementById('main-content'), 'chat');
             }
         }, 3000);
+
+        // Global click listener to close dropdowns
+        document.addEventListener('click', (e) => {
+            const regionWrap = document.getElementById('region-selector-wrap');
+            const regionDd = document.getElementById('region-dropdown');
+            if (regionWrap && regionDd && !regionWrap.contains(e.target)) regionDd.style.display = 'none';
+
+            const userWrap = document.getElementById('user-badge-wrap');
+            const userDd = document.getElementById('user-dropdown');
+            if (userWrap && userDd && !userWrap.contains(e.target)) userDd.style.display = 'none';
+        });
     },
 
     renderSecHeader(title, subtitle, btn = '') {
@@ -1127,28 +1138,6 @@ const App = {
                 <div><h2 style="margin:0">${translateText(title)}</h2><p style="color:var(--color-text-muted);font-size:14px;margin-top:0.25rem;">${translateText(subtitle)}</p></div>
                 ${btn}
             </div>`;
-    },
-
-
-
-        // Global click listener to close dropdowns (Move here to avoid leaks)
-
-        document.addEventListener('click', (e) => {
-
-            const regionWrap = document.getElementById('region-selector-wrap');
-
-            const regionDd = document.getElementById('region-dropdown');
-
-            if (regionWrap && regionDd && !regionWrap.contains(e.target)) regionDd.style.display = 'none';
-
-            const userWrap = document.getElementById('user-badge-wrap');
-
-            const userDd = document.getElementById('user-dropdown');
-
-            if (userWrap && userDd && !userWrap.contains(e.target)) userDd.style.display = 'none';
-
-        });
-
     },
 
 
