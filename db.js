@@ -1,4 +1,4 @@
-﻿// db.js - Simulated Database for Carin Atelier
+// db.js - Simulated Database for Carin Atelier
 
 const DEFAULT_DATA = {
     profiles: [
@@ -774,6 +774,17 @@ class DB {
             return true;
         }
         return false;
+    }
+
+    updateTecnicoInfo(userId, data) {
+        if (!this.data.equipoSoporte) this.data.equipoSoporte = [];
+        let tech = this.data.equipoSoporte.find(x => x.userId === userId);
+        if (tech) {
+            Object.assign(tech, data);
+        } else {
+            this.data.equipoSoporte.push({ userId, ...data });
+        }
+        this.save();
     }
 
     updateTecnicoCargo(userId, cargo) {

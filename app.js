@@ -7345,45 +7345,6 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         /* --- 4. SOPORTE T CNICO --- */
 
-        else if (section === 'equipo') {
-
-            const equipo = users.filter(u => db.hasAnyRole(u.userId, ['admin', 'tecnico']));
-
-            content = this.renderSecHeader('🛠️ Equipo Técnico', 'Estado de actividad del personal de soporte') + `
-
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:1.5rem;">
-
-                    ${equipo.map(u => {
-
-                        const asignados = tickets.filter(t => t.asignadoA === u.userId && t.estado !== 'Cerrado').length;
-
-                        const isActivo = u.estadoActividad === 'Activo';
-
-                        return `
-
-                        <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:1.5rem; text-align:center; position:relative;">
-
-                            <div style="width:12px; height:12px; border-radius:50%; background:${isActivo?'var(--color-success-text)':'var(--color-danger-text)'}; position:absolute; top:1.5rem; right:1.5rem; box-shadow:0 0 0 3px ${isActivo?'var(--color-success-bg)':'var(--color-danger-bg)'};"></div>
-
-                            <div style="font-size:2.5rem; margin-bottom:1rem;">${u.rango==='admin'?'  ?':'  '}</div>
-
-                            <h3 style="margin:0 0 0.25rem 0;">${u.nombre}</h3>
-
-                            <div style="font-size:12px; color:var(--color-text-muted); text-transform:uppercase; font-weight:700; margin-bottom:1rem;">${u.rango}</div>
-
-                            <div style="background:var(--color-bg-alt); padding:0.5rem; border-radius:var(--radius-sm); font-size:13px; font-weight:600; border: 1px solid var(--color-border);">
-
-                                ${asignados} Tickets Asignados
-
-                            </div>
-
-                        </div>`;
-
-                    }).join('')}
-
-                </div>`;
-
-        }
 
         else if (section === 'chat') {
 
@@ -8694,9 +8655,11 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
     updateTechProfile(userId) {
         const sector = document.getElementById(`tech-sector-${userId}`).value;
         const cargo = document.getElementById(`tech-cargo-${userId}`).value;
-        db.updateTecnicoSector(userId, sector);
-        db.updateTecnicoCargo(userId, cargo);
+        
+        db.updateTecnicoInfo(userId, { sector, cargo });
+        
         this.showToast('✅ Perfil del técnico actualizado');
+        this.viewAdmin(document.getElementById('main-content'), 'equipo');
     },
 
     requestSanctionUI(userId, ticketId) {
@@ -11855,10 +11818,18 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
         const users = db.get('profiles');
         const user = users.find(x => x.userId === t.userId);
-        const equipo = db.get('equipoSoporte') || [];
-        const techList = equipo.map(e => {
-            const p = users.find(u => u.userId === e.userId);
-            return { userId: e.userId, nombre: p ? p.nombre : e.userId, cargo: e.cargo };
+        
+        // Get all users with tecnico role
+        const tecnicos = users.filter(u => u.roles && u.roles.includes('tecnico'));
+        const equipoInfo = db.get('equipoSoporte') || [];
+        
+        const techList = tecnicos.map(p => {
+            const info = equipoInfo.find(e => e.userId === p.userId) || {};
+            return { 
+                userId: p.userId, 
+                nombre: p.nombre, 
+                cargo: info.cargo || 'Técnico' 
+            };
         });
 
         return `
@@ -11949,27 +11920,33 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         const t = db.get('tickets').find(x => x.id === ticketId);
         if (!t) return;
 
+        if (!userId) {
+            t.asignadoA = null;
+            db.save();
+            this.selectAdminTicket(ticketId);
+            return;
+        }
+
         const users = db.get('profiles');
         const tech = users.find(u => u.userId === userId);
         const techName = tech ? tech.nombre : userId;
 
         const updateData = { asignadoA: userId };
-        if (userId && t.estado === 'Abierto') updateData.estado = 'En curso';
+        if (t.estado === 'Abierto') updateData.estado = 'En curso';
 
         db.updateTicket(ticketId, updateData);
 
-        if (userId) {
-            t.mensajes.push({
-                id: 'sys-' + Date.now(),
-                texto: `--- SE ASIGNÓ A ${techName.toUpperCase()} -----`,
-                fecha: new Date().toISOString(),
-                esSistema: true
-            });
-            db.save();
-        }
+        // Add system message
+        t.mensajes.push({
+            id: 'sys-' + Date.now(),
+            texto: `--- SE ASIGNÓ A ${techName.toUpperCase()} -----`,
+            fecha: new Date().toISOString(),
+            esSistema: true
+        });
+        db.save();
         
         this.selectAdminTicket(ticketId);
-        this.showToast('Ticket asignado');
+        this.showToast(`Ticket asignado a ${techName}`);
     },
 
     updateTicketPriorityAdmin(ticketId, priority) {
