@@ -9957,16 +9957,11 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
+        const isAct = (id) => section === id ? 'active' : '';
         const navItem = (id, icon, text) => `
-
             <a href="#" onclick="event.preventDefault(); App.viewProfessorPanel(document.getElementById('main-content'), '${id}')"
-
-               style="display:flex; align-items:center; gap:0.75rem; padding:12px 1rem; border-radius:var(--radius-md); font-weight:600; font-size:14px; text-decoration:none; color:${section===id?'var(--color-primary)':'var(--color-text-muted)'}; background:${section===id?'var(--color-primary-light)':'transparent'}; transition:all 0.2s;">
-
-                <span style="font-size:1.2rem;">${icon}</span>
-
-                ${text}
-
+               class="admin-nav-btn ${isAct(id)}">
+                ${icon} ${text}
             </a>`;
 
 
@@ -10476,64 +10471,66 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
 
 
 
-        main.innerHTML = `
+        const sidebar = `
+            <aside id="admin-sidebar" class="admin-sidebar" onscroll="sessionStorage.setItem('profe_sidebar_scroll', this.scrollTop)">
+                <button class="btn-close-sidebar" onclick="document.getElementById('admin-sidebar').classList.remove('active')" style="display:none; margin-bottom:1.5rem; align-items:center; gap:0.5rem; background:none; border:none; color:var(--color-primary); font-weight:800; cursor:pointer;">
+                    ← Cerrar Menú
+                </button>
 
-            <div class="admin-layout" style="display:grid; grid-template-columns:250px 1fr; min-height:calc(100vh - 70px);">
-
-                <!-- Sidebar -->
-
-                <aside class="admin-sidebar" style="background:var(--color-bg); border-right:1px solid var(--color-border); padding:2rem 1.5rem; display:flex; flex-direction:column; gap:0.5rem; position:sticky; top:70px; height:calc(100vh - 70px); overflow-y:auto;">
-
-                    <div style="margin-bottom:1.5rem; padding:0 0.5rem;">
-
-                        <div style="font-size:10px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;">Panel del Profesor</div>
-
-                        <div style="font-weight:700; font-size:1.2rem;">${profe.nombre}</div>
-
-                    </div>
-
-                    <div style="font-size:10px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:1px; margin:1rem 0 0.5rem 0.5rem;">Gestión</div>
-
-                    ${navItem('alumnos', '👥', 'Mis Alumnos')}
-
-                    ${navItem('classroom', '🎓', 'Classroom')}
-
-                    <div style="font-size:10px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:1px; margin:1.5rem 0 0.5rem 0.5rem;">Ajustes</div>
-
-                    ${navItem('pagos', '💰', 'Datos de Pago')}
-
-                    ${navItem('perfil', '👤', 'Mi Perfil')}
-
-                    ${isAdmin ? `
-
-                        <div style="margin-top:auto; padding-top:1.5rem; border-top:1px solid var(--color-border);">
-
-                            <a href="#/admin" class="btn btn-dark" style="width:100%; font-size:12px; padding:10px;">⬅️ Volver a Admin</a>
-
-                        </div>
-
-                    ` : ''}
-
-                </aside>
-
-
-
-                <!-- Main Content -->
-
-                <div class="admin-main" style="padding:3rem 2rem; background:var(--color-bg-alt);">
-
-                    <div style="max-width:1200px; margin:0 auto;">
-
-                        ${content}
-
-                    </div>
-
+                <div style="margin-bottom:1.5rem; padding:0 0.5rem;">
+                    <div style="font-size:10px; font-weight:800; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem;">Panel del Profesor</div>
+                    <div style="font-weight:700; font-size:1.2rem;">${profe.nombre}</div>
                 </div>
 
-            </div>`;
+                <div class="admin-sidebar-category">${translateText('Tu Gestión')}</div>
+                <div class="admin-subnav">
+                    ${navItem('alumnos', '👥', 'Mis Alumnos')}
+                    ${navItem('classroom', '🎓', 'Classroom')}
+                </div>
 
+                <div class="admin-sidebar-category">${translateText('Cuenta')}</div>
+                <div class="admin-subnav">
+                    ${navItem('pagos', '💰', 'Datos de Pago')}
+                    ${navItem('perfil', '👤', 'Mi Perfil')}
+                </div>
+
+                ${isAdmin ? `
+                    <div style="margin-top:auto; padding-top:1.5rem; border-top:1px solid var(--color-border);">
+                        <a href="#/admin" class="btn btn-dark" style="width:100%; font-size:12px; padding:10px;">⬅️ Volver a Admin</a>
+                    </div>
+                ` : ''}
+            </aside>`;
+
+        const existingSidebar = document.getElementById('admin-sidebar');
+        const existingMain = document.getElementById('admin-main-area');
+
+        if (existingSidebar && existingMain) {
+            existingSidebar.querySelectorAll('.admin-nav-btn').forEach(btn => {
+                const btnOnClick = btn.getAttribute('onclick');
+                const btnSec = btnOnClick ? btnOnClick.match(/'([^']+)'\)/)[1] : '';
+                btn.classList.toggle('active', btnSec === section);
+            });
+
+            existingMain.innerHTML = content;
+        } else {
+            main.innerHTML = `
+                <div class="container" style="margin-top:2rem; margin-bottom:5rem;">
+                    <div class="admin-layout">
+                        ${sidebar}
+                        <div id="admin-main-area" class="admin-main">${content}</div>
+                    </div>
+                    <button class="admin-sidebar-toggle-btn" onclick="document.getElementById('admin-sidebar').classList.toggle('active')">
+                        ☰
+                    </button>
+                </div>`;
+            
+            const savedScroll = sessionStorage.getItem('profe_sidebar_scroll');
+            if (savedScroll) {
+                const sb = document.getElementById('admin-sidebar');
+                if (sb) sb.scrollTop = parseInt(savedScroll);
+            }
+        }
     },
-
 
 
     filterCourseRegister(cursoId) {
