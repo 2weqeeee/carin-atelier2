@@ -3901,10 +3901,34 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
     },
 
     viewAccount(main) {
-
         const user = db.currentUser;
-
         if (!user) return this.navigate('/login');
+
+        // --- DETECTOR DE PAGOS DE MERCADO PAGO ---
+        const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
+        const mpStatus = urlParams.get('status') || urlParams.get('payment');
+        
+        if (mpStatus === 'approved' || mpStatus === 'success') {
+            const todasLasCompras = db.get('compras');
+            let huboCambios = false;
+            
+            // Buscamos compras pendientes de este usuario para marcarlas como pagadas
+            todasLasCompras.forEach(c => {
+                if (c.userId === user.userId && c.estado === 'Pendiente') {
+                    c.estado = 'Pagado';
+                    huboCambios = true;
+                }
+            });
+
+            if (huboCambios) {
+                db.save();
+                this.showToast('✅ ¡Pago confirmado! Gracias por tu compra.');
+                // Limpiamos la URL para que no vuelva a saltar el toast al recargar
+                const cleanHash = window.location.hash.split('?')[0];
+                window.history.replaceState({}, document.title, window.location.pathname + cleanHash);
+            }
+        }
+        // ----------------------------------------
 
         const compras = db.get('compras').filter(c => c.userId === user.userId);
 
