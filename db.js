@@ -1,4 +1,4 @@
-// db.js - Simulated Database for Carin Atelier
+﻿// db.js - Simulated Database for Carin Atelier
 
 const DEFAULT_DATA = {
     profiles: [
@@ -9,12 +9,12 @@ const DEFAULT_DATA = {
         { userId: 'plus1', email: 'vip@gmail.com', nombre: 'Sofia Plus', telefono: '+5493547333333', genero: 'Femenino', rango: 'carin_plus', roles: ['carin_plus'], fechaRegistro: new Date().toISOString() },
         { userId: 'profe1', email: 'profe@carin.com', nombre: 'Ana Profe', telefono: '+5493547444444', genero: 'Femenino', rango: 'profesor', roles: ['profesor'], fechaRegistro: new Date().toISOString(), estadoActividad: 'Activo' }
     ],
-    rese\u00F1as: [
-        { id: 'r1', productId: '1', userId: 'user1', rating: 5, comentario: ' \u00A1Me encant\u00F3 el molde! Muy f\u00E1cil de seguir.', fecha: new Date(Date.now() - 86400000 * 2).toISOString(), purchaseDate: new Date(Date.now() - 86400000 * 3).toISOString(), tags: ['Verificado'], Reembolsado: false },
-        { id: 'r2', productId: '1', userId: 'plus1', rating: 4, comentario: 'Muy buen calce, aunque me cost\u00F3 un poco la parte del cuello.', fecha: new Date(Date.now() - 3600000 * 3).toISOString(), purchaseDate: new Date(Date.now() - 3600000 * 6).toISOString(), tags: ['Carin+ Member'], Reembolsado: false }
+    reseñas: [
+        { id: 'r1', productId: '1', userId: 'user1', rating: 5, comentario: ' ¡Me encantó el molde! Muy fácil de seguir.', fecha: new Date(Date.now() - 86400000 * 2).toISOString(), purchaseDate: new Date(Date.now() - 86400000 * 3).toISOString(), tags: ['Verificado'], Reembolsado: false },
+        { id: 'r2', productId: '1', userId: 'plus1', rating: 4, comentario: 'Muy buen calce, aunque me costó un poco la parte del cuello.', fecha: new Date(Date.now() - 3600000 * 3).toISOString(), purchaseDate: new Date(Date.now() - 3600000 * 6).toISOString(), tags: ['Carin+ Member'], Reembolsado: false }
     ],
     preguntas: [
-        { id: 'p1', productId: '1', userId: 'user1', texto: ' \u00BFViene en talle XXL?', respuesta: ' \u00A1Hola! S\u00ED, este modelo incluye hasta el talle XXL.', fecha: new Date().toISOString() }
+        { id: 'p1', productId: '1', userId: 'user1', texto: ' ¿Viene en talle XXL?', respuesta: ' ¡Hola! Sí, este modelo incluye hasta el talle XXL.', fecha: new Date().toISOString() }
     ],
     compras: [],
     reembolsos: [], // Store refund requests
@@ -29,42 +29,42 @@ const DEFAULT_DATA = {
         { id: 'accesorios', nombre: 'Accesorios', descripcion: 'Complementos de costura', color: '#8fa0b8', activa: true }
     ],
     productos: [
-        { 
+        {
             id: '1',
-            nombre: 'Molde Blusa Drapeada', 
-            descCorta: 'Elegante y fresca para verano.', 
-            descLarga: 'Este molde digital incluye todos los talles (S al XXL) con instrucciones detalladas de confecci\u00F3n. Ideal para telas fluidas como seda o viscosa.',
+            nombre: 'Molde Blusa Drapeada',
+            descCorta: 'Elegante y fresca para verano.',
+            descLarga: 'Este molde digital incluye todos los talles (S al XXL) con instrucciones detalladas de confección. Ideal para telas fluidas como seda o viscosa.',
             categoriaId: 'cat_moldes',
             subcategoriaId: null,
-            cat: 'Moldes Digitales', 
-            emoji: '👗', 
-            imagen: '', 
-            imagenes: [], 
-            precio: 1500, 
-            precioAntes: 2000, 
-            stock: 'Disponible', 
-            cantidad: 100, 
-            talles: ['S', 'M', 'L', 'XL', 'XXL'], 
-            colores: [], 
-            archivo: 'blusa-drapeada.pdf', 
-            tipoArchivo: 'PDF', 
-            metodoPago: 'Ambas', 
-            whatsapp: '5493547000000', 
-            msgWhatsapp: 'Hola! Me interesa el molde de la Blusa Drapeada.', 
-            destacado: true, 
-            visible: true, 
+            cat: 'Moldes Digitales',
+            emoji: '👗',
+            imagen: '',
+            imagenes: [],
+            precio: 1500,
+            precioAntes: 2000,
+            stock: 'Disponible',
+            cantidad: 100,
+            talles: ['S', 'M', 'L', 'XL', 'XXL'],
+            colores: [],
+            archivo: 'blusa-drapeada.pdf',
+            tipoArchivo: 'PDF',
+            metodoPago: 'Ambas',
+            whatsapp: '5493547000000',
+            msgWhatsapp: 'Hola! Me interesa el molde de la Blusa Drapeada.',
+            destacado: true,
+            visible: true,
             carinPlusDescuento: 45,
-            tags: ['verano', 'blusa', 'digital'], 
-            visitas: 124, 
-            compras: 45, 
-            descargas: 40, 
-            clicksWhatsapp: 12 
+            tags: ['verano', 'blusa', 'digital'],
+            visitas: 124,
+            compras: 45,
+            descargas: 40,
+            clicksWhatsapp: 12
         },
         {
             id: '2',
-            nombre: 'Clase de Costura B\u00E1sica',
+            nombre: 'Clase de Costura Básica',
             descCorta: 'Aprende desde cero en nuestro taller.',
-            descLarga: 'Curso presencial de 4 clases donde aprender\u00E1s a usar la m\u00E1quina, realizar costuras b\u00E1sicas y terminar tu primera prenda.',
+            descLarga: 'Curso presencial de 4 clases donde aprenderás a usar la máquina, realizar costuras básicas y terminar tu primera prenda.',
             categoriaId: 'cat_clases',
             subcategoriaId: 'cat_clases_costura',
             cat: 'Clases > Costura',
@@ -93,9 +93,9 @@ const DEFAULT_DATA = {
         },
         {
             id: '3',
-            nombre: 'Molde Pantal\u00F3n Palazzo',
-            descCorta: 'Comodidad y estilo para todo el a\u00F1o.',
-            descLarga: 'Molde digital con instrucciones paso a paso. Talles desde XS hasta 3XL. Perfecto para telas con ca\u00EDda como el lino o crepe.',
+            nombre: 'Molde Pantalón Palazzo',
+            descCorta: 'Comodidad y estilo para todo el año.',
+            descLarga: 'Molde digital con instrucciones paso a paso. Talles desde XS hasta 3XL. Perfecto para telas con caída como el lino o crepe.',
             categoriaId: 'cat_moldes',
             subcategoriaId: null,
             cat: 'Moldes Digitales',
@@ -117,15 +117,15 @@ const DEFAULT_DATA = {
             visible: true,
             carinPlusDescuento: 50,
             tags: ['pantalón', 'palazzo', 'digital'],
-            visitas: 210, 
-            compras: 67, 
-            descargas: 60, 
-            clicksWhatsapp: 15 
+            visitas: 210,
+            compras: 67,
+            descargas: 60,
+            clicksWhatsapp: 15
         },
         {
             id: '4',
             nombre: 'Molde Vestido de Gala',
-            descCorta: 'Sofisticaci\u00F3n para eventos especiales.',
+            descCorta: 'Sofisticación para eventos especiales.',
             descLarga: 'Molde digital de vestido largo con escote en V y espalda descubierta. Incluye tutorial de costura para terminaciones finas.',
             categoriaId: 'cat_moldes',
             cat: 'Moldes Digitales',
@@ -141,7 +141,7 @@ const DEFAULT_DATA = {
         {
             id: '5',
             nombre: 'Molde Top Deportivo',
-            descCorta: 'M\u00E1xima comodidad para entrenar.',
+            descCorta: 'Máxima comodidad para entrenar.',
             descLarga: 'Molde de top deportivo con espalda cruzada. Ideal para telas con alta elasticidad como lycra o supplex.',
             categoriaId: 'cat_moldes',
             cat: 'Moldes Digitales',
@@ -155,8 +155,8 @@ const DEFAULT_DATA = {
         {
             id: '6',
             nombre: 'Molde Short de Verano',
-            descCorta: 'Fresco y f\u00E1cil de confeccionar.',
-            descLarga: 'Short con cintura el\u00E1stica y bolsillos laterales. Un proyecto ideal para principiantes.',
+            descCorta: 'Fresco y fácil de confeccionar.',
+            descLarga: 'Short con cintura elástica y bolsillos laterales. Un proyecto ideal para principiantes.',
             categoriaId: 'cat_moldes',
             cat: 'Moldes Digitales',
             emoji: '🩳',
@@ -166,11 +166,11 @@ const DEFAULT_DATA = {
             destacado: true,
             tags: ['verano', 'short', 'basico']
         },
-        ...Array.from({length: 30}).map((_, i) => ({
+        ...Array.from({ length: 30 }).map((_, i) => ({
             id: `test_${i}`,
-            nombre: `Producto Test ${i+1}`,
-            descCorta: `Descripción corta para testeo de paginación ${i+1}`,
-            descLarga: `Descripción detallada del producto de prueba ${i+1}.`,
+            nombre: `Producto Test ${i + 1}`,
+            descCorta: `Descripción corta para testeo de paginación ${i + 1}`,
+            descLarga: `Descripción detallada del producto de prueba ${i + 1}.`,
             categoriaId: 'moldes',
             cat: 'Pruebas',
             emoji: i % 2 === 0 ? '📦' : '🛍️',
@@ -186,50 +186,50 @@ const DEFAULT_DATA = {
         { id: 'C2', userId: 'plus1', productoId: '3', nombreProducto: 'Molde Pantalón Palazzo', precio: 900, fecha: '2026-05-03T10:15:00Z', estado: 'Entregado' }
     ],
     tickets: [
-        { 
-            id: 'T1', 
-            userId: 'user1', 
-            asunto: 'Consulta sobre moldes', 
-            prioridad: 'Media', 
+        {
+            id: 'T1',
+            userId: 'user1',
+            asunto: 'Consulta sobre moldes',
+            prioridad: 'Media',
             estado: 'Abierto',
-            asignadoA: null, 
+            asignadoA: null,
             mensajes: [
                 { id: 'm1', texto: 'Hola, los moldes ya vienen con margen de costura?', fecha: '2026-05-04T09:00:00Z', esEquipo: false },
                 { id: 'm2', texto: 'Hola Maria! Si, todos nuestros moldes incluyen 1cm de margen.', fecha: '2026-05-04T10:30:00Z', esEquipo: true }
             ]
         },
-        { 
-            id: 'T2', 
-            userId: 'plus1', 
-            asunto: 'Problema con la descarga', 
-            prioridad: 'Alta', 
+        {
+            id: 'T2',
+            userId: 'plus1',
+            asunto: 'Problema con la descarga',
+            prioridad: 'Alta',
             estado: 'En curso',
-            asignadoA: 'tecnico1', 
+            asignadoA: 'tecnico1',
             mensajes: [
                 { id: 'm3', texto: 'No me llega el correo con el PDF.', fecha: '2026-05-05T10:00:00Z', esEquipo: false }
             ]
         }
     ],
     chatEquipo: [
-        { id: 'msg1', userId: 'admin1', texto: 'Buenos das equipo, hoy lanzamos la nueva colección de moldes.', fecha: new Date(Date.now() - 3600000).toISOString() },
-        { id: 'msg2', userId: 'tecnico1', texto: 'Recibido. Estar atento a los tickets de soporte.', fecha: new Date(Date.now() - 3500000).toISOString() }
+        { id: 'msg1', userId: 'admin1', texto: 'Buenos días equipo, hoy lanzamos la nueva colección de moldes.', fecha: new Date(Date.now() - 3600000).toISOString() },
+        { id: 'msg2', userId: 'tecnico1', texto: 'Recibido. Estaré atento a los tickets de soporte.', fecha: new Date(Date.now() - 3500000).toISOString() }
     ],
     logs: [
         { id: 'L_NEW', type: 'system', text: 'Restauración de sistema completada: Iconos y caracteres especiales corregidos.', fecha: new Date().toISOString(), userId: 'admin1' },
         { id: 'L1', type: 'system', text: 'Sistema iniciado correctamente.', fecha: new Date().toISOString(), userId: 'admin1' }
     ],
     cursos: [
-        { 
-            id: 'C-LENCERIA', 
-            titulo: 'Curso de Lencer\u00EDa', 
-            profeId: 'profe1', 
-            maxAlumnos: 10, 
-            alumnos: ['user1'], 
-            horarios: 'S\u00E1bados 10:00 - 12:00',
-            schedule: [ { dia: 'S\u00E1bado', horaInicio: '10:00', horaFin: '12:00', frecuencia: '1 vez por semana' } ],
+        {
+            id: 'C-LENCERIA',
+            titulo: 'Curso de Lencería',
+            profeId: 'profe1',
+            maxAlumnos: 10,
+            alumnos: ['user1'],
+            horarios: 'Sábados 10:00 - 12:00',
+            schedule: [{ dia: 'Sábado', horaInicio: '10:00', horaFin: '12:00', frecuencia: '1 vez por semana' }],
             descripcion: 'Aprende a realizar conjuntos de ropa interior a medida.',
-            descripcionLarga: 'Este curso presencial mensual te guiar\u00E1 paso a paso en la creaci\u00F3n de lencer\u00EDa a medida. Comenzaremos con los patrones b\u00E1sicos y avanzaremos hasta dise\u00F1os m\u00E1s complejos. Ideal para quienes ya tienen nociones b\u00E1sicas de costura y quieren especializarse.',
-            requisitos: ['Máquina de coser', 'Conocéimientos básicos', 'Kit de costura básico'],
+            descripcionLarga: 'Este curso presencial mensual te guiará paso a paso en la creación de lencería a medida. Comenzaremos con los patrones básicos y avanzaremos hasta diseños más complejos. Ideal para quienes ya tienen nociones básicas de costura y quieren especializarse.',
+            requisitos: ['Máquina de coser', 'Conocimientos básicos', 'Kit de costura básico'],
             incluye: ['Materiales de la primera clase', 'Apuntes impresos', 'Certificado final'],
             precio: 15000,
             precioInterno: 10000,
@@ -254,7 +254,7 @@ const DEFAULT_DATA = {
         subtituloHero: 'Encuentra los mejores moldes digitales y cursos presenciales en Alta Gracia.'
     },
     anuncios: [
-        { id: '1', texto: ' ? Nuevos moldes de invierno ya disponibles!', colorFondo: 'var(--color-primary)', activo: true }
+        { id: '1', texto: ' 🎉 Nuevos moldes de invierno ya disponibles!', colorFondo: 'var(--color-primary)', activo: true }
     ],
     configInicio: {
         maxDestacados: 6,
@@ -301,14 +301,14 @@ const DEFAULT_DATA = {
         { id: 'cat_telas', nombre: 'Telas', parentId: 'cat_insumos' }
     ],
     regiones: [
-        { id: 'global', nombre: 'Global', emoji: '\uD83C\uDF10', activa: true },
-        { id: 'argentina', nombre: 'Argentina', emoji: '\uD83C\uDDE6\uD83C\uDDF7', activa: true },
-        { id: 'latam', nombre: 'Latinoam\u00E9rica', emoji: '\uD83C\uDF0E', activa: true }
+        { id: 'global', nombre: 'Global', emoji: '🌐', activa: true },
+        { id: 'argentina', nombre: 'Argentina', emoji: '🇦🇷', activa: true },
+        { id: 'latam', nombre: 'Latinoamérica', emoji: '🌎', activa: true }
     ],
     configCarinPlusPlanes: [
         { id: 'p1', meses: 1, precio: 2500, descuento: 0, etiqueta: '' },
         { id: 'p3', meses: 3, precio: 6500, descuento: 0, etiqueta: '' },
-        { id: 'p6', meses: 6, precio: 11000, descuento: 15, etiqueta: 'Ms Popular' },
+        { id: 'p6', meses: 6, precio: 11000, descuento: 15, etiqueta: 'Más Popular' },
         { id: 'p12', meses: 12, precio: 18000, descuento: 40, etiqueta: 'Mejor Valor' }
     ],
     horarios: {
@@ -333,7 +333,6 @@ const DEFAULT_DATA = {
     materialesClase: [
         { id: 'm1', cursoId: 'C-LENCERIA', titulo: 'Guía de materiales', descripcion: 'Lista completa para la primera clase.', archivo: '', tipo: 'PDF', fecha: new Date().toISOString(), orden: 0 }
     ],
-    notificaciones: [],
     reservaSolicitudes: []
 };
 
@@ -343,35 +342,32 @@ class DB {
     constructor() {
         this.supabaseUrl = "https://fdcugljuketyxkmluhgn.supabase.co";
         this.supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkY3VnbGp1a2V0eXhrbWx1aGduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxMTkxNjIsImV4cCI6MjA5MzY5NTE2Mn0.fu39hHKcyUF8hL5Zz6CEab3p_PzLBv1dbkL5PaHoAZ4";
-        
+
         this.supabase = supabase.createClient(this.supabaseUrl, this.supabaseKey);
-        
+
         this.isSynced = false;
         this.load();
         if (!this.data.profiles) this.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-        
-        this.initAuthListener(); // Iniciamos el escucha de sesi\u00F3n
+
+        this.initAuthListener();
         this.syncWithSupabase();
     }
 
     initAuthListener() {
         this.supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log("\uD83D\uDD11 Evento Auth:", event);
+            console.log("🔑 Evento Auth:", event);
             if (session && session.user) {
-                // Usuario conectado
                 const user = session.user;
                 const email = user.email;
                 const userId = user.id;
 
-                // Buscar o crear perfil en nuestra tabla de perfiles
                 let profile = this.data.profiles.find(p => p.userId === userId || p.email === email);
-                
-                // Lista de correos que siempre deben ser ADMIN
+
                 const adminEmails = ['brunodavidsmith2006@gmail.com', 'carinaandreanieto@gmail.com'];
                 const isAdminEmail = adminEmails.includes(email.toLowerCase());
 
                 if (!profile) {
-                    console.log("\u2728 Creando nuevo perfil para usuario de Supabase...");
+                    console.log("✨ Creando nuevo perfil para usuario de Supabase...");
                     profile = {
                         userId: userId,
                         email: email,
@@ -389,7 +385,6 @@ class DB {
                         profile.userId = userId;
                         changed = true;
                     }
-                    // Forzar Admin si es uno de los correos autorizados
                     if (isAdminEmail && profile.rango !== 'admin') {
                         profile.roles = ['admin', 'alumno'];
                         profile.rango = 'admin';
@@ -401,7 +396,6 @@ class DB {
                 this.currentUser = profile;
                 localStorage.setItem('carin_atelier_user', JSON.stringify(profile));
             } else {
-                // Usuario desconectado
                 this.currentUser = null;
                 localStorage.removeItem('carin_atelier_user');
             }
@@ -455,9 +449,8 @@ class DB {
     }
 
     async syncWithSupabase() {
-        console.log("?? Iniciando sincronizaci\u00F3n con Supabase...");
-        
-        // 1. Carga Inicial
+        console.log("📡 Iniciando sincronización con Supabase...");
+
         const { data, error } = await this.supabase
             .from('system_data')
             .select('content')
@@ -465,29 +458,28 @@ class DB {
             .single();
 
         if (error) {
-            console.error("\u274C Error al cargar de Supabase:", error.message);
+            console.error("❌ Error al cargar de Supabase:", error.message);
             if (error.code === 'PGRST116') {
-                console.log("\u26A0\uFE0F La fila 'main' no existe. Cre\u00E1ndola...");
+                console.log("⚠️ La fila 'main' no existe. Creándola...");
                 this.saveToCloud();
             }
         } else if (data && data.content) {
-            console.log("\u2705 Datos cargados desde la nube con \u00E9xito.");
+            console.log("✅ Datos cargados desde la nube con éxito.");
             this.data = data.content;
-            this.isSynced = true; // Desbloqueamos el guardado
+            this.isSynced = true;
             localStorage.setItem('carin_atelier_db', JSON.stringify(this.data));
             if (window.App && typeof window.App.renderLayout === 'function') {
                 window.App.renderLayout();
             }
         } else {
-            this.isSynced = true; // Es la primera vez, tambi\u00E9n desbloqueamos
+            this.isSynced = true;
         }
 
-        // 2. Escuchar cambios en tiempo real
         this.supabase
             .channel('db-changes')
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_data' }, (payload) => {
                 if (payload.new && payload.new.id === 'main') {
-                    console.log("\uD83D\uDCE1 Actualizaci\u00F3n recibida de otro dispositivo.");
+                    console.log("📡 Actualización recibida de otro dispositivo.");
                     this.data = payload.new.content;
                     localStorage.setItem('carin_atelier_db', JSON.stringify(this.data));
                     if (window.App && typeof window.App.renderLayout === 'function') {
@@ -500,27 +492,26 @@ class DB {
 
     async saveToCloud() {
         if (!this.isSynced) {
-            console.warn("\u26A0\uFE0F Guardado en la nube bloqueado: Esperando sincronizaci\u00F3n inicial...");
+            console.warn("⚠️ Guardado en la nube bloqueado: Esperando sincronización inicial...");
             return;
         }
 
-        console.log("?? Intentando guardar en la nube...");
+        console.log("📡 Intentando guardar en la nube...");
         const { data, error } = await this.supabase
             .from('system_data')
             .upsert({ id: 'main', content: this.data });
 
         if (error) {
-            console.error("\u274C ERROR AL GUARDAR EN LA NUBE:", error.message);
-            console.error("Detalles:", error);
-            if (window.App) window.App.showToast('\u274C Error de sincronizaci\u00F3n con la nube');
+            console.error("❌ ERROR AL GUARDAR EN LA NUBE:", error.message);
+            if (window.App) window.App.showToast('❌ Error de sincronización con la nube');
         } else {
-            console.log("\u2705 Sincronizaci\u00F3n en la nube completada.");
+            console.log("✅ Sincronización en la nube completada.");
         }
     }
 
     async uploadImage(file, path = 'images') {
         if (!file) return null;
-        
+
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
         const filePath = `${fileName}`;
@@ -534,7 +525,6 @@ class DB {
             return null;
         }
 
-        // Get Public URL
         const { data: publicUrlData } = this.supabase.storage
             .from('images')
             .getPublicUrl(filePath);
@@ -554,15 +544,11 @@ class DB {
         const saved = localStorage.getItem('carin_atelier_db');
         try {
             this.data = saved ? JSON.parse(saved) : DEFAULT_DATA;
-            
-            // Ya no necesitamos la limpieza de signos de pregunta, 
-            // ahora solo interfiere con las URLs de las fotos.
         } catch (e) {
             console.error("Error parsing local storage, falling back to default data", e);
             this.data = DEFAULT_DATA;
         }
-        
-        // Migrations: Ensure new collections exist
+
         if (!this.data.chatEquipo) this.data.chatEquipo = DEFAULT_DATA.chatEquipo;
         if (!this.data.configInicio) this.data.configInicio = DEFAULT_DATA.configInicio;
         if (!this.data.configCarinPlus) this.data.configCarinPlus = DEFAULT_DATA.configCarinPlus;
@@ -591,12 +577,10 @@ class DB {
             this.data.configCarinPlusPlanes.unshift({ id: 'p1', meses: 1, precio: 2500, descuento: 0, etiqueta: '' });
             this.save();
         }
-        // Migrate products to have a region field if missing
         if (this.data.productos) {
             this.data.productos.forEach(p => { if (!p.region) p.region = 'global'; });
         }
-        
-        // Migrations: Ensure all demo profiles exist
+
         if (this.data.profiles) {
             DEFAULT_DATA.profiles.forEach(defProfile => {
                 if (!this.data.profiles.find(p => p.email === defProfile.email)) {
@@ -605,7 +589,6 @@ class DB {
             });
         }
 
-        // Migrate roles array
         if (this.data.profiles) {
             this.data.profiles.forEach(p => {
                 if (!p.roles) {
@@ -613,13 +596,11 @@ class DB {
                 }
             });
 
-            // Ensure rango is always updated to reflect the highest role for UI compatibility
             this.checkExpiredRoles();
             this.data.profiles.forEach(p => {
                 p.rango = this.getHighestRole(p);
             });
 
-            // Failsafe: ensure admin@carin.com is always admin
             const masterAdmin = this.data.profiles.find(p => p.email === 'admin@carin.com');
             if (masterAdmin && !masterAdmin.roles.includes('admin')) {
                 masterAdmin.roles.push('admin');
@@ -632,13 +613,12 @@ class DB {
     save() {
         try {
             this.checkExpiredRoles();
-            // Update rango for everyone just in case
             if (this.data.profiles) {
                 this.data.profiles.forEach(p => { p.rango = this.getHighestRole(p); });
             }
-            
+
             localStorage.setItem('carin_atelier_db', JSON.stringify(this.data));
-            this.saveToCloud(); // Sync to cloud
+            this.saveToCloud();
             if (this.currentUser) {
                 const upToDateUser = this.data.profiles.find(p => p.userId === this.currentUser.userId);
                 if (upToDateUser) this.currentUser = upToDateUser;
@@ -648,7 +628,7 @@ class DB {
         } catch (e) {
             console.error("Critical: Storage limit reached", e);
             if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-                alert("   Atención! El almacenamiento está lleno.\n\nNo se pueden guardar más cambios. Por favor, elimina algunos productos o cursos con imágenes muy grandes para liberar espacio.");
+                alert("Atención! El almacenamiento está lleno.\n\nNo se pueden guardar más cambios.");
             }
         }
     }
@@ -659,7 +639,7 @@ class DB {
             id: 'N' + Date.now() + Math.floor(Math.random() * 1000),
             userId,
             texto,
-            tipo, // info, success, warning, error
+            tipo,
             fecha: new Date().toISOString(),
             leida: false
         };
@@ -690,7 +670,7 @@ class DB {
     logActivity(type, text, details = {}, userId = null) {
         const u = userId || (this.currentUser ? this.currentUser.userId : 'system');
         this.data.logs.unshift({
-            id: 'L' + Date.now() + Math.floor(Math.random()*1000),
+            id: 'L' + Date.now() + Math.floor(Math.random() * 1000),
             type,
             text,
             details,
@@ -724,7 +704,7 @@ class DB {
 
     isUserUpToDate(userId) {
         const inscripciones = (this.data.inscripciones || []).filter(i => i.userId === userId);
-        if (inscripciones.length === 0) return true; // Si no tiene cursos, est "al da"
+        if (inscripciones.length === 0) return true;
         return !inscripciones.some(i => i.estadoPago === 'Sin Pagar');
     }
 
@@ -777,10 +757,9 @@ class DB {
             if (user) {
                 user.sancionadoSoporte = true;
             }
-            // Close related ticket if exists
             const t = this.data.tickets.find(x => x.id === s.ticketId);
             if (t) t.estado = 'Cerrado';
-            
+
             this.save();
             return true;
         }
@@ -795,6 +774,17 @@ class DB {
             return true;
         }
         return false;
+    }
+
+    updateTecnicoCargo(userId, cargo) {
+        if (!this.data.equipoSoporte) this.data.equipoSoporte = [];
+        let tech = this.data.equipoSoporte.find(x => x.userId === userId);
+        if (tech) {
+            tech.cargo = cargo;
+        } else {
+            this.data.equipoSoporte.push({ userId, cargo });
+        }
+        this.save();
     }
 
     updateTecnicoSector(userId, sector) {
@@ -820,22 +810,19 @@ class DB {
     }
 
     saveCourseOrder(newOrder) {
-        // ... (existing logic)
+        // Implementation for course reordering
     }
 
     hasRole(userId, role) {
         const user = this.data.profiles.find(p => p.userId === userId);
         if (!user || !user.roles) return false;
-        
         if (role === 'carin_plus') return this.isCarinPlusActive(user);
-        
         return user.roles.includes(role);
     }
 
     hasAnyRole(userId, roles) {
         const user = this.data.profiles.find(p => p.userId === userId);
         if (!user || !user.roles) return false;
-        
         return roles.some(r => {
             if (r === 'carin_plus') return this.isCarinPlusActive(user);
             return user.roles.includes(r);
@@ -848,7 +835,6 @@ class DB {
             if (user.roles && user.roles.includes('carin_plus') && user.carinPlusExpiry) {
                 if (new Date(user.carinPlusExpiry) <= new Date()) {
                     user.roles = user.roles.filter(r => r !== 'carin_plus');
-                    // We don't call save here to avoid recursion
                 }
             }
         });
@@ -856,19 +842,16 @@ class DB {
 
     isCarinPlusActive(user) {
         if (!user || !user.roles || !user.roles.includes('carin_plus')) return false;
-        if (!user.carinPlusExpiry) return true; // Legacy or permanent
+        if (!user.carinPlusExpiry) return true;
         return new Date(user.carinPlusExpiry) > new Date();
     }
 
     getHighestRole(user) {
         if (!user || !user.roles || user.roles.length === 0) return 'usuario';
-        
-        // If they have carin_plus but it expired, treat it as not having it
         const effectiveRoles = user.roles.filter(r => {
             if (r === 'carin_plus') return this.isCarinPlusActive(user);
             return true;
         });
-
         for (const role of ROLE_PRIORITY) {
             if (effectiveRoles.includes(role)) return role;
         }
@@ -878,28 +861,18 @@ class DB {
     toggleUserRole(userId, role) {
         const user = this.data.profiles.find(u => u.userId === userId);
         if (!user) return;
-        
         if (!user.roles) user.roles = [user.rango || 'usuario'];
-        
         if (user.roles.includes(role)) {
-            // Can't remove 'usuario' if it's the only one, or something?
-            // Actually let's just allow toggling.
             user.roles = user.roles.filter(r => r !== role);
             if (user.roles.length === 0) user.roles = ['usuario'];
         } else {
             user.roles.push(role);
         }
-        
-        // Sync rango for legacy UI support
         user.rango = this.getHighestRole(user);
-
-        // Special logic for Profesor role
         if (role === 'profesor') {
             const hasProfeRole = user.roles.includes('profesor');
             const existingProfe = this.data.profesores.find(p => p.userId === userId);
-            
             if (hasProfeRole && !existingProfe) {
-                // Auto-create professor record
                 this.addProfesor({
                     userId: user.userId,
                     nombre: user.nombre,
@@ -911,12 +884,8 @@ class DB {
                     alias: '',
                     notasPago: ''
                 });
-            } else if (!hasProfeRole && existingProfe) {
-                // Should we remove professor recordMaybe not automatically to avoid data loss.
-                // But the user requested to manage it. Let's keep it for now but maybe log it.
             }
         }
-
         this.logActivity('system', `Roles de ${user.nombre} actualizados: [${user.roles.join(', ')}]`, { userId, roles: user.roles });
         this.save();
     }
@@ -924,7 +893,6 @@ class DB {
     updateUserProfile(userId, data) {
         const user = this.data.profiles.find(p => p.userId === userId);
         if (!user) return false;
-
         if (data.nombre) user.nombre = data.nombre;
         if (data.email) user.email = data.email;
         if (data.telefono !== undefined) user.telefono = data.telefono;
@@ -932,7 +900,6 @@ class DB {
             user.roles = data.roles;
             user.rango = this.getHighestRole(user);
         }
-
         this.logActivity('system', `Perfil de ${user.nombre} actualizado por admin`, { userId, data });
         this.save();
         return true;
@@ -941,17 +908,14 @@ class DB {
     setCarinPlusTemporal(userId, seconds) {
         const user = this.data.profiles.find(p => p.userId === userId);
         if (!user) return false;
-
         if (!user.roles.includes('carin_plus')) {
             user.roles.push('carin_plus');
         }
-
         const now = new Date();
         const expiry = new Date(now.getTime() + seconds * 1000);
         user.carinPlusExpiry = expiry.toISOString();
         user.rango = this.getHighestRole(user);
-
-        this.logActivity('system', `Carin+ Temporal activado para ${user.nombre} por ${seconds} seg. Expira: ${user.carinPlusExpiry}`, { userId, seconds });
+        this.logActivity('system', `Carin+ Temporal activado para ${user.nombre}`, { userId, seconds });
         this.save();
         return true;
     }
@@ -1015,7 +979,7 @@ class DB {
 
     addProduct(productData) {
         const id = (this.data.productos.length + 1).toString();
-        this.data.productos.push({ id, ...productData, visible: true, carinPlusDescuento: productData.carinPlusDescuento || 0, isCarinExtraOffer: productData.isCarinExtraOffer || false });
+        this.data.productos.push({ id, ...productData, visible: true, carinPlusDescuento: productData.carinPlusDescuento || 0 });
         this.save();
     }
 
@@ -1028,7 +992,6 @@ class DB {
 
     deleteCategoria(id) {
         this.data.categoriasStore = this.data.categoriasStore.filter(c => c.id !== id && c.parentId !== id);
-        // Also remove category reference from products
         this.data.productos.forEach(p => {
             if (p.categoriaId === id || p.subcategoriaId === id) {
                 p.categoriaId = null;
@@ -1042,36 +1005,21 @@ class DB {
         return this.data.inscripciones.filter(i => i.cursoId === cursoId && i.mes === mes && i.anio == anio);
     }
 
-    removeStudentFromMonth(cursoId, userId, mes, anio) {
-        this.data.inscripciones = (this.data.inscripciones || []).filter(i => 
-            !(i.cursoId === cursoId && i.userId === userId && i.mes === mes && i.anio == anio)
-        );
-        this.save();
-    }
-
     enrollStudent(cursoId, userId, mes = null, anio = null) {
         const curso = this.data.cursos.find(c => c.id === cursoId);
         if (!curso) return false;
-
         if (!curso.alumnos.includes(userId)) {
             if (curso.alumnos.length >= curso.maxAlumnos) return false;
             curso.alumnos.push(userId);
-            const user = this.data.profiles.find(p => p.userId === userId);
-            this.logActivity('inscripcion', `Alumno ${user ? user.nombre : userId} inscrito en ${curso.titulo}`, {
-                alumno: user ? user.nombre : userId,
-                curso: curso.titulo
-            });
         }
-
         const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const fechaActual = new Date();
         const mesActual = mes || meses[fechaActual.getMonth()];
         const anioActual = anio || fechaActual.getFullYear();
-        
         let insc = this.data.inscripciones.find(i => i.cursoId === cursoId && i.userId === userId && i.mes === mesActual && i.anio == anioActual);
         if (!insc) {
             this.data.inscripciones.push({
-                id: 'insc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                id: 'insc_' + Date.now(),
                 cursoId,
                 userId,
                 mes: mesActual,
@@ -1082,26 +1030,15 @@ class DB {
                 historial: []
             });
         }
-        
         this.save();
-        this.addNotification(userId, `Has sido inscrito en el curso: ${curso.titulo}`, 'success');
         return true;
     }
 
     updateCoursePrices(cursoId, precioVisible, precioInterno) {
         const curso = this.data.cursos.find(c => c.id === cursoId);
         if (curso) {
-            const oldV = curso.precio;
-            const oldI = curso.precioInterno;
             curso.precio = parseInt(precioVisible) || 0;
             curso.precioInterno = parseInt(precioInterno) || 0;
-            this.logActivity('precio', `Precios de "${curso.titulo}" actualizados`, {
-                item: curso.titulo,
-                precioAnterior: oldV,
-                precioNuevo: curso.precio,
-                internoAnterior: oldI,
-                internoNuevo: curso.precioInterno
-            });
             this.save();
             return true;
         }
@@ -1109,35 +1046,10 @@ class DB {
     }
 
     updatePagoEstado(cursoId, userId, mes, anio, estado, comprobanteBase64 = null) {
-        if (!this.data.logs) this.data.logs = [];
         let insc = this.data.inscripciones.find(i => i.cursoId === cursoId && i.userId === userId && i.mes === mes && i.anio == anio);
-        if (!insc) {
-            insc = { cursoId, userId, mes, anio, estadoPago: 'Sin Pagar', fechaPago: null, comprobante: '', historial: [] };
-            this.data.inscripciones.push(insc);
-        }
-        
-        const oldState = insc.estadoPago;
+        if (!insc) return;
         insc.estadoPago = estado;
-        if (estado === 'Pagado' && !insc.fechaPago) {
-            insc.fechaPago = new Date().toISOString().split('T')[0];
-        } else if (estado === 'Sin Pagar') {
-            insc.fechaPago = null;
-        }
-        
-        if (comprobanteBase64 !== null) {
-            insc.comprobante = comprobanteBase64;
-        }
-        
-        const u = this.data.profiles.find(x => x.userId === userId);
-        const c = this.data.cursos.find(x => x.id === cursoId);
-        this.logActivity('pago', `Pago de ${u ? u.nombre : userId} en ${c ? c.titulo : cursoId} cambiado de ${oldState} a ${estado}`, {
-            alumno: u ? u.nombre : userId,
-            curso: c ? c.titulo : cursoId,
-            mes,
-            anio,
-            oldState,
-            newState: estado
-        });
+        if (comprobanteBase64) insc.comprobante = comprobanteBase64;
         this.save();
     }
 
@@ -1146,29 +1058,10 @@ class DB {
         if (curso) {
             curso.alumnos = curso.alumnos.filter(id => id !== userId);
             this.data.inscripciones = this.data.inscripciones.filter(i => !(i.cursoId === cursoId && i.userId === userId));
-            const u = this.data.profiles.find(x => x.userId === userId);
-            this.logActivity('baja', `Alumno ${u ? u.nombre : userId} eliminado de ${curso.titulo}`, {
-                alumno: u ? u.nombre : userId,
-                curso: curso.titulo
-            });
             this.save();
             return true;
         }
         return false;
-    }
-
-    removeInscription(cursoId, userId, mes, anio) {
-        this.data.inscripciones = this.data.inscripciones.filter(i => !(i.cursoId === cursoId && i.userId === userId && i.mes === mes && i.anio == anio));
-        const u = this.data.profiles.find(x => x.userId === userId);
-        const c = this.data.cursos.find(x => x.id === cursoId);
-        this.logActivity('baja', `Inscripción de ${u ? u.nombre : userId} en ${c ? c.titulo : cursoId} (${mes}) eliminada`, {
-            alumno: u ? u.nombre : userId,
-            curso: c ? c.titulo : cursoId,
-            mes,
-            anio
-        });
-        this.save();
-        return true;
     }
 
     checkMonthTransition() {
@@ -1176,16 +1069,8 @@ class DB {
         const fechaActual = new Date();
         const mesActual = meses[fechaActual.getMonth()];
         const anioActual = fechaActual.getFullYear();
-        
         const key = `${mesActual}-${anioActual}`;
         if (this.data.lastCheckedMonth !== key) {
-            if (this.data.inscripciones) {
-                this.data.inscripciones.forEach(insc => {
-                    if (insc.mes === mesActual && insc.anio == anioActual && insc.estadoPago === 'Reservado') {
-                        insc.estadoPago = 'Sin Pagar';
-                    }
-                });
-            }
             this.data.lastCheckedMonth = key;
             this.save();
         }
@@ -1194,25 +1079,11 @@ class DB {
     getPagoStats(cursoId, mes, anio) {
         const curso = this.data.cursos.find(c => c.id === cursoId);
         if (!curso) return null;
-
         const inscripcionesMes = this.data.inscripciones.filter(i => i.cursoId === cursoId && i.mes === mes && i.anio === anio);
-        
-        const totalAlumnos = inscripcionesMes.length;
-        const pagados = inscripcionesMes.filter(i => i.estadoPago === 'Pagado').length;
-        const enProceso = inscripcionesMes.filter(i => i.estadoPago === 'En Proceso' || i.estadoPago === 'En Revisi\u00F3n').length;
-        const sinPagar = totalAlumnos - pagados - enProceso;
-        
-        const precio = curso.precio || 0;
-        const precioInterno = curso.precioInterno || 0;
-        
         return {
-            totalAlumnos,
-            pagados,
-            enProceso,
-            sinPagar,
-            montoEsperado: totalAlumnos * precioInterno,
-            montoPendiente: (totalAlumnos - pagados) * precioInterno,
-            montoTotalVisible: totalAlumnos * precio
+            totalAlumnos: inscripcionesMes.length,
+            pagados: inscripcionesMes.filter(i => i.estadoPago === 'Pagado').length,
+            montoEsperado: inscripcionesMes.length * (curso.precioInterno || 0)
         };
     }
 
@@ -1221,28 +1092,13 @@ class DB {
         if (t) {
             t.mensajes.push({ id: Date.now().toString(), texto, fecha: new Date().toISOString(), esEquipo });
             if (esEquipo && t.estado === 'Abierto') t.estado = 'En curso';
-            if (esEquipo && !t.asignadoA) t.asignadoA = this.currentUser.userId;
             this.save();
         }
     }
 
     changeTicketState(id, state) {
         const t = this.data.tickets.find(x => x.id === id);
-        if (t) {
-            const old = t.estado;
-            t.estado = state;
-            this.logActivity('ticket', `Ticket #${id} cambiado de ${old} a ${state}`);
-        }
-        this.save();
-    }
-
-    changeUserRole(userId, newRole) {
-        const u = this.data.profiles.find(x => x.userId === userId);
-        if (u) {
-            const old = u.rango;
-            u.rango = newRole;
-            this.logActivity('system', `Rango de ${u.nombre} cambiado de ${old} a ${newRole}`, { userId, old, newRole });
-        }
+        if (t) t.estado = state;
         this.save();
     }
 
@@ -1258,17 +1114,12 @@ class DB {
     }
 
     addCurso(cursoData) {
-        if (!cursoData.id) {
-            cursoData.id = 'C-' + Date.now();
-        }
-        if (!cursoData.alumnos) cursoData.alumnos = [];
+        if (!cursoData.id) cursoData.id = 'C-' + Date.now();
         this.data.cursos.push(cursoData);
         this.save();
     }
 
     deleteCurso(id) {
-        const c = this.data.cursos.find(x => x.id === id);
-        this.logActivity('system', `Curso "${c ? c.titulo : id}" eliminado permanentemente`, { id, titulo: c?c.titulo:id });
         this.data.cursos = this.data.cursos.filter(c => c.id !== id);
         this.data.inscripciones = this.data.inscripciones.filter(i => i.cursoId !== id);
         this.save();
@@ -1277,36 +1128,13 @@ class DB {
     addProfesor(data) {
         const id = 'PROFE-' + Date.now();
         this.data.profesores.push({ id, ...data });
-        
-        const u = this.data.profiles.find(x => x.userId === data.userId);
-        if (u && u.rango !== 'admin') {
-            u.rango = 'profesor';
-        }
-        this.logActivity('system', `Nuevo profesor asignado: ${data.nombre}`, { profeId: id, userId: data.userId, especialidad: data.especialidad });
         this.save();
-    }
-
-    updateProfesorPago(profeId, banco, alias, notas) {
-        const profe = this.data.profesores.find(p => p.id === profeId);
-        if (profe) {
-            profe.banco = banco;
-            profe.alias = alias;
-            profe.notasPago = notas;
-            this.save();
-        }
     }
 
     updateProfesorData(profeId, data) {
         const profe = this.data.profesores.find(p => p.id === profeId);
         if (profe) {
             Object.assign(profe, data);
-            // Also update the profile if name/email changed
-            const u = this.data.profiles.find(x => x.userId === profe.userId);
-            if (u) {
-                if (data.nombre) u.nombre = data.nombre;
-                if (data.correo) u.email = data.correo;
-                if (data.telefono) u.telefono = data.telefono;
-            }
             this.save();
         }
     }
@@ -1321,91 +1149,27 @@ class DB {
         return false;
     }
 
-    updateCourseSchedule(courseId, newSchedule) {
-        const c = this.get('cursos').find(x => x.id === courseId);
-        if (c) {
-            c.schedule = newSchedule;
-            // Generate a simple string for fallback or legacy displays
-            if (newSchedule && newSchedule.length > 0) {
-                c.horarios = newSchedule.map(s => `${s.dia} ${s.horaInicio}-${s.horaFin} (${s.frecuencia})`).join(', ');
-            } else {
-                c.horarios = 'Horarios a confirmar';
-            }
-            this.save();
-        }
-    }
-
     deleteProfesor(id) {
-        const p = this.data.profesores.find(x => x.id === id);
-        this.logActivity('system', `Profesor removido: ${p ? p.nombre : id}`, { profeId: id });
         this.data.profesores = this.data.profesores.filter(p => p.id !== id);
         this.save();
     }
 
-    // --- CLASSROOM / MATERIALES ---
-    informPago(cursoId, userId, mes, anio, comprobante) {
-        const insc = this.data.inscripciones.find(i => i.cursoId === cursoId && i.userId === userId && i.mes === mes && i.anio == anio);
-        if (insc) {
-            insc.estadoPago = 'En Revisi\u00F3n';
-            insc.comprobante = comprobante;
-            insc.fechaRevision = new Date().toISOString();
-            this.save();
-            return true;
-        }
-        return false;
-    }
-
-    approveInscription(cursoId, userId, mes, anio) {
-        const insc = this.data.inscripciones.find(i => i.cursoId === cursoId && i.userId === userId && i.mes === mes && i.anio == anio);
-        if (insc) {
-            insc.estadoPago = 'Pagado';
-            insc.comprobante = null; // Clear screenshot after approval
-            this.save();
-            return true;
-        }
-        return false;
-    }
-
-    rejectInscription(cursoId, userId, mes, anio) {
-        const insc = this.data.inscripciones.find(i => i.cursoId === cursoId && i.userId === userId && i.mes === mes && i.anio == anio);
-        if (insc) {
-            insc.estadoPago = 'Pendiente';
-            insc.comprobante = null; // Clear screenshot after rejection
-            this.save();
-            return true;
-        }
-        return false;
-    }
-
     getMaterialesByCurso(cursoId) {
-        return (this.data.materialesClase || []).filter(m => m.cursoId === cursoId).sort((a,b) => a.orden - b.orden);
+        return (this.data.materialesClase || []).filter(m => m.cursoId === cursoId).sort((a, b) => a.orden - b.orden);
     }
 
     addMaterialClase(cursoId, material) {
         if (!this.data.materialesClase) this.data.materialesClase = [];
-        const newId = 'M-' + Date.now();
         const newMaterial = {
-            id: newId,
+            id: 'M-' + Date.now(),
             cursoId,
-            titulo: material.titulo || 'Sin título',
-            descripcion: material.descripcion || '',
-            archivo: material.archivo || '',
-            tipo: material.tipo || 'Archivo',
+            ...material,
             fecha: new Date().toISOString(),
             orden: this.data.materialesClase.filter(m => m.cursoId === cursoId).length
         };
         this.data.materialesClase.push(newMaterial);
         this.save();
         return newMaterial;
-    }
-
-    updateMaterialOrden(cursoId, orderedIds) {
-        if (!this.data.materialesClase) return;
-        orderedIds.forEach((id, index) => {
-            const m = this.data.materialesClase.find(x => x.id === id);
-            if (m) m.orden = index;
-        });
-        this.save();
     }
 
     deleteMaterial(id) {

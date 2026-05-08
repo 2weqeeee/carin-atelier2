@@ -7450,13 +7450,17 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                             <tr style="background:var(--color-bg-alt); text-align:left; font-size:11px; text-transform:uppercase; color:var(--color-text-muted); border-bottom:1px solid var(--color-border);">
                                 <th style="padding:1rem;">Técnico</th>
                                 <th style="padding:1rem;">Estado</th>
-                                <th style="padding:1rem;">Sector Asignado</th>
-                                <th style="padding:1rem; text-align:right;">Actualizar</th>
+                                <th style="padding:1rem;">Sector</th>
+                                <th style="padding:1rem;">Cargo / Rol</th>
+                                <th style="padding:1rem; text-align:right;">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${tecnicos.map(t => {
                                 const sector = db.getTecnicoSector(t.userId);
+                                const techInfo = (db.get('equipoSoporte') || []).find(e => e.userId === t.userId) || {};
+                                const cargo = techInfo.cargo || '';
+                                const isAdmin = db.hasAnyRole(db.currentUser.userId, ['admin', 'owner']);
                                 return `
                                 <tr style="border-bottom:1px solid var(--color-border);">
                                     <td style="padding:1rem;">
@@ -7469,16 +7473,21 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                                         </span>
                                     </td>
                                     <td style="padding:1rem;">
-                                        <select id="tech-sector-${t.userId}" style="padding:8px; border-radius:8px; border:1.5px solid var(--color-border); font-size:13px; font-weight:600; width:100%; max-width:200px;">
-                                            <option value="General" ${sector==='General'?'selected':''}>Sector General</option>
-                                            <option value="Pagos" ${sector==='Pagos'?'selected':''}>Pagos y Facturación</option>
-                                            <option value="Tecnico" ${sector==='Tecnico'?'selected':''}>Problemas Técnicos</option>
-                                            <option value="Cursos" ${sector==='Cursos'?'selected':''}>Gestión de Cursos</option>
-                                            <option value="Premium" ${sector==='Premium'?'selected':''}>Carin+ VIP</option>
-                                        </select>
+                                        ${isAdmin ? `
+                                        <select id="tech-sector-${t.userId}" style="padding:8px; border-radius:8px; border:1.5px solid var(--color-border); font-size:13px; font-weight:600; width:100%;">
+                                            <option value="General" ${sector==='General'?'selected':''}>General</option>
+                                            <option value="Pagos" ${sector==='Pagos'?'selected':''}>Pagos</option>
+                                            <option value="Tecnico" ${sector==='Tecnico'?'selected':''}>Técnico</option>
+                                            <option value="Cursos" ${sector==='Cursos'?'selected':''}>Cursos</option>
+                                        </select>` : `<span>${sector}</span>`}
+                                    </td>
+                                    <td style="padding:1rem;">
+                                        ${isAdmin ? `
+                                        <input type="text" id="tech-cargo-${t.userId}" value="${cargo}" placeholder="Ej: Soporte IT" style="padding:8px; border-radius:8px; border:1.5px solid var(--color-border); font-size:13px; font-weight:600; width:100%;">
+                                        ` : `<span>${cargo || 'Sin cargo'}</span>`}
                                     </td>
                                     <td style="padding:1rem; text-align:right;">
-                                        <button class="btn btn-dark" style="font-size:11px; padding:8px 16px;" onclick="App.updateTechSector('${t.userId}')">GUARDAR</button>
+                                        ${isAdmin ? `<button class="btn btn-dark" style="font-size:11px; padding:8px 16px;" onclick="App.updateTechProfile('${t.userId}')">GUARDAR</button>` : '<span style="font-size:12px; color:var(--color-text-muted);">Solo lectura</span>'}
                                     </td>
                                 </tr>`;
                             }).join('')}
@@ -8682,10 +8691,12 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         }
     },
 
-    updateTechSector(userId) {
+    updateTechProfile(userId) {
         const sector = document.getElementById(`tech-sector-${userId}`).value;
+        const cargo = document.getElementById(`tech-cargo-${userId}`).value;
         db.updateTecnicoSector(userId, sector);
-        this.showToast('✅ Sector actualizado para el técnico');
+        db.updateTecnicoCargo(userId, cargo);
+        this.showToast('✅ Perfil del técnico actualizado');
     },
 
     requestSanctionUI(userId, ticketId) {
@@ -11942,7 +11953,11 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
         const tech = users.find(u => u.userId === userId);
         const techName = tech ? tech.nombre : userId;
 
-        t.asignadoA = userId;
+        const updateData = { asignadoA: userId };
+        if (userId && t.estado === 'Abierto') updateData.estado = 'En curso';
+
+        db.updateTicket(ticketId, updateData);
+
         if (userId) {
             t.mensajes.push({
                 id: 'sys-' + Date.now(),
@@ -11950,9 +11965,9 @@ Usuario: ${db.currentUser.nombre} (${db.currentUser.email})`;
                 fecha: new Date().toISOString(),
                 esSistema: true
             });
-            if (t.estado === 'Abierto') t.estado = 'En curso';
+            db.save();
         }
-        db.save();
+        
         this.selectAdminTicket(ticketId);
         this.showToast('Ticket asignado');
     },
